@@ -188,8 +188,8 @@ export default function Home() {
                     </div>
                     <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
                   </div>
-                  <blockquote className="text-gray-300 leading-relaxed text-sm">
-                    Found my prayer partner and soulmate! We bonded over mission trips and now were planning to serve together in ministry.
+                  <blockquote className="text-gray-300 leading-relaxed text-sm italic">
+                    "Found my prayer partner and soulmate! We bonded over mission trips and now we're planning to serve together in ministry."
                   </blockquote>
                 </div>
               </div>
@@ -210,8 +210,8 @@ export default function Home() {
                     </div>
                     <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
                   </div>
-                  <blockquote className="text-gray-300 leading-relaxed text-sm">
-                    What started as a conversation about favorite Bible verses turned into the most beautiful relationship. Thank you FaithBliss!
+                  <blockquote className="text-gray-300 leading-relaxed text-sm italic">
+                    "What started as a conversation about favorite Bible verses turned into the most beautiful relationship. Thank you FaithBliss!"
                   </blockquote>
                 </div>
               </div>
@@ -232,8 +232,8 @@ export default function Home() {
                     </div>
                     <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
                   </div>
-                  <blockquote className="text-gray-300 leading-relaxed text-sm">
-                    We discovered we both volunteer at the same shelter! Gods timing is perfect. Now we serve together as husband and wife.
+                  <blockquote className="text-gray-300 leading-relaxed text-sm italic">
+                   "We discovered we both volunteer at the same shelter! God's timing is perfect. Now we serve together as husband and wife."
                   </blockquote>
                 </div>
               </div>
