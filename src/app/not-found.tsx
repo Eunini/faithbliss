@@ -54,7 +54,7 @@ export default function NotFound() {
         {/* Fun message */}
         <div className="mt-12 p-6 bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700">
           <p className="text-gray-300 text-sm">
-            ✨ While you're here, remember that even when we're lost, faith guides us back to where we belong. 
+            ✨ While you are here, remember that even when we are lost, faith guides us back to where we belong. 
             <br />
             <span className="text-pink-400 font-medium">Every journey has its purpose! 💕</span>
           </p>
