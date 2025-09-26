@@ -1,0 +1,247 @@
+"use client";
+
+import Link from "next/link";
+import { Heart } from "lucide-react";
+import { useState, useEffect } from "react";
+
+
+
+// Simple fade-in animation component
+const FadeIn = ({ children, delay = 0 }: { children: React.ReactNode, delay?: number }) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  return (
+    <div 
+      className={`transition-all duration-1000 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
+    >
+      {children}
+    </div>
+  );
+};
+
+
+
+export default function Home() {
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    // Smooth scroll handling with requestAnimationFrame for better performance
+    let ticking = false;
+    const smoothScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', smoothScroll, { passive: true });
+    return () => window.removeEventListener('scroll', smoothScroll);
+  }, []);
+
+  // Tinder-style scroll calculations
+
+  const heroHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const scrollProgress = Math.min(scrollY / heroHeight, 1);
+  
+  // Background parallax - slower movement (Tinder style)
+  const bgTransform = scrollY * 0.3;
+  
+  // Content fade and movement - faster than background
+  const contentOpacity = Math.max(0, 1 - scrollProgress * 1.2);
+  const contentTransform = scrollY * 0.6;
+  
+  // Navigation background appears on scroll
+  const navOpacity = Math.min(scrollY / 100, 0.95);
+
+
+
+  return (
+    <main className="bg-gray-900" style={{ scrollBehavior: 'smooth' }}>
+      {/* Navigation */}
+      <nav 
+        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+        style={{
+          backgroundColor: `rgba(17, 24, 39, ${navOpacity})`,
+          backdropFilter: navOpacity > 0.1 ? 'blur(10px)' : 'none',
+        }}
+      >
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-2">
+              <Heart className="h-8 w-8 text-pink-500" />
+              <span className="text-2xl font-bold text-white">FaithBliss</span>
+            </div>
+            <div className="hidden md:flex space-x-8">
+              <a href="#features" className="text-white hover:text-pink-400 transition-colors">Features</a>
+              <a href="#stories" className="text-white hover:text-pink-400 transition-colors">Success Stories</a>
+              <a href="#download" className="text-white hover:text-pink-400 transition-colors">Download</a>
+            </div>
+            <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full hover:from-pink-600 hover:to-purple-700 transition-all">
+              Get Started
+            </button>
+          </div>
+        </div>
+      </nav>
+
+
+
+      {/* Hero Section with Tinder-Style Parallax */}  const contentTransform = scrollY * 0.6;
+
+      <section className="relative h-screen overflow-hidden">
+
+        {/* Background Layer - Slower movement */}      const handleScroll = () => {  useEffect(() => {
+
+        <div 
+
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110 will-change-transform"  // Navigation background appears on scroll
+
+          style={{
+
+            backgroundImage: "url('/bgimage.jpg')",  const navOpacity = Math.min(scrollY / 100, 0.95);      setScrollY(window.scrollY);    setMounted(true);
+
+            transform: `translate3d(0, ${bgTransform}px, 0) scale(1.1)`,
+
+          }}
+
+        >
+
+          {/* Gradient Overlay - Tinder Style */}  return (    };    
+
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70"></div>
+
+        </div>    <main className="bg-gray-900" style={{ scrollBehavior: 'smooth' }}>
+
+        
+
+        {/* Content Layer - Faster movement with fade */}      {/* Navigation */}    const handleScroll = () => {
+
+        <div 
+
+          className="relative z-10 h-screen flex items-center justify-center px-4 will-change-transform"      <nav 
+
+          style={{
+
+            opacity: contentOpacity,        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"    // Smooth scroll handling with requestAnimationFrame for better performance      setScrollY(window.scrollY);
+
+            transform: `translate3d(0, ${contentTransform}px, 0)`,
+
+          }}        style={{
+
+        >
+
+          <div className="text-center text-white max-w-4xl mx-auto">          backgroundColor: `rgba(17, 24, 39, ${navOpacity})`,    let ticking = false;    };
+
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+
+              <span className="block bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">          backdropFilter: navOpacity > 0.1 ? 'blur(10px)' : 'none',
+
+                Faith-Filled
+
+              </span>        }}    const smoothScroll = () => {
+
+              Match
+
+            </h1>      >
+
+            <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl mx-auto">
+
+              Connect with like-minded Christians who share your values, faith, and desire for meaningful relationships.        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">      if (!ticking) {    // Smooth scroll handling with requestAnimationFrame for better performance
+
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">          <div className="flex justify-between items-center py-4">
+
+              <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:from-pink-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
+
+                Start Your Journey            <div className="flex items-center space-x-2">        requestAnimationFrame(() => {    let ticking = false;
+
+              </button>
+
+            </div>              <Heart className="h-8 w-8 text-pink-500" />
+
+          </div>
+
+        </div>              <span className="text-2xl font-bold text-white">FaithBliss</span>          handleScroll();    const smoothScroll = () => {
+
+
+
+        {/* Tinder-Style Scroll Indicator */}            </div>
+
+        <div 
+
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"            <div className="hidden md:flex space-x-8">          ticking = false;      if (!ticking) {
+
+          style={{
+
+            opacity: Math.max(0, 1 - scrollProgress * 3),              <a href="#features" className="text-white hover:text-pink-400 transition-colors">Features</a>
+
+            transform: `translate(-50%, ${scrollY * 0.2}px)`,
+
+          }}              <a href="#stories" className="text-white hover:text-pink-400 transition-colors">Success Stories</a>        });        requestAnimationFrame(() => {
+
+        >
+
+          <div className="flex flex-col items-center animate-bounce">              <a href="#download" className="text-white hover:text-pink-400 transition-colors">Download</a>
+
+            <span className="text-white text-sm mb-3 font-medium">Scroll to explore</span>
+
+            <div className="w-6 h-10 border-2 border-white/80 rounded-full flex justify-center relative overflow-hidden">            </div>        ticking = true;          handleScroll();
+
+              <div 
+
+                className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"            <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full hover:from-pink-600 hover:to-purple-700 transition-all">
+
+                style={{
+
+                  boxShadow: '0 0 10px rgba(255,255,255,0.5)',              Get Started      }          ticking = false;
+
+                }}
+
+              ></div>            </button>
+
+            </div>
+
+          </div>          </div>    };        });
+
+        </div>
+
+      </section>        </div>
+
+
+
+      {/* Success Stories Section - Enhanced & Interactive */}      </nav>        ticking = true;
+
+      <section className="py-20 px-6 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+
+        {/* Floating Background Elements */}
+
+        <div className="absolute inset-0 opacity-5">
+
+          <div className="absolute top-20 left-10 text-6xl animate-pulse">💕</div>      {/* Hero Section with Tinder-Style Parallax */}    window.addEventListener('scroll', smoothScroll, { passive: true });      }
+
+          <div className="absolute top-40 right-20 text-4xl animate-bounce" style={{ animationDelay: '1s' }}>✨</div>
+
+          <div className="absolute bottom-32 left-1/4 text-5xl animate-pulse" style={{ animationDelay: '2s' }}>💒</div>      <section className="relative h-screen overflow-hidden">
+
+          <div className="absolute top-60 right-1/3 text-3xl animate-bounce" style={{ animationDelay: '3s' }}>🙏</div>
+
+        </div>        {/* Background Layer - Slower movement */}    return () => window.removeEventListener('scroll', smoothScroll);    };
+
+
+
+       
