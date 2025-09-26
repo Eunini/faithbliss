@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Heart, Globe, Users, Target, Shield, Handshake, BookOpen } from "lucide-react";
 import { useState, useEffect } from "react";
 
 // Simple fade-in animation component
@@ -84,9 +84,9 @@ export default function Home() {
               <span className="text-2xl font-bold text-white">FaithBliss</span>
             </div>
             <div className="hidden md:flex space-x-8">
-              <a href="#features" className="text-white hover:text-pink-400 transition-colors">Features</a>
-              <a href="#stories" className="text-white hover:text-pink-400 transition-colors">Success Stories</a>
-              <a href="#download" className="text-white hover:text-pink-400 transition-colors">Download</a>
+              <a href="#features" className="text-white hover:text-pink-400 transition-colors">Why FaithBliss</a>
+              <a href="#stories" className="text-white hover:text-pink-400 transition-colors">Love Stories</a>
+              <a href="#community" className="text-white hover:text-pink-400 transition-colors">Community</a>
             </div>
             <button className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-all">
               Get Started
@@ -96,7 +96,7 @@ export default function Home() {
       </nav>
 
       {/* Hero Section with Tinder-Style Parallax */}
-      <section className="relative h-screen overflow-hidden">
+      <section className="relative min-h-screen md:h-screen overflow-hidden">
         {/* Background Layer - Slower movement */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110 will-change-transform"
@@ -113,7 +113,7 @@ export default function Home() {
         
         {/* Content Layer - Faster movement with fade */}
         <div 
-          className="relative z-10 h-screen flex items-center justify-center px-4 will-change-transform"
+          className="relative z-10 min-h-screen md:h-screen flex items-center justify-center px-4 pt-20 pb-8 md:pt-24 md:pb-0 will-change-transform"
           style={{
             opacity: contentOpacity,
             transform: `translate3d(0, ${contentTransform}px, 0)`,
@@ -128,44 +128,157 @@ export default function Home() {
                 transform: `scale(${headlineScale})`,
               }}
             >
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-center">
-                  Find Your Faithful
+              <h1 className="text-3xl md:text-6xl font-bold mb-6 leading-tight text-center">
+                Why Believers Across
                 <span className="block bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-                  Connection
+                  Africa Are Finding Love
                 </span>
+                <span className="block text-white">on FaithBliss</span>
               </h1>
-              <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl mx-auto text-center">
-                Connect with like-minded Christians who share your values, faith, and desire for meaningful relationships.
+              <p className="text-sm md:text-xl mb-8 md:mb-12 text-gray-200 max-w-3xl mx-auto text-center">
+                Built specifically for African Christians - connecting believers across all 54 countries with shared faith, values, and marriage intentions.
               </p>
+              
+              {/* CTA Button - Simple & Responsive */}
+              <div className="flex justify-center">
+                <button className="bg-pink-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-full text-base md:text-lg font-semibold hover:bg-pink-600 transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm border border-pink-400/20">
+                  Start My Faith Journey
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* CTA Button - Simple & Responsive */}
-        <div 
-          className="absolute bottom-8 md:bottom-20 left-1/2 z-30 will-change-transform flex items-center justify-center px-4"
-          style={{
-            opacity: Math.max(0, 1 - scrollProgress * 1.5),
-            transform: `translate(-50%, ${scrollY * 0.2}px)`,
-          }}
-        >
-          <button className="bg-pink-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-full text-base md:text-lg font-semibold hover:bg-pink-600 transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm border border-pink-400/20">
-            Join the Family
-          </button>
         </div>
 
         
       </section>
 
+      {/* Features Section */}
+      <section id="features" className="py-20 px-6 bg-gradient-to-b from-gray-900 to-gray-800 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <FadeIn>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-6xl font-black mb-6 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+                Why FaithBliss?
+              </h2>
+              <p className="text-md text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                More than just a dating app - we understand African faith, values, and realities
+              </p>
+            </div>
+          </FadeIn>
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <FadeIn delay={200}>
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-pink-500/50 transition-all duration-500 hover:transform hover:scale-105">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+                    <Heart className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Marriage, Not Casual Dating</h3>
+                </div>
+                <p className="text-sm md:text-xl text-gray-300 text-left leading-relaxed">
+                  Every connection is intended to nurture godly friendship that could lead to Christian marriage.
+                </p>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={300}>
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-green-500/50 transition-all duration-500 hover:transform hover:scale-105">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                    <Globe className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Built for African Christians</h3>
+                </div>
+                <p className="text-gray-300 leading-relaxed">
+                  FaithBliss understands African faith, values, and realities — and is built around them.
+                </p>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={400}>
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-blue-500/50 transition-all duration-500 hover:transform hover:scale-105">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+                    <Users className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Diverse & Interdenominational</h3>
+                </div>
+                <p className="text-sm md:text-xl text-gray-300 text-left leading-relaxed">
+                  Connecting believers across all African 54 countries and 20+ denominations. Your chances of finding love are high.
+                </p>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={500}>
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-purple-500/50 transition-all duration-500 hover:transform hover:scale-105">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-violet-500 rounded-full flex items-center justify-center">
+                    <Target className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Smart Filters for Selective Search</h3>
+                </div>
+                <p className="text-sm md:text-xl text-gray-300 text-left leading-relaxed">
+                  Find exactly what you're looking for. Narrow by country, denomination, or church family — so Nigerians can meet Nigerians, Pentecostals can meet Pentecostals.
+                </p>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={600}>
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-orange-500/50 transition-all duration-500 hover:transform hover:scale-105">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                    <Shield className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Safe & Decent</h3>
+                </div>
+                <p className="text-sm md:text-xl text-gray-300 text-left leading-relaxed">
+                  We welcome your gorgeous and best looks, but filter out inappropriate content to protect Christian values.
+                </p>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={700}>
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-teal-500/50 transition-all duration-500 hover:transform hover:scale-105">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full flex items-center justify-center">
+                    <Handshake className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Community & Meetups</h3>
+                </div>
+                <p className="text-sm md:text-xl text-left text-gray-300 leading-relaxed">
+                  Go beyond swipes — connect through sub-groups, interest spaces, and safe events for travelers, professionals, creatives, and more.
+                </p>
+              </div>
+            </FadeIn>
+          </div>
+
+          {/* Faith & Love Resources - Full Width */}
+          <FadeIn delay={800}>
+            <div className="mt-12 bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-2xl p-8 border border-gray-600 backdrop-blur-sm">
+              <div className="flex items-center justify-center space-x-4 mb-1">
+                <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <BookOpen className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl md:text-3xl font-bold text-white">Faith & Love Resources</h3>
+              </div>
+              <p className="text-sm md:text-xl text-gray-300 text-left max-w-4xl mx-auto leading-relaxed">
+                Get devotionals, relationship insights, and marriage preparation tools designed to help Christian singles grow in love and faith together.
+              </p>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
       {/* Success Stories Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+      <section id="stories" className="py-20 px-6 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <FadeIn>
             <div className="text-center mb-20">
-              <h2 className="text-6xl md:text-7xl font-black mb-6 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+              <h2 className="text-5xl md:text-7xl font-black mb-6 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
                 Love Stories
               </h2>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-md md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
                 Real couples who found their forever person through faith, love, and divine timing 
               </p>
             </div>
@@ -247,9 +360,9 @@ export default function Home() {
       {/* Simple Footer */}
       <footer className="bg-gray-900 text-white py-12 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-8 md:mb-0">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">
+          <div className="flex flex-col md:flex-row  md:justify-between items-center">
+            <div className="mb-8 md:mb-0 text-center md:text-left">
+              <h3 className="text-2xl font-bold  bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">
                 FaithBliss 
               </h3>
               <p className="text-gray-400 mt-2">Building faithful connections</p>
