@@ -1,5 +1,25 @@
+"use client";
+
 import Link from 'next/link';
-import { Heart, Home, ArrowLeft } from 'lucide-react';
+
+// Separate component for the back button to handle client-side interaction
+function BackButton() {
+  const handleGoBack = () => {
+    if (typeof window !== 'undefined') {
+      window.history.back();
+    }
+  };
+
+  return (
+    <button 
+      onClick={handleGoBack}
+      className="bg-gray-800 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-700 transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm border border-gray-600/50 flex items-center justify-center space-x-2"
+    >
+      <span>←</span>
+      <span>Go Back</span>
+    </button>
+  );
+}
 
 export default function NotFound() {
   return (
@@ -7,7 +27,7 @@ export default function NotFound() {
       <div className="text-center text-white max-w-2xl mx-auto">
         {/* Logo */}
         <div className="flex items-center justify-center space-x-2 mb-8">
-          <Heart className="h-12 w-12 text-pink-500" />
+          <span className="text-4xl">💖</span>
           <span className="text-3xl font-bold">FaithBliss</span>
         </div>
 
@@ -17,9 +37,9 @@ export default function NotFound() {
             404
           </h1>
           <div className="flex items-center justify-center space-x-2 mb-6">
-            <Heart className="h-6 w-6 text-pink-400 animate-pulse" />
-            <Heart className="h-8 w-8 text-pink-500 animate-pulse delay-100" />
-            <Heart className="h-6 w-6 text-pink-400 animate-pulse delay-200" />
+            <span className="text-2xl animate-pulse">💕</span>
+            <span className="text-3xl animate-pulse" style={{animationDelay: '0.1s'}}>💖</span>
+            <span className="text-2xl animate-pulse" style={{animationDelay: '0.2s'}}>💕</span>
           </div>
         </div>
 
@@ -29,7 +49,7 @@ export default function NotFound() {
         </h2>
         <p className="text-xl text-gray-300 mb-8 leading-relaxed">
           It seems like this page went on its own faith journey and wandered off. 
-          Don not worry, we will help you find your way back to love!
+          Don&apos;t worry, we&apos;ll help you find your way back to love!
         </p>
 
         {/* Action Buttons */}
@@ -38,17 +58,11 @@ export default function NotFound() {
             href="/"
             className="bg-pink-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-pink-600 transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm border border-pink-400/20 flex items-center justify-center space-x-2"
           >
-            <Home className="h-5 w-5" />
+            <span>🏠</span>
             <span>Go Home</span>
           </Link>
           
-          <button 
-            onClick={() => window.history.back()}
-            className="bg-gray-800 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-700 transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm border border-gray-600/50 flex items-center justify-center space-x-2"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Go Back</span>
-          </button>
+          <BackButton />
         </div>
 
         {/* Fun message */}
