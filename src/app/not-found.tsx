@@ -29,7 +29,7 @@ export default function NotFound() {
         </h2>
         <p className="text-xl text-gray-300 mb-8 leading-relaxed">
           It seems like this page went on its own faith journey and wandered off. 
-          Don't worry, we'll help you find your way back to love!
+          Don not worry, we will help you find your way back to love!
         </p>
 
         {/* Action Buttons */}
