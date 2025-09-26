@@ -219,7 +219,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold text-white">Smart Filters for Selective Search</h3>
                 </div>
                 <p className="text-sm md:text-xl text-gray-300 text-left leading-relaxed">
-                  Find exactly what you're looking for. Narrow by country, denomination, or church family — so Nigerians can meet Nigerians, Pentecostals can meet Pentecostals.
+                  Find exactly what you&apos;re looking for. Narrow by country, denomination, or church family — so Nigerians can meet Nigerians, Pentecostals can meet Pentecostals.
                 </p>
               </div>
             </FadeIn>
@@ -302,7 +302,7 @@ export default function Home() {
                     <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
                   </div>
                   <blockquote className="text-gray-300 leading-relaxed text-sm italic">
-                    "Found my prayer partner and soulmate! We bonded over mission trips and now we're planning to serve together in ministry."
+                    &quot;Found my prayer partner and soulmate! We bonded over mission trips and now we&apos;re planning to serve together in ministry.&quot;
                   </blockquote>
                 </div>
               </div>
@@ -324,7 +324,7 @@ export default function Home() {
                     <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
                   </div>
                   <blockquote className="text-gray-300 leading-relaxed text-sm italic">
-                    "What started as a conversation about favorite Bible verses turned into the most beautiful relationship. Thank you FaithBliss!"
+                    &quot;What started as a conversation about favorite Bible verses turned into the most beautiful relationship. Thank you FaithBliss!&quot;
                   </blockquote>
                 </div>
               </div>
@@ -346,7 +346,7 @@ export default function Home() {
                     <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
                   </div>
                   <blockquote className="text-gray-300 leading-relaxed text-sm italic">
-                   "We discovered we both volunteer at the same shelter! God's timing is perfect. Now we serve together as husband and wife."
+                   &quot;We discovered we both volunteer at the same shelter! God&apos;s timing is perfect. Now we serve together as husband and wife.&quot;
                   </blockquote>
                 </div>
               </div>
