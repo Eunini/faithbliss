@@ -62,11 +62,7 @@ export default function Home() {
   const headlineScale = Math.max(0.8, 1 - scrollProgress * 0.3);
   const headlineOpacity = Math.max(0, 1 - scrollProgress * 1.5);
   
-  // Sticky CTA button effect
-  const buttonStickyThreshold = heroHeight * 0.7; // Start sticky at 70% scroll
-  const buttonStickyEnd = heroHeight * 0.9; // End sticky at 90% scroll
-  const isButtonSticky = scrollY > buttonStickyThreshold && scrollY < buttonStickyEnd;
-  const buttonOpacity = scrollY < buttonStickyEnd ? 1 : Math.max(0, 1 - (scrollY - buttonStickyEnd) / 200);
+
   
   // Navigation background appears on scroll
   const navOpacity = Math.min(scrollY / 100, 0.95);
@@ -92,7 +88,7 @@ export default function Home() {
               <a href="#stories" className="text-white hover:text-pink-400 transition-colors">Success Stories</a>
               <a href="#download" className="text-white hover:text-pink-400 transition-colors">Download</a>
             </div>
-            <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full hover:from-pink-600 hover:to-purple-700 transition-all">
+            <button className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-all">
               Get Started
             </button>
           </div>
@@ -145,15 +141,15 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Sticky CTA Button - Tinder Style */}
+        {/* CTA Button - Simple & Responsive */}
         <div 
-          className={`${isButtonSticky ? 'fixed' : 'absolute'} bottom-20 left-1/2 z-30 will-change-transform flex items-center justify-center`}
+          className="absolute bottom-8 md:bottom-20 left-1/2 z-30 will-change-transform flex items-center justify-center px-4"
           style={{
-            opacity: buttonOpacity,
-            transform: `translate(-50%, 0) scale(${isButtonSticky ? 1.05 : 1})`,
+            opacity: Math.max(0, 1 - scrollProgress * 1.5),
+            transform: `translate(-50%, ${scrollY * 0.2}px)`,
           }}
         >
-          <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:from-pink-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-2xl hover:shadow-pink-500/25 backdrop-blur-sm border border-pink-400/20">
+          <button className="bg-pink-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-full text-base md:text-lg font-semibold hover:bg-pink-600 transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm border border-pink-400/20">
             Join the Family
           </button>
         </div>
