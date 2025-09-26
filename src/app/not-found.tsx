@@ -1,25 +1,5 @@
-"use client";
-
 import Link from 'next/link';
-
-// Separate component for the back button to handle client-side interaction
-function BackButton() {
-  const handleGoBack = () => {
-    if (typeof window !== 'undefined') {
-      window.history.back();
-    }
-  };
-
-  return (
-    <button 
-      onClick={handleGoBack}
-      className="bg-gray-800 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-700 transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm border border-gray-600/50 flex items-center justify-center space-x-2"
-    >
-      <span>←</span>
-      <span>Go Back</span>
-    </button>
-  );
-}
+import { Heart, Home } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -27,7 +7,7 @@ export default function NotFound() {
       <div className="text-center text-white max-w-2xl mx-auto">
         {/* Logo */}
         <div className="flex items-center justify-center space-x-2 mb-8">
-          <span className="text-4xl">💖</span>
+          <Heart className="h-12 w-12 text-pink-500" />
           <span className="text-3xl font-bold">FaithBliss</span>
         </div>
 
@@ -37,9 +17,9 @@ export default function NotFound() {
             404
           </h1>
           <div className="flex items-center justify-center space-x-2 mb-6">
-            <span className="text-2xl animate-pulse">💕</span>
-            <span className="text-3xl animate-pulse" style={{animationDelay: '0.1s'}}>💖</span>
-            <span className="text-2xl animate-pulse" style={{animationDelay: '0.2s'}}>💕</span>
+            <Heart className="h-6 w-6 text-pink-400 animate-pulse" />
+            <Heart className="h-8 w-8 text-pink-500 animate-pulse" style={{animationDelay: '0.1s'}} />
+            <Heart className="h-6 w-6 text-pink-400 animate-pulse" style={{animationDelay: '0.2s'}} />
           </div>
         </div>
 
@@ -58,11 +38,17 @@ export default function NotFound() {
             href="/"
             className="bg-pink-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-pink-600 transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm border border-pink-400/20 flex items-center justify-center space-x-2"
           >
-            <span>🏠</span>
+            <Home className="h-5 w-5" />
             <span>Go Home</span>
           </Link>
           
-          <BackButton />
+          <Link 
+            href="/"
+            className="bg-gray-800 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-700 transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm border border-gray-600/50 flex items-center justify-center space-x-2"
+          >
+            <Home className="h-5 w-5" />
+            <span>Back to Home</span>
+          </Link>
         </div>
 
         {/* Fun message */}
@@ -70,7 +56,7 @@ export default function NotFound() {
           <p className="text-gray-300 text-sm">
             While you are here, remember that even when we are lost, faith guides us back to where we belong. 
             <br />
-            <span className="text-pink-400 font-medium">Every journey has its purpose! 💕</span>
+            <span className="text-pink-400 font-medium flex items-center gap-1">Every journey has its purpose! <Heart className="h-4 w-4 inline" /></span>
           </p>
         </div>
       </div>
