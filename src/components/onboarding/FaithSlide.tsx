@@ -3,7 +3,7 @@ import { FormData } from './types';
 
 interface FaithSlideProps {
   formData: FormData;
-  updateFormData: (field: string, value: any) => void;
+  updateFormData: (field: string, value: string | boolean) => void;
 }
 
 export const FaithSlide = ({ formData, updateFormData }: FaithSlideProps) => {

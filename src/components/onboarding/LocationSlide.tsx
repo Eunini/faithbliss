@@ -4,7 +4,7 @@ import { OpenCageAutocomplete } from '../OpenCageAutocomplete';
 
 interface LocationSlideProps {
   formData: FormData;
-  updateFormData: (field: string, value: any) => void;
+  updateFormData: (field: string, value: string) => void;
 }
 
 export const LocationSlide = ({ formData, updateFormData }: LocationSlideProps) => {

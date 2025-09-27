@@ -60,7 +60,7 @@ const OnboardingPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const updateFormData = (field: string, value: any) => {
+  const updateFormData = (field: string, value: string | string[] | boolean | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

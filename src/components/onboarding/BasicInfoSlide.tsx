@@ -1,11 +1,11 @@
 import { User, Camera, X } from 'lucide-react';
 import { FormData } from './types';
-import { CountryCodeSelect, defaultCountry } from '../CountryCodeSelect';
+import { CountryCodeSelect, defaultCountry, type Country } from '../CountryCodeSelect';
 import { useState, useEffect } from 'react';
 
 interface BasicInfoSlideProps {
   formData: FormData;
-  updateFormData: (field: string, value: any) => void;
+  updateFormData: (field: string, value: string | boolean | null) => void;
 }
 
 export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps) => {
@@ -29,7 +29,7 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
     }
   };
 
-  const handleCountryChange = (country: any) => {
+  const handleCountryChange = (country: Country) => {
     setSelectedCountry(country);
     updateFormData('countryCode', country.dialCode);
   };

@@ -1,9 +1,9 @@
-import { Heart, Calendar, Music, Star, User, FileText } from 'lucide-react';
+import { Heart, Calendar, FileText } from 'lucide-react';
 import { FormData } from './types';
 
 interface PersonalSlideProps {
   formData: FormData;
-  updateFormData: (field: string, value: any) => void;
+  updateFormData: (field: string, value: string | string[]) => void;
 }
 
 export const PersonalSlide = ({ formData, updateFormData }: PersonalSlideProps) => {

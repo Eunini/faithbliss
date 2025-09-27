@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Search, Phone } from 'lucide-react';
 
-interface Country {
+export interface Country {
   name: string;
   code: string;
   dialCode: string;

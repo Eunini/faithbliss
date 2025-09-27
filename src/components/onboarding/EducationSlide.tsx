@@ -3,7 +3,7 @@ import { FormData } from './types';
 
 interface EducationSlideProps {
   formData: FormData;
-  updateFormData: (field: string, value: any) => void;
+  updateFormData: (field: string, value: string) => void;
 }
 
 export const EducationSlide = ({ formData, updateFormData }: EducationSlideProps) => {
