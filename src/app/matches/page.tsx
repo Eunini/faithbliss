@@ -1,0 +1,294 @@
+'use client';
+
+import { useState } from 'react';
+import { Heart, Star, MessageCircle, User, ArrowLeft, Filter, Search, MapPin, Church, BookOpen, Users, Clock, Check, X, Bell, Menu } from 'lucide-react';
+import Link from 'next/link';
+import { TopBar } from '@/components/dashboard/TopBar';
+
+const MatchesPage = () => {
+  const [activeTab, setActiveTab] = useState('mutual');
+
+  // Mock matches data
+  const mutualMatches = [
+    {
+      id: 1,
+      name: 'Sarah Johnson',
+      age: 26,
+      location: 'Lagos, Nigeria',
+      denomination: 'Baptist',
+      photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b647?w=400',
+      compatibility: 92,
+      lastActive: '2 hours ago',
+      status: 'online'
+    },
+    {
+      id: 2,
+      name: 'Grace Adebayo',
+      age: 24,
+      location: 'Ibadan, Nigeria',
+      denomination: 'Methodist',
+      photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+      compatibility: 85,
+      lastActive: '1 day ago',
+      status: 'offline'
+    }
+  ];
+
+  const sentRequests = [
+    {
+      id: 3,
+      name: 'David Emmanuel',
+      age: 29,
+      location: 'Abuja, Nigeria',
+      denomination: 'Pentecostal',
+      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      compatibility: 88,
+      sentDate: '3 days ago'
+    }
+  ];
+
+  const receivedRequests = [
+    {
+      id: 4,
+      name: 'Michael Peters',
+      age: 27,
+      location: 'Port Harcourt, Nigeria',
+      denomination: 'Anglican',
+      photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+      compatibility: 79,
+      receivedDate: '1 day ago'
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white">
+      {/* Header */}
+      <TopBar 
+        userName="Believer"
+        showFilters={false}
+        showSidePanel={false}
+        onToggleFilters={() => {}}
+        onToggleSidePanel={() => {}}
+      />
+
+      {/* Main Content */}
+      <div className="pt-20 pb-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Page Title */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <Link href="/dashboard">
+                <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
+                  <ArrowLeft className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-300" />
+                </button>
+              </Link>
+              
+              <div className="flex items-center gap-3">
+                <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
+                  <Filter className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-300" />
+                </button>
+                <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
+                  <Search className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-300" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+                Your Matches
+              </h1>
+              <p className="text-gray-400 text-lg">
+                Connections made in faith and love
+              </p>
+            </div>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="mb-8">
+            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-2">
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { key: 'mutual', label: 'Mutual', count: mutualMatches.length, icon: Heart },
+                  { key: 'sent', label: 'Sent', count: sentRequests.length, icon: Clock },
+                  { key: 'received', label: 'Received', count: receivedRequests.length, icon: Users }
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`relative py-4 px-6 rounded-2xl transition-all duration-300 ${
+                      activeTab === tab.key
+                        ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/25'
+                        : 'text-gray-400 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center space-x-2">
+                      <tab.icon className="w-5 h-5" />
+                      <span className="font-medium">{tab.label}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                        activeTab === tab.key
+                          ? 'bg-white/20 text-white'
+                          : 'bg-white/10 text-gray-400'
+                      }`}>
+                        {tab.count}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="space-y-6">
+            {activeTab === 'mutual' && (
+              <div className="space-y-4">
+                {mutualMatches.length > 0 ? (
+                  mutualMatches.map((match) => (
+                    <div key={match.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300 group">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="relative">
+                          <img
+                            src={match.photo}
+                            alt={match.name}
+                            className="w-16 h-16 object-cover rounded-full ring-2 ring-pink-500/30"
+                          />
+                          <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-gray-900 ${
+                            match.status === 'online' ? 'bg-emerald-400' : 'bg-gray-500'
+                          }`}></div>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold text-white group-hover:text-pink-200 transition-colors">
+                              {match.name}, {match.age}
+                            </h3>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                              <span className="text-sm font-medium text-emerald-400">
+                                {match.compatibility}% Match
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-300 text-sm mt-1">
+                            <MapPin className="w-4 h-4" />
+                            <span>{match.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-300 text-sm">
+                            <Church className="w-4 h-4" />
+                            <span>{match.denomination}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-3 mt-4">
+                        <Link href="/messages" className="flex-1">
+                          <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white py-3 rounded-2xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/25 flex items-center justify-center gap-2 group">
+                            <MessageCircle className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                            Message
+                          </button>
+                        </Link>
+                        <button className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 text-gray-300 hover:text-white py-3 rounded-2xl font-medium transition-all duration-300 flex items-center justify-center gap-2 group">
+                          <User className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                          View Profile
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-16">
+                    <div className="bg-gradient-to-r from-pink-500/20 to-purple-600/20 backdrop-blur-xl border border-pink-500/30 rounded-3xl p-8 max-w-md mx-auto">
+                      <Heart className="w-16 h-16 text-pink-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-white mb-2">No mutual matches yet</h3>
+                      <p className="text-gray-400">Keep exploring to find your perfect match!</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'sent' && (
+              <div className="space-y-4">
+                {sentRequests.map((request) => (
+                  <div key={request.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300">
+                    <div className="flex items-center gap-4 mb-4">
+                      <img
+                        src={request.photo}
+                        alt={request.name}
+                        className="w-16 h-16 object-cover rounded-full ring-2 ring-blue-500/30"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-white">
+                            {request.name}, {request.age}
+                          </h3>
+                          <span className="text-sm font-medium text-blue-400">
+                            {request.compatibility}% Match
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-300 text-sm mt-1">
+                          <MapPin className="w-4 h-4" />
+                          <span>{request.location}</span>
+                        </div>
+                        <p className="text-sm text-gray-400">Sent {request.sentDate}</p>
+                      </div>
+                    </div>
+                    <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-2xl p-4">
+                      <div className="flex items-center justify-center space-x-2">
+                        <Clock className="w-4 h-4 text-yellow-400" />
+                        <p className="text-sm text-yellow-300 font-medium">
+                          Connection request pending...
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'received' && (
+              <div className="space-y-4">
+                {receivedRequests.map((request) => (
+                  <div key={request.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300">
+                    <div className="flex items-center gap-4 mb-4">
+                      <img
+                        src={request.photo}
+                        alt={request.name}
+                        className="w-16 h-16 object-cover rounded-full ring-2 ring-purple-500/30"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-white">
+                            {request.name}, {request.age}
+                          </h3>
+                          <span className="text-sm font-medium text-purple-400">
+                            {request.compatibility}% Match
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-300 text-sm mt-1">
+                          <MapPin className="w-4 h-4" />
+                          <span>{request.location}</span>
+                        </div>
+                        <p className="text-sm text-gray-400">Received {request.receivedDate}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <button className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white py-3 rounded-2xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25 flex items-center justify-center gap-2 group">
+                        <Check className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                        Accept
+                      </button>
+                      <button className="flex-1 bg-red-500/20 hover:bg-red-500/30 backdrop-blur-xl border border-red-500/30 hover:border-red-400/50 text-red-400 hover:text-red-300 py-3 rounded-2xl font-medium transition-all duration-300 flex items-center justify-center gap-2 group">
+                        <X className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MatchesPage;

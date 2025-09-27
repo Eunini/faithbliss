@@ -1,5 +1,6 @@
-/* Import Inter font with fallbacks - must come first */
+/* Import fonts with fallbacks - must come first */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -19,8 +20,131 @@ html {
   }
 }
 
+/* Custom animations for onboarding */
+@keyframes slide-in-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-from-top {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation-fill-mode: both;
+}
+
+.slide-in-from-right {
+  animation-name: slide-in-from-right;
+}
+
+.slide-in-from-top {
+  animation-name: slide-in-from-top;
+}
+
+.duration-500 {
+  animation-duration: 500ms;
+}
+
+.duration-300 {
+  animation-duration: 300ms;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Global Custom Scrollbar Styles */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(236, 72, 153, 0.6) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.6), rgba(147, 51, 234, 0.6));
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.8), rgba(147, 51, 234, 0.8));
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Dark scrollbar for specific elements */
+.custom-scrollbar-dark::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(107, 114, 128, 0.6), rgba(75, 85, 99, 0.6));
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, rgba(107, 114, 128, 0.8), rgba(75, 85, 99, 0.8));
+}
+
+/* Side Panel Custom Scrollbar */
+.side-panel-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.side-panel-scroll::-webkit-scrollbar-track {
+  background: rgba(17, 24, 39, 0.3);
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+.side-panel-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.4), rgba(168, 85, 247, 0.4));
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.3s ease;
+}
+
+.side-panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.7), rgba(168, 85, 247, 0.7));
+  transform: scaleY(1.1);
+}
+
+.side-panel-scroll::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.9), rgba(168, 85, 247, 0.9));
+}
+
+/* Side panel specific Firefox scrollbar */
+.side-panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(236, 72, 153, 0.5) rgba(17, 24, 39, 0.3);
+}
+
+/* Glass morphism effects */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }

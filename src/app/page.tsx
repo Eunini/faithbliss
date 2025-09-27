@@ -26,6 +26,112 @@ const FadeIn = ({ children, delay = 0 }: { children: React.ReactNode, delay?: nu
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  
+  // Array of background images
+  const backgroundImages = [
+    '/bg1.jpg',
+    '/bg2.jpg',
+    '/bg3.jpg',
+    '/bg4.jpg',
+    '/bg5.jpg',
+    '/bg6.jpg',
+    '/bg.jpg'
+  ];
+
+  // Love stories data
+  const loveStories = [
+    {
+      id: 1,
+      initials: "S&D",
+      names: "Sarah & David",
+      status: "Engaged 2025",
+      gradient: "from-purple-500 to-pink-500",
+      borderColor: "purple-500",
+      textColor: "purple-300",
+      quote: "Found my prayer partner and soulmate! We bonded over mission trips and now we're planning to serve together in ministry."
+    },
+    {
+      id: 2,
+      initials: "J&R",
+      names: "James & Rachel",
+      status: "Dating 1 Year",
+      gradient: "from-blue-500 to-cyan-500",
+      borderColor: "blue-500",
+      textColor: "blue-300",
+      quote: "What started as a conversation about favorite Bible verses turned into the most beautiful relationship. Thank you FaithBliss!"
+    },
+    {
+      id: 3,
+      initials: "M&L",
+      names: "Michael & Lisa",
+      status: "Married 2023",
+      gradient: "from-green-500 to-emerald-500",
+      borderColor: "green-500",
+      textColor: "green-300",
+      quote: "We discovered we both volunteer at the same shelter! God's timing is perfect. Now we serve together as husband and wife."
+    },
+    {
+      id: 4,
+      initials: "E&G",
+      names: "Emmanuel & Grace",
+      status: "Married 2024",
+      gradient: "from-yellow-500 to-orange-500",
+      borderColor: "yellow-500",
+      textColor: "yellow-300",
+      quote: "From different countries but same faith! Long distance became short when we realized we were meant to be together."
+    },
+    {
+      id: 5,
+      initials: "P&J",
+      names: "Peter & Joy",
+      status: "Engaged 2024",
+      gradient: "from-indigo-500 to-purple-600",
+      borderColor: "indigo-500",
+      textColor: "indigo-300",
+      quote: "Both youth pastors who found love while serving God. Our shared ministry brought us together in the most beautiful way."
+    },
+    {
+      id: 6,
+      initials: "D&R",
+      names: "Daniel & Ruth",
+      status: "Dating 8 months",
+      gradient: "from-rose-500 to-pink-600",
+      borderColor: "rose-500",
+      textColor: "rose-300",
+      quote: "Two worship leaders from different churches who harmonize perfectly in love and music. God's plan is always perfect!"
+    }
+  ];
+
+  // Image rotation effect with fade out/in transition
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsTransitioning(true); // Start fade out
+      
+      setTimeout(() => {
+        setCurrentImageIndex((prevIndex) => 
+          (prevIndex + 1) % backgroundImages.length
+        );
+        setIsTransitioning(false); // Start fade in
+      }, 1000); // Wait 1000ms for fade out before changing image
+
+    }, 10000); // Change image every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [backgroundImages.length]);
+
+  // Auto-scroll for love stories
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentStoryIndex((prevIndex) => 
+        (prevIndex + 1) % loveStories.length
+      );
+    }, 4000); // Change story every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [loveStories.length]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -88,23 +194,31 @@ export default function Home() {
               <a href="#stories" className="text-white hover:text-pink-400 transition-colors">Love Stories</a>
               <a href="#community" className="text-white hover:text-pink-400 transition-colors">Community</a>
             </div>
-            <button className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-all">
-              Get Started
-            </button>
+            <Link href="/onboarding">
+              <button className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-all">
+                Get Started
+              </button>
+            </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero Section with Tinder-Style Parallax */}
       <section className="relative min-h-screen md:h-screen overflow-hidden">
-        {/* Background Layer - Slower movement */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110 will-change-transform"
-          style={{
-            backgroundImage: "url('/bgimage.jpg')",
-            transform: `translate3d(0, ${bgTransform}px, 0) scale(1.1)`,
-          }}
-        >
+        {/* Background Images with Fade Out/In Rotation */}
+        {backgroundImages.map((image, index) => (
+          <div 
+            key={index}
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110 will-change-transform transition-opacity duration-500 ease-in-out"
+            style={{
+              backgroundImage: `url('${image}')`,
+              transform: `translate3d(0, ${bgTransform}px, 0) scale(1.1)`,
+              opacity: index === currentImageIndex ? (isTransitioning ? 0.3 : 1) : 0,
+            }}
+          />
+        ))}
+        
+        <div className="absolute inset-0">
           {/* Multi-layer Dark Overlay - Enhanced for text visibility */}
           <div className="absolute inset-0 bg-black/40"></div>
           <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/60 to-black/80"></div>
@@ -128,12 +242,19 @@ export default function Home() {
                 transform: `scale(${headlineScale})`,
               }}
             >
+              {/* Platform Tagline */}
+              <div className="mb-4 px-4 py-2 bg-pink-500/20 backdrop-blur-sm border border-pink-400/30 rounded-full">
+                <span className="text-sm md:text-base text-pink-300 font-semibold tracking-wide">
+                  FIRST AFRICAN CHRISTIAN DATING PLATFORM
+                </span>
+              </div>
+              
               <h1 className="text-3xl md:text-6xl font-bold mb-6 leading-tight text-center">
-                Why Believers Across
+                Believers Across
                 <span className="block bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
                   Africa Are Finding Love
                 </span>
-                <span className="block text-white">on FaithBliss</span>
+                <span className="block text-white" style={{ fontFamily: "'Dancing Script', cursive" }}>on FaithBliss</span>
               </h1>
               <p className="text-sm md:text-xl mb-8 md:mb-12 text-gray-200 max-w-3xl mx-auto text-center">
                 Built specifically for African Christians - connecting believers across all 54 countries with shared faith, values, and marriage intentions.
@@ -141,9 +262,11 @@ export default function Home() {
               
               {/* CTA Button - Simple & Responsive */}
               <div className="flex justify-center">
-                <button className="bg-pink-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-full text-base md:text-lg font-semibold hover:bg-pink-600 transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm border border-pink-400/20">
-                  Start My Faith Journey
-                </button>
+                <Link href="/onboarding">
+                  <button className="bg-pink-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-full text-base md:text-lg font-semibold hover:bg-pink-600 transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm border border-pink-400/20">
+                    Start My Love Journey
+                  </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -166,89 +289,91 @@ export default function Home() {
             </div>
           </FadeIn>
 
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Features Grid - 3 per row, responsive */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {/* First Row */}
             <FadeIn delay={200}>
-              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-pink-500/50 transition-all duration-500 hover:transform hover:scale-105">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
-                    <Heart className="h-6 w-6 text-white" />
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-pink-500/50 transition-all duration-500 hover:transform hover:scale-105 h-full">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+                    <Heart className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Marriage, Not Casual Dating</h3>
+                  <h3 className="text-lg md:text-xl font-bold text-white">Marriage, Not Casual Dating</h3>
+                  <p className="text-sm md:text-base text-gray-300 leading-relaxed">
+                    Every connection is intended to nurture godly friendship that could lead to Christian marriage.
+                  </p>
                 </div>
-                <p className="text-sm md:text-xl text-gray-300 text-left leading-relaxed">
-                  Every connection is intended to nurture godly friendship that could lead to Christian marriage.
-                </p>
               </div>
             </FadeIn>
 
             <FadeIn delay={300}>
-              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-green-500/50 transition-all duration-500 hover:transform hover:scale-105">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
-                    <Globe className="h-6 w-6 text-white" />
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-green-500/50 transition-all duration-500 hover:transform hover:scale-105 h-full">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                    <Globe className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Built for African Christians</h3>
+                  <h3 className="text-lg md:text-xl font-bold text-white">Built for African Christians</h3>
+                  <p className="text-sm md:text-base text-gray-300 leading-relaxed">
+                    FaithBliss understands African faith, values, and realities — and is built around them.
+                  </p>
                 </div>
-                <p className="text-gray-300 leading-relaxed">
-                  FaithBliss understands African faith, values, and realities — and is built around them.
-                </p>
               </div>
             </FadeIn>
 
             <FadeIn delay={400}>
-              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-blue-500/50 transition-all duration-500 hover:transform hover:scale-105">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
-                    <Users className="h-6 w-6 text-white" />
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-blue-500/50 transition-all duration-500 hover:transform hover:scale-105 h-full">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+                    <Users className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Diverse & Interdenominational</h3>
+                  <h3 className="text-lg md:text-xl font-bold text-white">Diverse & Interdenominational</h3>
+                  <p className="text-sm md:text-base text-gray-300 leading-relaxed">
+                    Connecting believers across all African 54 countries and 20+ denominations. Your chances of finding love are high.
+                  </p>
                 </div>
-                <p className="text-sm md:text-xl text-gray-300 text-left leading-relaxed">
-                  Connecting believers across all African 54 countries and 20+ denominations. Your chances of finding love are high.
-                </p>
               </div>
             </FadeIn>
 
+            {/* Second Row */}
             <FadeIn delay={500}>
-              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-purple-500/50 transition-all duration-500 hover:transform hover:scale-105">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-violet-500 rounded-full flex items-center justify-center">
-                    <Target className="h-6 w-6 text-white" />
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-purple-500/50 transition-all duration-500 hover:transform hover:scale-105 h-full">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-violet-500 rounded-full flex items-center justify-center">
+                    <Target className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Smart Filters for Selective Search</h3>
+                  <h3 className="text-lg md:text-xl font-bold text-white">Smart Filters for Selective Search</h3>
+                  <p className="text-sm md:text-base text-gray-300 leading-relaxed">
+                    Find exactly what you&apos;re looking for. Narrow by country, denomination, or church family — so Nigerians can meet Nigerians, Pentecostals can meet Pentecostals.
+                  </p>
                 </div>
-                <p className="text-sm md:text-xl text-gray-300 text-left leading-relaxed">
-                  Find exactly what you&apos;re looking for. Narrow by country, denomination, or church family — so Nigerians can meet Nigerians, Pentecostals can meet Pentecostals.
-                </p>
               </div>
             </FadeIn>
 
             <FadeIn delay={600}>
-              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-orange-500/50 transition-all duration-500 hover:transform hover:scale-105">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
-                    <Shield className="h-6 w-6 text-white" />
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-orange-500/50 transition-all duration-500 hover:transform hover:scale-105 h-full">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                    <Shield className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Safe & Decent</h3>
+                  <h3 className="text-lg md:text-xl font-bold text-white">Safe & Decent</h3>
+                  <p className="text-sm md:text-base text-gray-300 leading-relaxed">
+                    We welcome your gorgeous and best looks, but filter out inappropriate content to protect Christian values.
+                  </p>
                 </div>
-                <p className="text-sm md:text-xl text-gray-300 text-left leading-relaxed">
-                  We welcome your gorgeous and best looks, but filter out inappropriate content to protect Christian values.
-                </p>
               </div>
             </FadeIn>
 
             <FadeIn delay={700}>
-              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-teal-500/50 transition-all duration-500 hover:transform hover:scale-105">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full flex items-center justify-center">
-                    <Handshake className="h-6 w-6 text-white" />
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-teal-500/50 transition-all duration-500 hover:transform hover:scale-105 h-full">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full flex items-center justify-center">
+                    <Handshake className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Community & Meetups</h3>
+                  <h3 className="text-lg md:text-xl font-bold text-white">Community & Meetups</h3>
+                  <p className="text-sm md:text-base text-gray-300 leading-relaxed">
+                    Go beyond swipes — connect through sub-groups, interest spaces, and safe events for travelers, professionals, creatives, and more.
+                  </p>
                 </div>
-                <p className="text-sm md:text-xl text-left text-gray-300 leading-relaxed">
-                  Go beyond swipes — connect through sub-groups, interest spaces, and safe events for travelers, professionals, creatives, and more.
-                </p>
               </div>
             </FadeIn>
           </div>
@@ -284,73 +409,56 @@ export default function Home() {
             </div>
           </FadeIn>
 
-          {/* Story Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <FadeIn delay={300}>
-              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-purple-500/50 transition-all duration-500 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                        S&D
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-white">Sarah & David</h3>
-                        <p className="text-purple-300 text-sm"> Engaged 2025</p>
-                      </div>
-                    </div>
-                    <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
-                  <blockquote className="text-gray-300 leading-relaxed text-sm italic">
-                    &quot;Found my prayer partner and soulmate! We bonded over mission trips and now we&apos;re planning to serve together in ministry.&quot;
-                  </blockquote>
-                </div>
-              </div>
-            </FadeIn>
-
-            <FadeIn delay={400}>
-              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-blue-500/50 transition-all duration-500 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
-                        J&R
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-white">James & Rachel</h3>
-                        <p className="text-blue-300 text-sm"> Dating 1 Year</p>
+          {/* Auto-Scrolling Story Cards - Responsive */}
+          <div className="relative overflow-hidden">
+            <div 
+              className="flex transition-transform duration-1000 ease-in-out"
+              style={{
+                transform: `translateX(-${currentStoryIndex * (100 / 3)}%)`,
+                width: `${loveStories.length * (100 / 3)}%`
+              }}
+            >
+              {loveStories.map((story, index) => (
+                <div 
+                  key={story.id}
+                  className="w-1/3 flex-shrink-0 px-3"
+                >
+                  <FadeIn delay={300 + (index * 100)}>
+                    <div className={`group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-gray-700 hover:border-${story.borderColor}/50 transition-all duration-500 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-${story.borderColor}/20 h-full`}>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r ${story.gradient} rounded-full flex items-center justify-center text-white font-bold text-sm md:text-base`}>
+                              {story.initials}
+                            </div>
+                            <div>
+                              <h3 className="text-base md:text-lg font-bold text-white">{story.names}</h3>
+                              <p className={`text-${story.textColor} text-xs md:text-sm`}>{story.status}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <blockquote className="text-gray-300 leading-relaxed text-xs md:text-sm italic">
+                          &quot;{story.quote}&quot;
+                        </blockquote>
                       </div>
                     </div>
-                    <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
-                  <blockquote className="text-gray-300 leading-relaxed text-sm italic">
-                    &quot;What started as a conversation about favorite Bible verses turned into the most beautiful relationship. Thank you FaithBliss!&quot;
-                  </blockquote>
+                  </FadeIn>
                 </div>
-              </div>
-            </FadeIn>
-
-            <FadeIn delay={500}>
-              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-green-500/50 transition-all duration-500 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
-                        M&L
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-white">Michael & Lisa</h3>
-                        <p className="text-green-300 text-sm"> Married 2023</p>
-                      </div>
-                    </div>
-                    <div className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
-                  <blockquote className="text-gray-300 leading-relaxed text-sm italic">
-                   &quot;We discovered we both volunteer at the same shelter! God&apos;s timing is perfect. Now we serve together as husband and wife.&quot;
-                  </blockquote>
-                </div>
-              </div>
-            </FadeIn>
+              ))}
+            </div>
+            
+            {/* Indicators */}
+            <div className="flex justify-center mt-6 space-x-2">
+              {loveStories.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === currentStoryIndex ? 'bg-pink-500 w-8' : 'bg-gray-600 hover:bg-gray-500'
+                  }`}
+                  onClick={() => setCurrentStoryIndex(index)}
+                />
+              ))}
+            </div>
           </div>
 
          
