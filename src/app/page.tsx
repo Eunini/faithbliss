@@ -115,9 +115,9 @@ export default function Home() {
           (prevIndex + 1) % backgroundImages.length
         );
         setIsTransitioning(false); // Start fade in
-      }, 1000); // Wait 1000ms for fade out before changing image
+      }, 500); // Wait 500ms for fade out before changing image
 
-    }, 10000); // Change image every 10 seconds
+    }, 6000); // Change image every 6 seconds (faster for better visibility)
 
     return () => clearInterval(interval);
   }, [backgroundImages.length]);
@@ -209,20 +209,19 @@ export default function Home() {
         {backgroundImages.map((image, index) => (
           <div 
             key={index}
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110 will-change-transform transition-opacity duration-500 ease-in-out"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110 will-change-transform transition-opacity duration-700 ease-in-out"
             style={{
               backgroundImage: `url('${image}')`,
               transform: `translate3d(0, ${bgTransform}px, 0) scale(1.1)`,
-              opacity: index === currentImageIndex ? (isTransitioning ? 0.3 : 1) : 0,
+              opacity: index === currentImageIndex ? 1 : 0,
             }}
           />
         ))}
         
         <div className="absolute inset-0">
-          {/* Multi-layer Dark Overlay - Enhanced for text visibility */}
-          <div className="absolute inset-0 bg-black/40"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/60 to-black/80"></div>
-          {/* <div className="absolute inset-0 bg-gradient-to-r from-pink-900/20 to-purple-900/20"></div> */}
+          {/* Lighter overlay for better image visibility */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/50"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/10 to-black/10"></div>
         </div>
         
         {/* Content Layer - Faster movement with fade */}
@@ -248,6 +247,8 @@ export default function Home() {
                   FIRST AFRICAN CHRISTIAN DATING PLATFORM
                 </span>
               </div>
+              
+          
               
               <h1 className="text-3xl md:text-6xl font-bold mb-6 leading-tight text-center">
                 Believers Across
