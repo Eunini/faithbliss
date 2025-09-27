@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, Star, MessageCircle, User, ArrowLeft, Filter, Search, MapPin, Church, BookOpen, Users, Clock, Check, X, Bell, Menu } from 'lucide-react';
+import Image from 'next/image';
+import { Heart, MessageCircle, User, ArrowLeft, Filter, Search, MapPin, Church, Users, Clock, Check, X } from 'lucide-react';
 import Link from 'next/link';
 import { TopBar } from '@/components/dashboard/TopBar';
 
@@ -147,9 +148,11 @@ const MatchesPage = () => {
                     <div key={match.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300 group">
                       <div className="flex items-center gap-4 mb-4">
                         <div className="relative">
-                          <img
+                          <Image
                             src={match.photo}
                             alt={match.name}
+                            width={64}
+                            height={64}
                             className="w-16 h-16 object-cover rounded-full ring-2 ring-pink-500/30"
                           />
                           <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-gray-900 ${
@@ -210,9 +213,11 @@ const MatchesPage = () => {
                 {sentRequests.map((request) => (
                   <div key={request.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300">
                     <div className="flex items-center gap-4 mb-4">
-                      <img
+                      <Image
                         src={request.photo}
                         alt={request.name}
+                        width={64}
+                        height={64}
                         className="w-16 h-16 object-cover rounded-full ring-2 ring-blue-500/30"
                       />
                       <div className="flex-1">
@@ -249,9 +254,11 @@ const MatchesPage = () => {
                 {receivedRequests.map((request) => (
                   <div key={request.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300">
                     <div className="flex items-center gap-4 mb-4">
-                      <img
+                      <Image
                         src={request.photo}
                         alt={request.name}
+                        width={64}
+                        height={64}
                         className="w-16 h-16 object-cover rounded-full ring-2 ring-purple-500/30"
                       />
                       <div className="flex-1">

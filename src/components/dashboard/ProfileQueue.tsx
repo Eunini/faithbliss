@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 interface Profile {
   id: number;
   name: string;
@@ -34,12 +36,14 @@ export const ProfileQueue = ({ profiles, currentIndex, showFilters }: ProfileQue
           </h4>
         </div>
         <div className="flex justify-center space-x-1">
-          {profiles.slice(currentIndex + 1, currentIndex + 4).map((profile, index) => (
-            <div key={profile.id} className="w-8 h-8 rounded-lg overflow-hidden border border-gray-600 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
-              <img
+          {profiles.slice(currentIndex + 1, currentIndex + 4).map((profile) => (
+            <div key={profile.id} className="w-8 h-8 rounded-lg overflow-hidden border border-gray-600 opacity-60 hover:opacity-100 transition-opacity cursor-pointer relative">
+              <Image
                 src={profile.profilePicture}
                 alt={profile.name}
+                fill
                 className="w-full h-full object-cover"
+                sizes="32px"
               />
             </div>
           ))}

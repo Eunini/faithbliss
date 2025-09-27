@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+// import { useState } from 'react';
+import Image from 'next/image';
 import { 
   X, Heart, MoreHorizontal, MapPin, Target 
 } from 'lucide-react';
@@ -43,10 +44,13 @@ export const ProfileCard = ({
       <div className="relative bg-gray-800 rounded-3xl overflow-hidden shadow-2xl border border-gray-700/50 backdrop-blur-sm transform transition-all duration-300 hover:scale-[1.02]">
         {/* Profile Image Container */}
         <div className="relative aspect-[4/5] md:aspect-[3/4] bg-gradient-to-b from-transparent via-transparent to-black/60">
-          <img
+          <Image
             src={profile.profilePicture}
             alt={profile.name}
+            fill
             className="w-full h-full object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority
           />
           
           {/* Subtle Gradient Overlay */}
@@ -113,7 +117,7 @@ export const ProfileCard = ({
               {/* Icebreaker Quote */}
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 mt-2">
                 <p className="text-white text-xs italic font-medium leading-relaxed line-clamp-2">
-                  "{profile.icebreaker}"
+                  &quot;{profile.icebreaker}&quot;
                 </p>
               </div>
             </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+// import { useState } from 'react';
 
 interface EmojiPickerProps {
   onEmojiSelect: (emoji: string) => void;

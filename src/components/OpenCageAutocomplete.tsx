@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MapPin, Search } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 interface OpenCageResult {
   formatted: string;
@@ -87,8 +87,8 @@ export const OpenCageAutocomplete = ({
         setSuggestions([]);
         setShowSuggestions(false);
       }
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name !== 'AbortError') {
         console.error('OpenCage API error:', error);
         setSuggestions([]);
         setShowSuggestions(false);

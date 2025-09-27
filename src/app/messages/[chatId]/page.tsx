@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { 
-  ArrowLeft, Send, Phone, Video, Info, Smile, Paperclip, Camera, 
-  Mic, Heart, Check, CheckCheck, MoreHorizontal, Flag, UserX
+  ArrowLeft, Send, Phone, Video, Info, Smile, Camera, Heart, Check, CheckCheck, Flag, UserX
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -99,9 +99,11 @@ const ChatPage = () => {
             </Link>
             
             <div className="relative">
-              <img
+              <Image
                 src={conversation.photo}
                 alt={conversation.name}
+                width={48}
+                height={48}
                 className="w-12 h-12 object-cover rounded-full ring-2 ring-pink-500/30"
               />
               {conversation.online && (
@@ -258,9 +260,11 @@ const ChatPage = () => {
         {showInfo && (
           <div className="w-80 bg-gray-900/50 backdrop-blur-xl border-l border-gray-700/50 p-6 animate-in slide-in-from-right duration-300">
             <div className="text-center mb-6">
-              <img
+              <Image
                 src={conversation.photo}
                 alt={conversation.name}
+                width={96}
+                height={96}
                 className="w-24 h-24 object-cover rounded-full mx-auto mb-4 ring-4 ring-pink-500/30"
               />
               <h3 className="text-xl font-bold text-white mb-1">{conversation.name}</h3>

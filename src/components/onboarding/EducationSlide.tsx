@@ -69,8 +69,8 @@ export const EducationSlide = ({ formData, updateFormData }: EducationSlideProps
             <option value="" className="text-gray-500">Select your degree</option>
             <option value="High School">High School</option>
             <option value="Associate">Associate</option>
-            <option value="Bachelor's">Bachelor's</option>
-            <option value="Master's">Master's</option>
+            <option value="Bachelor's">Bachelor&apos;s</option>
+            <option value="Master's">Master&apos;s</option>
             <option value="PhD">PhD</option>
             <option value="Professional">Professional</option>
           </select>

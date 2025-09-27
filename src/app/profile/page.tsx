@@ -1,13 +1,52 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { 
-  Heart, Star, MessageCircle, User, ArrowLeft, Edit3, Settings, Camera, MapPin, 
-  Church, BookOpen, Calendar, Briefcase, LogOut, Plus, X, Check, Upload,
-  Sparkles, Target, Shield, Globe, Phone, Mail, Instagram, Twitter
+  Heart, MessageCircle, User, Camera, 
+  Church, Plus, X, Upload,
+  Sparkles, 
 } from 'lucide-react';
-import Link from 'next/link';
+// import Link from 'next/link';
 import { TopBar } from '@/components/dashboard/TopBar';
+
+interface ProfileData {
+  name: string;
+  age: number;
+  location: string;
+  profession: string;
+  denomination: string;
+  favoriteVerse: string;
+  bio: string;
+  hobbies: string[];
+  values: string[];
+  faithJourney: string;
+  lookingFor: string;
+  churchRole: string;
+  photos: string[];
+  prompts: Array<{
+    question: string;
+    answer: string;
+  }>;
+  lifestyle: {
+    drinking: string;
+    smoking: string;
+    workout: string;
+    diet: string;
+  };
+  passions: string[];
+  basics: {
+    height: string;
+    education: string;
+    jobTitle: string;
+    company: string;
+  };
+}
+
+interface SectionProps {
+  profileData: ProfileData;
+  setProfileData: React.Dispatch<React.SetStateAction<ProfileData>>;
+}
 
 const ProfilePage = () => {
   const [activeSection, setActiveSection] = useState('photos');
@@ -132,10 +171,12 @@ const ProfilePage = () => {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {profileData.photos.map((photo, index) => (
                   <div key={index} className="relative group aspect-[3/4] bg-gray-700 rounded-2xl overflow-hidden">
-                    <img
+                    <Image
                       src={photo}
                       alt={`Profile ${index + 1}`}
+                      fill
                       className="w-full h-full object-cover"
+                      sizes="(max-width: 768px) 50vw, 33vw"
                     />
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button
@@ -209,7 +250,7 @@ const ProfilePage = () => {
 };
 
 // Basic Info Section Component
-const BasicInfoSection = ({ profileData, setProfileData }: any) => (
+const BasicInfoSection = ({ profileData, setProfileData }: SectionProps) => (
   <div className="space-y-6">
     <div className="bg-gray-800/50 rounded-3xl p-8 border border-gray-700/50">
       <h2 className="text-2xl font-bold text-white mb-6">Basic Information</h2>
@@ -281,7 +322,7 @@ const BasicInfoSection = ({ profileData, setProfileData }: any) => (
               const inches = (60 + i) % 12;
               return (
                 <option key={i} value={`${feet}'${inches}"`}>
-                  {feet}'{inches}"
+                  {feet}&apos;{inches}&quot;
                 </option>
               );
             })}
@@ -322,7 +363,7 @@ const BasicInfoSection = ({ profileData, setProfileData }: any) => (
 );
 
 // Prompts Section Component
-const PromptsSection = ({ profileData, setProfileData }: any) => {
+const PromptsSection = ({ profileData, setProfileData }: SectionProps) => {
   const availablePrompts = [
     "My simple pleasures",
     "I'm looking for",
@@ -344,7 +385,7 @@ const PromptsSection = ({ profileData, setProfileData }: any) => {
         </div>
 
         <div className="space-y-6">
-          {profileData.prompts.map((prompt: any, index: number) => (
+          {profileData.prompts.map((prompt: { question: string; answer: string }, index: number) => (
             <div key={index} className="bg-gray-700/30 rounded-2xl p-6 border border-gray-600/30">
               <select
                 value={prompt.question}
@@ -393,7 +434,7 @@ const PromptsSection = ({ profileData, setProfileData }: any) => {
 };
 
 // Lifestyle Section Component  
-const LifestyleSection = ({ profileData, setProfileData }: any) => (
+const LifestyleSection = ({ profileData, setProfileData }: SectionProps) => (
   <div className="space-y-6">
     <div className="bg-gray-800/50 rounded-3xl p-8 border border-gray-700/50">
       <h2 className="text-2xl font-bold text-white mb-6">Lifestyle</h2>
@@ -433,7 +474,7 @@ const LifestyleSection = ({ profileData, setProfileData }: any) => (
 );
 
 // Passions Section Component
-const PassionsSection = ({ profileData, setProfileData }: any) => {
+const PassionsSection = ({ profileData, setProfileData }: SectionProps) => {
   const availablePassions = [
     'Faith & Spirituality', 'Design & Creativity', 'Social Impact', 'Travel', 'Music & Worship',
     'Reading', 'Fitness & Health', 'Cooking', 'Photography', 'Technology', 'Art', 'Sports',
@@ -452,7 +493,7 @@ const PassionsSection = ({ profileData, setProfileData }: any) => {
       <div className="bg-gray-800/50 rounded-3xl p-8 border border-gray-700/50">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-white mb-2">Passions</h2>
-          <p className="text-gray-400">Select up to 5 things you're passionate about</p>
+          <p className="text-gray-400">Select up to 5 things you&apos;re passionate about</p>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -476,7 +517,7 @@ const PassionsSection = ({ profileData, setProfileData }: any) => {
 };
 
 // Faith Section Component
-const FaithSection = ({ profileData, setProfileData }: any) => (
+const FaithSection = ({ profileData, setProfileData }: SectionProps) => (
   <div className="space-y-6">
     <div className="bg-gray-800/50 rounded-3xl p-8 border border-gray-700/50">
       <h2 className="text-2xl font-bold text-white mb-6">Faith Journey</h2>

@@ -2,6 +2,7 @@ import { User, Camera, X } from 'lucide-react';
 import { FormData } from './types';
 import { CountryCodeSelect, defaultCountry, type Country } from '../CountryCodeSelect';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 interface BasicInfoSlideProps {
   formData: FormData;
@@ -41,9 +42,11 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
       <div className="relative">
         {photo ? (
           <div className="relative w-32 h-32 mx-auto sm:w-28 sm:h-28">
-            <img
+            <Image
               src={photo}
               alt={`Profile ${photoNumber}`}
+              width={128}
+              height={128}
               className="w-full h-full object-cover rounded-2xl border-2 border-gray-700"
             />
             <button

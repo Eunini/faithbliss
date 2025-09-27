@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { 
-  MessageCircle, User, ArrowLeft, Search, Send, MoreHorizontal, Phone, Video, 
-  Heart, Smile, Paperclip, Camera, Mic, Info, Clock, Check, CheckCheck
+  MessageCircle, ArrowLeft, Search, Send, Phone, Video, 
+  Smile, Paperclip, Info, Check, CheckCheck
 } from 'lucide-react';
 import Link from 'next/link';
 import { TopBar } from '@/components/dashboard/TopBar';
@@ -186,9 +187,11 @@ const MessagesPage = () => {
               >
                 <div className="flex items-center space-x-3">
                   <div className="relative">
-                    <img
+                    <Image
                       src={conversation.photo}
                       alt={conversation.name}
+                      width={48}
+                      height={48}
                       className="w-12 h-12 object-cover rounded-full ring-2 ring-pink-500/30"
                     />
                     {conversation.online && (
@@ -244,9 +247,11 @@ const MessagesPage = () => {
                   </button>
                   
                   <div className="relative">
-                    <img
-                      src={selectedConversation?.photo}
-                      alt={selectedConversation?.name}
+                    <Image
+                      src={selectedConversation?.photo || ''}
+                      alt={selectedConversation?.name || ''}
+                      width={40}
+                      height={40}
                       className="w-10 h-10 object-cover rounded-full ring-2 ring-pink-500/30"
                     />
                     {selectedConversation?.online && (

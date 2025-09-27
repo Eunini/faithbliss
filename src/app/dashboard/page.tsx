@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { TopBar } from '@/components/dashboard/TopBar';
 import { FloatingActionButtons } from '@/components/dashboard/FloatingActionButtons';
 import { ProfileCard } from '@/components/dashboard/ProfileCard';
@@ -8,7 +8,7 @@ import { SidePanel } from '@/components/dashboard/SidePanel';
 import { FilterPanel } from '@/components/dashboard/FilterPanel';
 import { ProfileQueue } from '@/components/dashboard/ProfileQueue';
 import { insertScrollbarStyles } from '@/components/dashboard/styles';
-import { mockProfiles, type Profile } from '@/data/mockProfiles';
+import { mockProfiles } from '@/data/mockProfiles';
 
 // Insert scrollbar styles
 insertScrollbarStyles();
@@ -84,7 +84,7 @@ const DashboardPage = () => {
         <div className="flex-1 flex justify-center items-start px-4 lg:px-8">
           <div className="w-full max-w-4xl mx-auto relative">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-              {currentProfiles.map((profile, index) => (
+              {currentProfiles.map((profile) => (
                 <ProfileCard
                   key={profile.id}
                   profile={profile}

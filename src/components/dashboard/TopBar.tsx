@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, Filter, Sparkles } from 'lucide-react';
+import { Bell, Filter, Sparkles, ArrowLeft } from 'lucide-react';
 
 interface TopBarProps {
   userName: string;
@@ -16,7 +16,7 @@ interface TopBarProps {
 export const TopBar = ({ 
   userName, 
   showFilters = false, 
-  showSidePanel = false, 
+  showSidePanel = false, // eslint-disable-line @typescript-eslint/no-unused-vars
   onToggleFilters, 
   onToggleSidePanel,
   title,
@@ -31,27 +31,36 @@ export const TopBar = ({
       <div className="max-w-7xl mx-auto flex items-center justify-between relative z-10">
         {/* Left - Brand & Greeting */}
         <div className="flex items-center space-x-4">
-          {/* Mobile Hamburger Menu */}
-          <button 
-            onClick={onToggleSidePanel}
-            className="p-2 hover:bg-white/10 rounded-2xl transition-all hover:scale-105 lg:hidden"
-          >
-            <div className="w-6 h-6 flex flex-col justify-center space-y-1">
-              <div className="w-full h-0.5 bg-gray-300 rounded"></div>
-              <div className="w-full h-0.5 bg-gray-300 rounded"></div>
-              <div className="w-full h-0.5 bg-gray-300 rounded"></div>
-            </div>
-          </button>
+          {/* Back Button or Mobile Hamburger Menu */}
+          {showBackButton ? (
+            <button 
+              onClick={onBack}
+              className="p-2 hover:bg-white/10 rounded-2xl transition-all hover:scale-105"
+            >
+              <ArrowLeft className="w-6 h-6 text-gray-300" />
+            </button>
+          ) : (
+            <button 
+              onClick={onToggleSidePanel}
+              className="p-2 hover:bg-white/10 rounded-2xl transition-all hover:scale-105 lg:hidden"
+            >
+              <div className="w-6 h-6 flex flex-col justify-center space-y-1">
+                <div className="w-full h-0.5 bg-gray-300 rounded"></div>
+                <div className="w-full h-0.5 bg-gray-300 rounded"></div>
+                <div className="w-full h-0.5 bg-gray-300 rounded"></div>
+              </div>
+            </button>
+          )}
           
           <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-2 rounded-2xl">
             <Sparkles className="w-6 h-6 text-white" />
           </div>
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              FaithBliss
+              {title || 'FaithBliss'}
             </h1>
             <p className="text-sm text-gray-400 hidden md:block">
-              Discover meaningful connections, {userName} ✨
+              {title ? `Edit your profile, ${userName}` : `Discover meaningful connections, ${userName} ✨`}
             </p>
           </div>
         </div>

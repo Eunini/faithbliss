@@ -1,9 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapPin } from 'lucide-react';
 
+interface GooglePlacesPrediction {
+  description: string;
+  place_id: string;
+  structured_formatting?: {
+    main_text: string;
+    secondary_text: string;
+  };
+}
+
 interface GooglePlacesAutocompleteProps {
   value: string;
-  onChange: (value: string, placeDetails?: any) => void;
+  onChange: (value: string, placeDetails?: GooglePlacesPrediction) => void;
   placeholder: string;
   label: string;
   icon?: React.ReactNode;
@@ -11,9 +20,31 @@ interface GooglePlacesAutocompleteProps {
   className?: string;
 }
 
+interface GoogleMapsAPI {
+  maps: {
+    places: {
+      AutocompleteService: new () => GoogleAutocompleteService;
+      PlacesServiceStatus: {
+        OK: string;
+      };
+    };
+  };
+}
+
+interface GoogleAutocompleteService {
+  getPlacePredictions: (
+    request: {
+      input: string;
+      types: string[];
+      componentRestrictions: { country: string[] };
+    },
+    callback: (predictions: GooglePlacesPrediction[], status: string) => void
+  ) => void;
+}
+
 declare global {
   interface Window {
-    google: any;
+    google: GoogleMapsAPI;
     initGooglePlaces: () => void;
   }
 }
@@ -28,9 +59,9 @@ export const GooglePlacesAutocomplete = ({
   className = ""
 }: GooglePlacesAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<any>(null);
+  const autocompleteRef = useRef<GoogleAutocompleteService | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [predictions, setPredictions] = useState<any[]>([]);
+  const [predictions, setPredictions] = useState<GooglePlacesPrediction[]>([]);
   const [showPredictions, setShowPredictions] = useState(false);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
 
@@ -101,7 +132,7 @@ export const GooglePlacesAutocomplete = ({
 
     autocompleteRef.current.getPlacePredictions(
       request,
-      (predictions: any[], status: any) => {
+      (predictions: GooglePlacesPrediction[], status: string) => {
         setIsLoadingPlaces(false);
         if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
           setPredictions(predictions.slice(0, 5)); // Limit to 5 predictions
@@ -129,7 +160,7 @@ export const GooglePlacesAutocomplete = ({
   };
 
   // Handle prediction selection
-  const handlePredictionSelect = (prediction: any) => {
+  const handlePredictionSelect = (prediction: GooglePlacesPrediction) => {
     onChange(prediction.description, prediction);
     setPredictions([]);
     setShowPredictions(false);
