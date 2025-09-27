@@ -1,6 +1,7 @@
 'use client';
 
 import { Bell, Filter, Sparkles, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 interface TopBarProps {
   userName: string;
@@ -52,17 +53,19 @@ export const TopBar = ({
             </button>
           )}
           
-          <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-2 rounded-2xl">
-            <Sparkles className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              {title || 'FaithBliss'}
-            </h1>
-            <p className="text-sm text-gray-400 hidden md:block">
-              {title ? `Edit your profile, ${userName}` : `Discover meaningful connections, ${userName} ✨`}
-            </p>
-          </div>
+          <Link href="/dashboard" className="flex items-center space-x-4 hover:opacity-80 transition-opacity cursor-pointer">
+            <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-2 rounded-2xl">
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                {title || 'FaithBliss'}
+              </h1>
+              <p className="text-sm text-gray-400 hidden md:block">
+                {title ? `Edit your profile, ${userName}` : `Discover meaningful connections, ${userName} ✨`}
+              </p>
+            </div>
+          </Link>
         </div>
 
         {/* Right - Action Icons */}
