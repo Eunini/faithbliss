@@ -133,10 +133,8 @@ const MessagesPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white">
       <TopBar 
         userName="Believer"
-        showFilters={false}
-        showSidePanel={false}
-        onToggleFilters={() => {}}
-        onToggleSidePanel={() => {}}
+        showBackButton={true}
+        onBack={() => window.history.back()}
       />
 
       <div className="pt-20 h-screen flex">

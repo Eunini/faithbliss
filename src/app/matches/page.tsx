@@ -66,10 +66,8 @@ const MatchesPage = () => {
       {/* Header */}
       <TopBar 
         userName="Believer"
-        showFilters={false}
-        showSidePanel={false}
-        onToggleFilters={() => {}}
-        onToggleSidePanel={() => {}}
+        showBackButton={true}
+        onBack={() => window.history.back()}
       />
 
       {/* Main Content */}

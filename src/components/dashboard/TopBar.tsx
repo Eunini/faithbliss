@@ -84,16 +84,18 @@ export const TopBar = ({
             </div>
           </button>
           
-          <button 
-            onClick={onToggleFilters}
-            className={`p-3 rounded-2xl transition-all hover:scale-105 ${
-              showFilters 
-                ? 'bg-pink-500/20 text-pink-400 border border-pink-500/30' 
-                : 'hover:bg-white/10 text-gray-300 hover:text-white'
-            }`}
-          >
-            <Filter className="w-6 h-6 transition-colors" />
-          </button>
+          {onToggleFilters && (
+            <button 
+              onClick={onToggleFilters}
+              className={`p-3 rounded-2xl transition-all hover:scale-105 ${
+                showFilters 
+                  ? 'bg-pink-500/20 text-pink-400 border border-pink-500/30' 
+                  : 'hover:bg-white/10 text-gray-300 hover:text-white'
+              }`}
+            >
+              <Filter className="w-6 h-6 transition-colors" />
+            </button>
+          )}
         </div>
       </div>
     </div>

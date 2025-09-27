@@ -29,10 +29,12 @@ interface ProfileData {
     answer: string;
   }>;
   lifestyle: {
-    drinking: string;
-    smoking: string;
+    prayerLife: string;
+    bibleStudy: string;
     workout: string;
     diet: string;
+    socialStyle: string;
+    musicPreference: string;
   };
   passions: string[];
   basics: {
@@ -83,10 +85,12 @@ const ProfilePage = () => {
       }
     ],
     lifestyle: {
-      drinking: 'Never',
-      smoking: 'Never',
-      workout: 'Sometimes',
+      prayerLife: 'Daily',
+      bibleStudy: 'Weekly',
+      workout: 'Weekly',
       diet: 'Anything',
+      socialStyle: 'Balanced',
+      musicPreference: 'Worship',
     },
     passions: ['Faith & Spirituality', 'Design & Creativity', 'Social Impact', 'Travel', 'Music & Worship'],
     basics: {
@@ -96,6 +100,24 @@ const ProfilePage = () => {
       company: 'Tech Startup'
     }
   });
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // TODO: Implement API call to save profile data
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      setSaveMessage('Profile saved successfully!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+      setSaveMessage('Error saving profile. Please try again.');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -127,12 +149,13 @@ const ProfilePage = () => {
         title="Edit Profile"
         showBackButton={true}
         onBack={() => window.history.back()}
+        showFilters={false}
       />
 
       {/* Navigation Tabs */}
-      <div className="bg-gray-800/50 border-b border-gray-700/50 sticky top-20 z-40">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
+      <div className="bg-gray-900/60 backdrop-blur-xl border-b border-gray-700/30 sticky top-20 z-50 shadow-2xl">
+        <div className="max-w-6xl mx-auto px-2 sm:px-4">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 sm:gap-2 p-2">
             {[
               { id: 'photos', label: 'Photos', icon: Camera },
               { id: 'basics', label: 'Basic Info', icon: User },
@@ -144,14 +167,14 @@ const ProfilePage = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveSection(tab.id)}
-                className={`flex items-center space-x-2 px-6 py-4 rounded-t-2xl font-medium transition-all whitespace-nowrap ${
+                className={`flex flex-col sm:flex-row items-center justify-center sm:justify-start space-y-1 sm:space-y-0 sm:space-x-2 px-2 sm:px-4 py-3 sm:py-4 rounded-2xl font-medium transition-all duration-300 group ${
                   activeSection === tab.id
-                    ? 'bg-gray-900 text-pink-400 border-t-2 border-pink-500'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                    ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 backdrop-blur-md text-pink-400 border border-pink-500/30 shadow-lg scale-105'
+                    : 'text-gray-400 hover:text-white hover:bg-white/10 backdrop-blur-sm border border-transparent hover:border-white/20 hover:scale-105'
                 }`}
               >
-                <tab.icon className="w-4 h-4" />
-                <span>{tab.label}</span>
+                <tab.icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <span className="text-xs sm:text-sm text-center">{tab.label}</span>
               </button>
             ))}
           </div>
@@ -245,6 +268,38 @@ const ProfilePage = () => {
           <FaithSection profileData={profileData} setProfileData={setProfileData} />
         )}
       </div>
+
+      {/* Save Button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-900/95 to-transparent p-6 backdrop-blur-xl border-t border-gray-700/30">
+        <div className="max-w-6xl mx-auto">
+          {saveMessage && (
+            <div className={`mb-4 p-3 rounded-xl text-center font-medium ${
+              saveMessage.includes('Error') 
+                ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                : 'bg-green-500/20 text-green-300 border border-green-500/30'
+            }`}>
+              {saveMessage}
+            </div>
+          )}
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold py-4 px-6 rounded-2xl hover:from-pink-600 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            {isSaving ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Saving Profile...
+              </div>
+            ) : (
+              'Save Changes'
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom padding to prevent save button overlap */}
+      <div className="h-32"></div>
     </div>
   );
 };
@@ -350,13 +405,48 @@ const BasicInfoSection = ({ profileData, setProfileData }: SectionProps) => (
 
       <div className="mt-6">
         <label className="block text-sm font-semibold text-gray-300 mb-3">Location</label>
-        <input
-          type="text"
-          value={profileData.location}
-          onChange={(e) => setProfileData({...profileData, location: e.target.value})}
-          className="w-full p-4 bg-gray-700/50 border border-gray-600/50 rounded-2xl text-white placeholder-gray-400 focus:border-pink-500 focus:outline-none transition-colors"
-          placeholder="Lagos, Nigeria"
-        />
+        <div className="relative">
+          <input
+            type="text"
+            value={profileData.location}
+            onChange={(e) => setProfileData({...profileData, location: e.target.value})}
+            className="w-full p-4 pr-12 bg-gray-700/50 border border-gray-600/50 rounded-2xl text-white placeholder-gray-400 focus:border-pink-500 focus:outline-none transition-colors"
+            placeholder="Lagos, Nigeria"
+          />
+          <button
+            onClick={() => {
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                  async (position) => {
+                    try {
+                      const { latitude, longitude } = position.coords;
+                      // Use reverse geocoding to get location name
+                      const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+                      const data = await response.json();
+                      const location = `${data.city}, ${data.countryName}`;
+                      setProfileData({...profileData, location});
+                    } catch (error) {
+                      console.error('Error getting location:', error);
+                      alert('Unable to get your location. Please enter it manually.');
+                    }
+                  },
+                  (error) => {
+                    console.error('Geolocation error:', error);
+                    alert('Location access denied. Please enter your location manually.');
+                  }
+                );
+              } else {
+                alert('Geolocation is not supported by this browser.');
+              }
+            }}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 bg-pink-500/20 hover:bg-pink-500/30 text-pink-400 rounded-lg transition-colors"
+            title="Detect my location"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -439,12 +529,14 @@ const LifestyleSection = ({ profileData, setProfileData }: SectionProps) => (
     <div className="bg-gray-800/50 rounded-3xl p-8 border border-gray-700/50">
       <h2 className="text-2xl font-bold text-white mb-6">Lifestyle</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {Object.entries({
-          drinking: { label: 'Drinking', options: ['Never', 'Sometimes', 'Socially', 'Regularly'] },
-          smoking: { label: 'Smoking', options: ['Never', 'Sometimes', 'Socially', 'Regularly'] },
-          workout: { label: 'Workout', options: ['Never', 'Sometimes', 'Often', 'Daily'] },
-          diet: { label: 'Diet', options: ['Anything', 'Vegetarian', 'Vegan', 'Kosher', 'Halal'] }
+          prayerLife: { label: 'Prayer Life', options: ['Daily', 'Weekly', 'Occasionally', 'Growing'] },
+          bibleStudy: { label: 'Bible Study', options: ['Daily', 'Weekly', 'Monthly', 'Occasional'] },
+          workout: { label: 'Physical Activity', options: ['Daily', 'Weekly', 'Occasionally', 'Rarely'] },
+          diet: { label: 'Dietary Preference', options: ['Anything', 'Vegetarian', 'Vegan', 'Kosher', 'Halal', 'Organic'] },
+          socialStyle: { label: 'Social Style', options: ['Outgoing', 'Reserved', 'Balanced', 'Adventurous'] },
+          musicPreference: { label: 'Music Style', options: ['Worship', 'Gospel', 'Contemporary', 'Classical', 'Mixed'] }
         }).map(([key, config]) => (
           <div key={key}>
             <label className="block text-sm font-semibold text-gray-300 mb-4">{config.label}</label>
@@ -496,15 +588,15 @@ const PassionsSection = ({ profileData, setProfileData }: SectionProps) => {
           <p className="text-gray-400">Select up to 5 things you&apos;re passionate about</p>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {availablePassions.map(passion => (
             <button
               key={passion}
               onClick={() => togglePassion(passion)}
-              className={`p-4 rounded-2xl font-medium transition-all text-center ${
+              className={`p-3 rounded-xl font-medium transition-all text-center border-2 ${
                 profileData.passions.includes(passion)
-                  ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white scale-105'
-                  : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                  ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white border-pink-400 shadow-lg'
+                  : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 border-transparent hover:border-gray-500/50'
               }`}
             >
               {passion}
