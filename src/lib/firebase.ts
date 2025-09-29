@@ -5,6 +5,22 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore, enableNetwork, disableNetwork } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+// Validate environment variables
+const requiredEnvVars = [
+  'NEXT_PUBLIC_FIREBASE_API_KEY',
+  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+  'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+  'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+  'NEXT_PUBLIC_FIREBASE_APP_ID'
+];
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    throw new Error(`Missing required environment variable: ${envVar}`);
+  }
+}
+
 // Your config
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -15,6 +31,8 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!
 };
+
+console.log('Firebase config loaded successfully for project:', firebaseConfig.projectId);
 
 // Ensure Firebase isn’t initialized more than once (Next.js hot reload issue)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -33,36 +51,36 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 // Firestore connection management  
-let firestoreOnline = true;
+const firestoreOnline = true;
 export const getFirestoreStatus = () => firestoreOnline;
 
 // Enhanced network and Firebase error handling
 if (typeof window !== "undefined") {
-  let reconnectAttempts = 0;
-  const maxReconnectAttempts = 5;
+  // let reconnectAttempts = 0;
+  // const maxReconnectAttempts = 5;
   
-  const handleFirestoreReconnect = async () => {
-    if (reconnectAttempts >= maxReconnectAttempts) {
-      console.log('Max Firestore reconnection attempts reached');
-      return;
-    }
+  // const handleFirestoreReconnect = async () => {
+  //   if (reconnectAttempts >= maxReconnectAttempts) {
+  //     console.log('Max Firestore reconnection attempts reached');
+  //     return;
+  //   }
     
-    try {
-      reconnectAttempts++;
-      console.log(`Attempting Firestore reconnection (${reconnectAttempts}/${maxReconnectAttempts})`);
+  //   try {
+  //     reconnectAttempts++;
+  //     console.log(`Attempting Firestore reconnection (${reconnectAttempts}/${maxReconnectAttempts})`);
       
-      await disableNetwork(db);
-      await new Promise(resolve => setTimeout(resolve, 1000 + (reconnectAttempts * 1000)));
-      await enableNetwork(db);
+  //     await disableNetwork(db);
+  //     await new Promise(resolve => setTimeout(resolve, 1000 + (reconnectAttempts * 1000)));
+  //     await enableNetwork(db);
       
-      firestoreOnline = true;
-      reconnectAttempts = 0;
-      console.log('Firestore reconnected successfully');
-    } catch (error) {
-      console.error('Firestore reconnection failed:', error);
-      firestoreOnline = false;
-    }
-  };
+  //     firestoreOnline = true;
+  //     reconnectAttempts = 0;
+  //     console.log('Firestore reconnected successfully');
+  //   } catch (error) {
+  //     console.error('Firestore reconnection failed:', error);
+  //     firestoreOnline = false;
+  //   }
+  // };
 
   // Enhanced Firestore error handling and network resilience
   // Network status monitoring

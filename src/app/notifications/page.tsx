@@ -8,13 +8,11 @@ import {
   Heart, 
   MessageCircle, 
   Star, 
-  UserPlus, 
   Calendar,
   Bell,
   Settings,
   Check,
-  X,
-  ArrowLeft
+  X
 } from 'lucide-react';
 import { TopBar } from '@/components/dashboard/TopBar';
 

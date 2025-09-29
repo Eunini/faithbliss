@@ -28,10 +28,8 @@ interface ProfileCardProps {
   onLike: (profileId: number) => void;
   onPass: (profileId: number) => void;
   onToggleExpand: (profileId: number) => void;
-  isDragging?: boolean;
-  dragOffset?: { x: number; y: number };
-  isStackCard?: boolean;
   expanded?: boolean;
+  isStackCard?: boolean;
   onClick?: () => void;
   onTouchStart?: (e: React.TouchEvent) => void;
   onTouchMove?: (e: React.TouchEvent) => void;
@@ -47,10 +45,8 @@ export const ProfileCard = ({
   onLike, 
   onPass, 
   onToggleExpand,
-  isDragging = false,
-  dragOffset = { x: 0, y: 0 },
-  isStackCard = false,
   expanded = false,
+  isStackCard = false,
   onClick,
   onTouchStart,
   onTouchMove,
@@ -60,6 +56,7 @@ export const ProfileCard = ({
   onMouseUp,
   onMouseLeave
 }: ProfileCardProps) => {
+  // Note: expanded prop is received but expansion logic is handled by parent component
   return (
     <div className="relative h-full">
       {/* Only show card stack effect for main cards, not stack preview cards */}

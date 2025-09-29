@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { 
@@ -10,7 +10,7 @@ import {
 import Link from 'next/link';
 import { TopBar } from '@/components/dashboard/TopBar';
 
-const MessagesPage = () => {
+const MessagesContent = () => {
   const searchParams = useSearchParams();
   const profileIdParam = searchParams.get('profileId');
   const profileNameParam = searchParams.get('profileName');
@@ -397,6 +397,18 @@ const MessagesPage = () => {
         )}
       </div>
     </div>
+  );
+};
+
+const MessagesPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
+        <div className="text-white">Loading messages...</div>
+      </div>
+    }>
+      <MessagesContent />
+    </Suspense>
   );
 };
 

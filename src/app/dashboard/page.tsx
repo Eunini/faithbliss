@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/rules-of-hooks */
 'use client';
 
@@ -24,7 +23,6 @@ const DashboardPage = () => {
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
-  const [showMessage, setShowMessage] = useState(false);
   const [expandedProfile, setExpandedProfile] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -55,7 +53,6 @@ const DashboardPage = () => {
   
   // Get current profiles to display (current + next 3)
   const currentProfiles = mockProfiles.slice(currentProfileIndex, currentProfileIndex + 4);
-  const currentProfile = currentProfiles[0];
 
   useEffect(() => {
     const checkMobile = () => {
@@ -68,7 +65,7 @@ const DashboardPage = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleLike = (profile?: any) => {
+  const handleLike = () => {
     // Desktop animation
     if (!isMobile) {
       setDragOffset({ x: 300, y: 0 });
@@ -84,7 +81,7 @@ const DashboardPage = () => {
     setDragOffset({ x: 0, y: 0 });
   };
 
-  const handlePass = (profile?: any) => {
+  const handlePass = () => {
     // Desktop animation
     if (!isMobile) {
       setDragOffset({ x: -300, y: 0 });
@@ -137,7 +134,7 @@ const DashboardPage = () => {
     if (!isMobile || !isDragging) return;
     
     const threshold = 100;
-    const { x, y } = dragOffset;
+    const { x } = dragOffset;
     
     if (Math.abs(x) > threshold) {
       if (x > 0) {
@@ -273,7 +270,6 @@ const DashboardPage = () => {
                         onMouseMove={isMain ? handleMouseMove : undefined}
                         onMouseUp={isMain ? handleMouseUp : undefined}
                         onMouseLeave={isMain ? handleMouseUp : undefined}
-                        dragOffset={isMain ? dragOffset : { x: 0, y: 0 }}
                         onClick={() => toggleExpandProfile(profile.id)}
                         expanded={expandedProfile === profile.id}
                       />

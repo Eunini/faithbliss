@@ -111,7 +111,7 @@ const ProfilePage = () => {
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
       setSaveMessage('Profile saved successfully!');
       setTimeout(() => setSaveMessage(''), 3000);
-    } catch (error) {
+    } catch {
       setSaveMessage('Error saving profile. Please try again.');
       setTimeout(() => setSaveMessage(''), 3000);
     } finally {

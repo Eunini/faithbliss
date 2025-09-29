@@ -223,7 +223,7 @@ export default function Home() {
             style={{
               backgroundImage: `url('${image}')`,
               transform: `translate3d(0, ${bgTransform}px, 0) scale(1.1)`,
-              opacity: index === currentImageIndex ? 1 : 0,
+              opacity: index === currentImageIndex ? (isTransitioning ? 0.7 : 1) : 0,
             }}
           />
         ))}
