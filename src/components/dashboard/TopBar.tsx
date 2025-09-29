@@ -70,12 +70,14 @@ export const TopBar = ({
 
         {/* Right - Action Icons */}
         <div className="flex items-center space-x-2">
-          <button className="relative p-3 hover:bg-white/10 rounded-2xl transition-all hover:scale-105 group">
-            <Bell className="w-6 h-6 text-gray-300 group-hover:text-white transition-colors" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center">
-              <span className="text-xs font-bold text-white">3</span>
-            </span>
-          </button>
+          <Link href="/notifications">
+            <button className="relative p-3 hover:bg-white/10 rounded-2xl transition-all hover:scale-105 group">
+              <Bell className="w-6 h-6 text-gray-300 group-hover:text-white transition-colors" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center">
+                <span className="text-xs font-bold text-white">3</span>
+              </span>
+            </button>
+          </Link>
           
           {/* Mobile Profile Button */}
           <button 

@@ -9,9 +9,18 @@ import {
 interface SidePanelProps {
   userName: string;
   onClose: () => void;
+  onLogout?: () => void;
 }
 
-export const SidePanel = ({ userName, onClose }: SidePanelProps) => {
+export const SidePanel = ({ userName, onClose, onLogout }: SidePanelProps) => {
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    } else {
+      // Default logout behavior - redirect to login
+      window.location.href = '/login';
+    }
+  };
   return (
     <div className="h-screen flex flex-col bg-gray-900 lg:bg-gray-800/50 lg:backdrop-blur-sm lg:border-r lg:border-gray-700/30">
       {/* Header */}
@@ -121,15 +130,18 @@ export const SidePanel = ({ userName, onClose }: SidePanelProps) => {
 
       {/* Footer */}
       <div className="flex-shrink-0 p-6 border-t border-gray-700/50">
-        <div className="flex items-center space-x-4 p-4 hover:bg-red-500/10 rounded-2xl transition-colors cursor-pointer group">
+        <button 
+          onClick={handleLogout}
+          className="w-full flex items-center space-x-4 p-4 hover:bg-red-500/10 rounded-2xl transition-colors cursor-pointer group"
+        >
           <div className="p-2 bg-red-500/20 rounded-xl group-hover:bg-red-500/30 transition-colors">
             <LogOut className="w-5 h-5 text-red-400" />
           </div>
-          <div>
+          <div className="text-left">
             <h4 className="text-red-400 font-semibold">Sign Out</h4>
             <p className="text-gray-500 text-sm">See you later!</p>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { 
   MessageCircle, ArrowLeft, Search, Send, Phone, Video, 
@@ -10,10 +11,23 @@ import Link from 'next/link';
 import { TopBar } from '@/components/dashboard/TopBar';
 
 const MessagesPage = () => {
-  const [selectedChat, setSelectedChat] = useState<number | null>(null);
+  const searchParams = useSearchParams();
+  const profileIdParam = searchParams.get('profileId');
+  const profileNameParam = searchParams.get('profileName');
+  
+  const [selectedChat, setSelectedChat] = useState<number | null>(
+    profileIdParam ? parseInt(profileIdParam) : null
+  );
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-select chat if coming from profile
+  useEffect(() => {
+    if (profileIdParam && profileNameParam) {
+      setSelectedChat(parseInt(profileIdParam));
+    }
+  }, [profileIdParam, profileNameParam]);
 
   // Mock conversations data
   const conversations = [
@@ -130,16 +144,16 @@ const MessagesPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white overflow-x-hidden">
       <TopBar 
         userName="Believer"
         showBackButton={true}
         onBack={() => window.history.back()}
       />
 
-      <div className="pt-20 h-screen flex">
+      <div className="pt-20 h-screen flex flex-col md:flex-row overflow-hidden max-w-full">
         {/* Conversations List */}
-        <div className={`${selectedChat ? 'hidden md:block' : 'block'} w-full md:w-96 bg-gray-900/50 backdrop-blur-xl border-r border-gray-700/50`}>
+        <div className={`${selectedChat ? 'hidden md:flex' : 'flex'} w-full md:w-96 flex-shrink-0 bg-gray-900/50 backdrop-blur-xl border-r border-gray-700/50 overflow-hidden min-w-0 flex-col`}>
           {/* Header */}
           <div className="p-4 border-b border-gray-700/50">
             <div className="flex items-center justify-between mb-4">
@@ -172,19 +186,19 @@ const MessagesPage = () => {
           </div>
 
           {/* Conversations */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-2 space-y-1 min-w-0">
             {filteredConversations.map((conversation) => (
-              <Link
-                href={`/messages/${conversation.id}`}
+              <button
                 key={conversation.id}
-                className={`block w-full p-4 rounded-2xl transition-all duration-300 hover:bg-white/10 ${
+                onClick={() => setSelectedChat(conversation.id)}
+                className={`w-full p-4 rounded-2xl transition-all duration-300 hover:bg-white/10 min-w-0 text-left ${
                   selectedChat === conversation.id 
                     ? 'bg-gradient-to-r from-pink-500/20 to-purple-600/20 border border-pink-500/30' 
                     : 'hover:bg-white/5'
                 }`}
               >
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
+                <div className="flex items-center space-x-3 min-w-0">
+                  <div className="relative flex-shrink-0">
                     <Image
                       src={conversation.photo}
                       alt={conversation.name}
@@ -202,10 +216,12 @@ const MessagesPage = () => {
                     )}
                   </div>
                   
-                  <div className="flex-1 text-left">
+                  <div className="flex-1 text-left min-w-0 overflow-hidden">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-white truncate">{conversation.name}</h3>
-                      <span className="text-xs text-gray-400">{conversation.timestamp}</span>
+                      <Link href={`/profile/${conversation.id}`}>
+                        <h3 className="font-semibold text-white truncate hover:text-pink-300 transition-colors cursor-pointer">{conversation.name}</h3>
+                      </Link>
+                      <span className="text-xs text-gray-400 flex-shrink-0 ml-2">{conversation.timestamp}</span>
                     </div>
                     <p className={`text-sm truncate ${
                       conversation.unread > 0 ? 'text-white font-medium' : 'text-gray-400'
@@ -225,16 +241,16 @@ const MessagesPage = () => {
                     </p>
                   </div>
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
         </div>
 
         {/* Chat Area */}
         {selectedChat ? (
-          <div className="flex-1 flex flex-col">
+          <div className={`${selectedChat ? 'flex' : 'hidden md:flex'} flex-1 flex-col min-w-0 overflow-hidden`}>
             {/* Chat Header */}
-            <div className="bg-gray-900/80 backdrop-blur-xl border-b border-gray-700/50 p-4">
+            <div className="bg-gray-900/80 backdrop-blur-xl border-b border-gray-700/50 p-4 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <button 
@@ -272,15 +288,17 @@ const MessagesPage = () => {
                   <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
                     <Video className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
                   </button>
-                  <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
-                    <Info className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
-                  </button>
+                  <Link href={`/profile/${selectedChat}`}>
+                    <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
+                      <Info className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
+                    </button>
+                  </Link>
                 </div>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 min-w-0">
               {selectedConversation?.messages.map((message) => (
                 <div
                   key={message.id}
@@ -332,20 +350,20 @@ const MessagesPage = () => {
             </div>
 
             {/* Message Input */}
-            <div className="bg-gray-900/80 backdrop-blur-xl border-t border-gray-700/50 p-4">
-              <div className="flex items-center space-x-3">
-                <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
+            <div className="bg-gray-900/80 backdrop-blur-xl border-t border-gray-700/50 p-4 flex-shrink-0">
+              <div className="flex items-center space-x-3 min-w-0">
+                <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group flex-shrink-0">
                   <Paperclip className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
                 </button>
                 
-                <div className="flex-1 relative">
+                <div className="flex-1 relative min-w-0">
                   <input
                     type="text"
                     placeholder="Type a message..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-4 py-3 pr-12 text-white placeholder-gray-400 focus:outline-none focus:border-pink-500/50 transition-all duration-300"
+                    className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-4 py-3 pr-12 text-white placeholder-gray-400 focus:outline-none focus:border-pink-500/50 transition-all duration-300 min-w-0"
                   />
                   <button className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 hover:bg-white/10 rounded-xl transition-all duration-300">
                     <Smile className="w-5 h-5 text-gray-400 hover:text-white" />
@@ -355,7 +373,7 @@ const MessagesPage = () => {
                 <button 
                   onClick={handleSendMessage}
                   disabled={!newMessage.trim()}
-                  className={`p-3 rounded-2xl transition-all duration-300 hover:scale-105 ${
+                  className={`p-3 rounded-2xl transition-all duration-300 hover:scale-105 flex-shrink-0 ${
                     newMessage.trim()
                       ? 'bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white shadow-lg shadow-pink-500/25'
                       : 'bg-white/10 text-gray-400 cursor-not-allowed'

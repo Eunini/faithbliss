@@ -155,10 +155,10 @@ export const FilterPanel = ({ onClose }: FilterPanelProps) => {
 
       {/* Footer Actions */}
       <div className="p-6 border-t border-gray-700/50 space-y-3">
-        <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white py-4 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-lg">
+        <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white py-2 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-lg">
           Apply Filters
         </button>
-        <button className="w-full bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 py-3 rounded-2xl font-medium transition-colors">
+        <button className="w-full bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 py-2 rounded-2xl font-medium transition-colors">
           Reset All
         </button>
       </div>
