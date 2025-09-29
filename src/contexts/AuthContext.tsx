@@ -2,20 +2,12 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { 
-  User, 
-  onAuthStateChanged, 
-  signInWithPopup, 
-  signOut as firebaseSignOut,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail
-} from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore/lite';
 import { auth, googleProvider, db } from '@/lib/firebase';
 import { retryFirestoreOperation } from '@/lib/firestoreUtils';
 
-interface UserProfile {
+interface AuthUserProfile {
   uid: string;
   email: string;
   displayName: string;
@@ -26,8 +18,8 @@ interface UserProfile {
 }
 
 interface AuthContextType {
-  user: User | null;
-  userProfile: UserProfile | null;
+  user: any;
+  userProfile: AuthUserProfile | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
@@ -52,12 +44,12 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<AuthUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: any) => {
       if (user) {
         setUser(user);
         // Load or create user profile with network error handling
@@ -66,14 +58,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         } catch (error: any) {
           console.warn('Failed to load user profile, continuing with authentication only:', error.message);
           // Still set the user even if profile loading fails
-          setUserProfile({
+          const fallbackProfile: AuthUserProfile = {
             uid: user.uid,
             email: user.email || '',
             displayName: user.displayName || '',
             photoURL: user.photoURL || '',
             createdAt: new Date().toISOString(),
             lastLoginAt: new Date().toISOString()
-          });
+          };
+          setUserProfile(fallbackProfile);
         }
       } else {
         setUser(null);
@@ -85,21 +78,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return unsubscribe;
   }, []);
 
-  const loadUserProfile = async (user: User) => {
+  const loadUserProfile = async (user: any) => {
     try {
       const userDocRef = doc(db, 'users', user.uid);
       
       // Retry getting user document
-      const userDoc = await retryFirestoreOperation(
+      const userDoc: any = await retryFirestoreOperation(
         () => getDoc(userDocRef),
         3,
         1000
       );
-      
+
       if (userDoc.exists()) {
-        const profileData = userDoc.data() as UserProfile;
+        const profileData = userDoc.data() as AuthUserProfile;
         setUserProfile(profileData);
-        
+
         // Update last login with retry
         await retryFirestoreOperation(
           () => setDoc(userDocRef, {
@@ -111,7 +104,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         );
       } else {
         // Create new profile
-        const newProfile: UserProfile = {
+        const newProfile: AuthUserProfile = {
           uid: user.uid,
           email: user.email || '',
           displayName: user.displayName || '',
@@ -119,7 +112,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           createdAt: new Date().toISOString(),
           lastLoginAt: new Date().toISOString()
         };
-        
+
         // Create profile with retry
         await retryFirestoreOperation(
           () => setDoc(userDocRef, newProfile),
@@ -255,7 +248,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log('Account created successfully, setting up profile...');
       
       // Create user profile in Firestore
-      const newProfile: UserProfile = {
+      const newProfile: AuthUserProfile = {
         uid: result.user.uid,
         email: result.user.email || email,
         displayName: displayName,

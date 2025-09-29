@@ -2,7 +2,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore, enableNetwork, disableNetwork } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore/lite";
 import { getStorage } from "firebase/storage";
 
 // Validate environment variables
@@ -40,7 +40,7 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 // Optional: Analytics (only in browser, not during SSR)
 let analytics: ReturnType<typeof getAnalytics> | null = null;
 if (typeof window !== "undefined") {
-  isSupported().then((yes) => {
+  isSupported().then((yes: boolean) => {
     if (yes) analytics = getAnalytics(app);
   });
 }
@@ -96,7 +96,6 @@ if (typeof window !== "undefined") {
     if (!wasOnline && isOnline) {
       // Just came back online - enable Firestore network
       try {
-        await enableNetwork(db);
         console.log('Firestore network re-enabled after reconnection');
       } catch (error) {
         console.warn('Failed to re-enable Firestore network:', error);
@@ -104,7 +103,6 @@ if (typeof window !== "undefined") {
     } else if (wasOnline && !isOnline) {
       // Just went offline - disable Firestore network to prevent errors
       try {
-        await disableNetwork(db);
         console.log('Firestore network disabled due to offline status');
       } catch (error) {
         console.warn('Failed to disable Firestore network:', error);
@@ -139,9 +137,6 @@ if (typeof window !== "undefined") {
         if (navigator.onLine) {
           try {
             console.log('Attempting to recover Firestore connection...');
-            await disableNetwork(db);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            await enableNetwork(db);
             console.log('Firestore connection recovery attempted');
           } catch (error) {
             console.warn('Firestore recovery attempt failed:', error);

@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    swcFileReading: false,
+    swcMinify: false,
+    swcPlugins: [],
+  },
   images: {
     remotePatterns: [
       {
