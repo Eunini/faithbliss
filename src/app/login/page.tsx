@@ -5,27 +5,27 @@ import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { FcGoogle } from 'react-icons/fc';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 
-export default function Signup() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    age: ''
-  });
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { signInWithGoogle, signUpWithEmail, user, userProfile, loading: authLoading } = useAuth();
+  const { signInWithGoogle, signInWithEmail, user, userProfile, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  // Handle redirect after successful registration - new users should always go to onboarding
+  // Handle redirect after successful authentication
   useEffect(() => {
     if (!authLoading && user && userProfile) {
       setLoading(false);
-      router.push('/onboarding');
+      if (userProfile.onboardingCompleted) {
+        router.push('/dashboard');
+      } else {
+        router.push('/onboarding');
+      }
     }
   }, [user, userProfile, authLoading, router]);
 
@@ -36,44 +36,32 @@ export default function Signup() {
       await signInWithGoogle();
       // Note: Redirect logic will be handled by useEffect after auth state updates
     } catch (error: any) {
-      setError(error.message || 'Failed to sign up with Google');
+      setError(error.message || 'Failed to sign in with Google');
       setLoading(false);
     }
   };
 
-  const handleEmailSignUp = async (e: React.FormEvent) => {
+  const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (parseInt(formData.age) < 18) {
-      setError('You must be at least 18 years old to join FaithBliss');
-      return;
-    }
-    
     try {
       setLoading(true);
       setError('');
-      await signUpWithEmail(formData.email, formData.password, formData.name);
+      await signInWithEmail(email, password);
       // Note: Redirect logic will be handled by useEffect after auth state updates
     } catch (error: any) {
-      setError(error.message || 'Failed to create account');
+      setError(error.message || 'Failed to sign in');
       setLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
   return (
-    <div className="min-h-screen bg-gradient-to-r from-pink-200 via-white to-blue-200 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-white to-blue-100 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent mb-2">
-            Join FaithBliss ✨
+            Welcome Back! 💕
           </h1>
-          <p className="text-gray-600">Your faithful journey starts here!</p>
+          <p className="text-gray-600">Sign in to continue your faithful journey</p>
         </div>
 
         {error && (
@@ -82,14 +70,14 @@ export default function Signup() {
           </div>
         )}
 
-        {/* Google Sign Up Button */}
+        {/* Google Sign In Button */}
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
           className="w-full mb-6 flex items-center justify-center gap-3 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 py-3 px-6 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <FcGoogle size={20} />
-          {loading ? 'Creating account...' : 'Continue with Google'}
+          {loading ? 'Signing in...' : 'Continue with Google'}
         </button>
 
         <div className="relative mb-6">
@@ -101,26 +89,7 @@ export default function Signup() {
           </div>
         </div>
 
-        <form onSubmit={handleEmailSignUp} className="space-y-6">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name
-            </label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                placeholder="Enter your full name"
-                required
-              />
-            </div>
-          </div>
-
+        <form onSubmit={handleEmailSignIn} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
@@ -130,10 +99,9 @@ export default function Signup() {
               <input
                 type="email"
                 id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border-0 outline-0 rounded-xl focus:ring-pink-500"
                 placeholder="Enter your email"
                 required
               />
@@ -149,11 +117,10 @@ export default function Signup() {
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                placeholder="Create a secure password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 pr-12 py-3 border-0 outline-0 border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="Enter your password"
                 required
               />
               <button
@@ -166,22 +133,24 @@ export default function Signup() {
             </div>
           </div>
 
-          <div>
-            <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-2">
-              Age
-            </label>
-            <input
-              type="number"
-              id="age"
-              name="age"
-              value={formData.age}
-              onChange={handleInputChange}
-              min="18"
-              max="100"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              placeholder="Your age"
-              required
-            />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                className="h-4 w-4 text-pink-500 focus:ring-pink-500 border-gray-300 rounded"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                Remember me
+              </label>
+            </div>
+
+            <div className="text-sm">
+              <a href="#" className="font-medium text-pink-500 hover:text-pink-600">
+                Forgot your password?
+              </a>
+            </div>
           </div>
 
           <button
@@ -189,15 +158,15 @@ export default function Signup() {
             disabled={loading}
             className="w-full bg-gradient-to-r from-pink-500 to-blue-500 text-white py-3 px-6 rounded-xl font-semibold hover:scale-105 transition-transform duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
-            {loading ? 'Creating Account...' : 'Join the Family 💌'}
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Already have an account?{" "}
-            <Link href="/login" className="text-pink-500 hover:text-pink-600 font-semibold">
-              Sign in here
+            Don't have an account?{" "}
+            <Link href="/signup" className="text-pink-500 hover:text-pink-600 font-semibold">
+              Sign up here
             </Link>
           </p>
         </div>

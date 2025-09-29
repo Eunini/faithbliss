@@ -194,11 +194,18 @@ export default function Home() {
               <a href="#stories" className="text-white hover:text-pink-400 transition-colors">Love Stories</a>
               <a href="#community" className="text-white hover:text-pink-400 transition-colors">Community</a>
             </div>
-            <Link href="/onboarding">
-              <button className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-all">
-                Get Started
-              </button>
-            </Link>
+            <div className="flex gap-2">
+              <Link href="/login">
+                <button className="bg-transparent border border-pink-500 text-pink-500 px-4 py-2 rounded-full hover:bg-pink-500 hover:text-white transition-all">
+                  Sign In
+                </button>
+              </Link>
+              <Link href="/signup">
+                <button className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-all">
+                  Get Started
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
@@ -263,7 +270,7 @@ export default function Home() {
               
               {/* CTA Button - Simple & Responsive */}
               <div className="flex justify-center">
-                <Link href="/onboarding">
+                <Link href="/signup">
                   <button className="bg-pink-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-full text-base md:text-lg font-semibold hover:bg-pink-600 transition-all transform hover:scale-105 shadow-2xl backdrop-blur-sm border border-pink-400/20">
                     Start My Love Journey
                   </button>

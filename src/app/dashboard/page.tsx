@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { TopBar } from '@/components/dashboard/TopBar';
 import { FloatingActionButtons } from '@/components/dashboard/FloatingActionButtons';
 import { ProfileCard } from '@/components/dashboard/ProfileCard';
@@ -16,6 +17,7 @@ insertScrollbarStyles();
 
 const DashboardPage = () => {
   const router = useRouter();
+  const { user, userProfile, loading, signOut } = useAuth();
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
@@ -27,7 +29,33 @@ const DashboardPage = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  const userName = "Benjamin";
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
+  // Redirect to onboarding if not completed
+  useEffect(() => {
+    if (!loading && user && userProfile && !userProfile.onboardingCompleted) {
+      router.push('/onboarding');
+    }
+  }, [user, userProfile, loading, router]);
+
+  const userName = userProfile?.displayName || user?.displayName || "Friend";
+  
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   // Get current profiles to display (current + next 3)
   const currentProfiles = mockProfiles.slice(currentProfileIndex, currentProfileIndex + 4);
@@ -163,18 +191,35 @@ const DashboardPage = () => {
     setDragOffset({ x: 0, y: 0 });
   };
 
-  const handleLogout = () => {
-    // Clear any stored user data
-    localStorage.removeItem('user');
-    sessionStorage.clear();
-    
-    // Redirect to login page
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const toggleExpandProfile = (profileId: number) => {
     setExpandedProfile(expandedProfile === profileId ? null : profileId);
   };
+
+  // Show loading screen while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <p>Loading your faithful connections...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render dashboard if not authenticated
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white overflow-x-hidden">

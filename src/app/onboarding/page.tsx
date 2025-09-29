@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Heart, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   BasicInfoSlide,
   EducationSlide,
@@ -14,10 +16,27 @@ import {
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
 const OnboardingPage = () => {
+  const router = useRouter();
+  const { user, userProfile, completeOnboarding, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showValidationError, setShowValidationError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
+
+  // Redirect to dashboard if already completed onboarding
+  useEffect(() => {
+    if (!authLoading && user && userProfile?.onboardingCompleted) {
+      router.push('/dashboard');
+    }
+  }, [userProfile, authLoading, user, router]);
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     phoneNumber: '',
@@ -83,7 +102,7 @@ const OnboardingPage = () => {
     }
   };
 
-  const nextSlide = () => {
+  const nextSlide = async () => {
     if (!validateCurrentSlide()) {
       setShowValidationError(true);
       setTimeout(() => setShowValidationError(false), 3000);
@@ -94,7 +113,20 @@ const OnboardingPage = () => {
     if (currentSlide < 4) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      setShowSuccess(true);
+      // Complete onboarding
+      try {
+        setSubmitting(true);
+        await completeOnboarding(formData);
+        setShowSuccess(true);
+        // Redirect to dashboard after a short delay
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 2000);
+      } catch (error) {
+        console.error('Error completing onboarding:', error);
+        setSubmitting(false);
+        // Could add error state here
+      }
     }
   };
 
@@ -117,20 +149,21 @@ const OnboardingPage = () => {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
         <div className="bg-gray-800 rounded-3xl shadow-2xl p-8 text-center max-w-md w-full border border-gray-700">
           <div className="mb-6">
-            <div className="w-20 h-20 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
               <Heart className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-3xl font-bold text-white mb-2">You&apos;re In!</h2>
-            <p className="text-gray-300 leading-relaxed">
+            <p className="text-gray-300 leading-relaxed mb-4">
               Your profile is ready. Now it&apos;s time to explore, connect, and maybe even find the one God has written into your story.
             </p>
+            <p className="text-sm text-gray-400">
+              Taking you to your dashboard...
+            </p>
           </div>
-          <Link href="/dashboard">
-            <button className="w-full bg-gradient-to-r from-pink-500 to-blue-500 text-white py-4 rounded-full font-semibold text-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-              <Sparkles className="w-5 h-5" />
-              Start Exploring
-            </button>
-          </Link>
+          <div className="w-full bg-gradient-to-r from-pink-500 to-blue-500 text-white py-4 rounded-full font-semibold text-lg flex items-center justify-center gap-2">
+            <Sparkles className="w-5 h-5 animate-spin" />
+            Starting Your Journey
+          </div>
         </div>
       </div>
     );
@@ -214,10 +247,20 @@ const OnboardingPage = () => {
             )}
             <button
               onClick={nextSlide}
-              className="flex-1 sm:flex-initial py-4 px-8 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-blue-500 text-white hover:shadow-lg transform hover:scale-105 min-w-[200px]"
+              disabled={submitting}
+              className="flex-1 sm:flex-initial py-4 px-8 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-blue-500 text-white hover:shadow-lg transform hover:scale-105 min-w-[200px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              {currentSlide === 4 ? 'Complete Profile' : 'Continue'}
-              <ChevronRight className="w-5 h-5" />
+              {submitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Setting up your profile...
+                </>
+              ) : (
+                <>
+                  {currentSlide === 4 ? 'Complete Profile' : 'Continue'}
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
             </button>
           </div>
           
