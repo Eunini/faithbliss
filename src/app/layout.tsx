@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           {children}
+          <NetworkStatusIndicator />
         </AuthProvider>
       </body>
     </html>

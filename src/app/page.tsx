@@ -187,7 +187,10 @@ export default function Home() {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
               <Heart className="h-8 w-8 text-pink-500" />
-              <span className="text-2xl font-bold text-white">FaithBliss</span>
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold text-white">FaithBliss</span>
+                <span className="text-xs text-pink-300 font-medium">African Trusted platform for christian singles</span>
+              </div>
             </div>
             <div className="hidden md:flex space-x-8">
               <a href="#features" className="text-white hover:text-pink-400 transition-colors">Why FaithBliss</a>
@@ -248,15 +251,6 @@ export default function Home() {
                 transform: `scale(${headlineScale})`,
               }}
             >
-              {/* Platform Tagline */}
-              <div className="mb-4 px-4 py-2 bg-pink-500/20 backdrop-blur-sm border border-pink-400/30 rounded-full">
-                <span className="text-sm md:text-base text-pink-300 font-semibold tracking-wide">
-                  FIRST AFRICAN CHRISTIAN DATING PLATFORM
-                </span>
-              </div>
-              
-          
-              
               <h1 className="text-3xl md:text-6xl font-bold mb-6 leading-tight text-center">
                 Believers Across
                 <span className="block bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">

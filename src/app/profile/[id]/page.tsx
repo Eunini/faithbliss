@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 import { 
-  ArrowLeft, Heart, X, Star, MessageCircle, MapPin, 
-  Calendar, Church, BookOpen, Coffee, Music, Camera,
-  Trophy, Users, Shield, Verified, ChevronLeft, ChevronRight
+  ArrowLeft, Heart, X, MessageCircle, MapPin, 
+  Calendar, Church, BookOpen, Coffee, Music,
+  Trophy, Verified, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { mockProfiles } from '@/data/mockProfiles';
 
@@ -120,14 +121,7 @@ const ProfilePage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-          <p>Loading profile...</p>
-        </div>
-      </div>
-    );
+    return <HeartBeatLoader message="Loading profile..." />;
   }
 
   if (!profile) {
@@ -157,7 +151,7 @@ const ProfilePage = () => {
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{profile.name}'s Profile</h1>
+          <h1 className="text-lg font-semibold">{profile.name}&apos;s Profile</h1>
           <div className="w-10"></div> {/* Spacer for centering */}
         </div>
       </div>

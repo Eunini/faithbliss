@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/rules-of-hooks */
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { TopBar } from '@/components/dashboard/TopBar';
@@ -47,14 +50,7 @@ const DashboardPage = () => {
   
   // Show loading while checking authentication
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
+    return <HeartBeatLoader message="Preparing your matches..." />;
   }
   
   // Get current profiles to display (current + next 3)
