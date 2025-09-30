@@ -189,7 +189,7 @@ export default function Home() {
               <Heart className="h-8 w-8 text-pink-500" />
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-white">FaithBliss</span>
-                <span className="text-xs text-pink-300 font-medium">African Trusted platform for christian singles</span>
+                <span className="text-xs text-pink-300 font-medium">Africa&apos;s Trusted platform for christian singles</span>
               </div>
             </div>
             <div className="hidden md:flex space-x-8">
@@ -198,11 +198,7 @@ export default function Home() {
               <a href="#community" className="text-white hover:text-pink-400 transition-colors">Community</a>
             </div>
             <div className="flex gap-2">
-              <Link href="/onboarding">
-                <button className="bg-transparent border border-pink-500 text-pink-500 px-4 py-2 rounded-full hover:bg-pink-500 hover:text-white transition-all">
-                  Try Demo
-                </button>
-              </Link>
+              
               <Link href="/onboarding">
                 <button className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-all">
                   Get Started
