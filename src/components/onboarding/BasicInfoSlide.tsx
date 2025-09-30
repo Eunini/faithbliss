@@ -20,14 +20,55 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
   }, [formData.countryCode, updateFormData]);
 
   const handlePhotoUpload = (photoNumber: 1 | 2) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('Photo upload triggered for photo', photoNumber);
     const file = event.target.files?.[0];
+    
     if (file) {
+      console.log('File selected:', {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+      });
+
+      // Check file size (max 10MB for mobile compatibility)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        console.error('File too large:', file.size);
+        alert('File size too large. Please choose an image smaller than 10MB.');
+        return;
+      }
+
+      // Check if it's a valid image type (including iOS HEIC/HEIF)
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
+      const isValidType = validTypes.includes(file.type) || file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|heic|heif)$/);
+      
+      if (!isValidType) {
+        console.error('Invalid file type:', file.type, 'filename:', file.name);
+        alert('Please select a valid image file (JPG, PNG, GIF, WebP, HEIC, or HEIF).');
+        return;
+      }
+
+      console.log('File validation passed, reading file...');
       const reader = new FileReader();
+      
       reader.onload = (e) => {
+        console.log('File read successfully for photo', photoNumber);
         updateFormData(`profilePhoto${photoNumber}`, e.target?.result as string);
       };
+      
+      reader.onerror = (error) => {
+        console.error('FileReader error:', error);
+        alert('Error reading file. Please try again.');
+      };
+      
       reader.readAsDataURL(file);
+    } else {
+      console.log('No file selected');
     }
+
+    // Reset the input value to allow selecting the same file again if needed
+    event.target.value = '';
   };
 
   const handleCountryChange = (country: Country) => {
@@ -57,18 +98,39 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
             </button>
           </div>
         ) : (
-          <label className="block w-32 h-32 mx-auto border-2 border-dashed border-gray-600 rounded-2xl hover:border-pink-500 cursor-pointer transition-colors group sm:w-28 sm:h-28">
-            <div className="flex flex-col items-center justify-center h-full">
-              <Camera className="w-6 h-6 text-gray-500 mb-1 group-hover:text-pink-500 transition-colors" />
-              <span className="text-xs text-gray-500 text-center px-2 group-hover:text-pink-500 transition-colors">Add Photo</span>
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoUpload(photoNumber)}
-              className="hidden"
-            />
-          </label>
+          <div className="w-32 h-32 mx-auto sm:w-28 sm:h-28">
+            {/* Camera/Photo Library Button */}
+            <label className="block w-full h-full border-2 border-dashed border-gray-600 rounded-2xl hover:border-pink-500 cursor-pointer transition-colors group">
+              <div className="flex flex-col items-center justify-center h-full">
+                <Camera className="w-6 h-6 text-gray-500 mb-1 group-hover:text-pink-500 transition-colors" />
+                <span className="text-xs text-gray-500 text-center px-2 group-hover:text-pink-500 transition-colors">Add Photo</span>
+              </div>
+              <input
+                type="file"
+                accept="image/*,image/heic,image/heif"
+                capture="environment"
+                onChange={handlePhotoUpload(photoNumber)}
+                className="hidden"
+                id={`camera-${photoNumber}`}
+              />
+            </label>
+            
+            {/* Alternative: Photo Library Only (for iOS compatibility) */}
+            <label className="block mt-1">
+              <div className="text-xs text-center">
+                <span className="text-blue-400 hover:text-blue-300 cursor-pointer">
+                  Choose from Library
+                </span>
+              </div>
+              <input
+                type="file"
+                accept="image/*,image/heic,image/heif"
+                onChange={handlePhotoUpload(photoNumber)}
+                className="hidden"
+                id={`library-${photoNumber}`}
+              />
+            </label>
+          </div>
         )}
       </div>
     </div>

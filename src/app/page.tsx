@@ -189,7 +189,7 @@ export default function Home() {
               <Heart className="h-8 w-8 text-pink-500" />
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-white">FaithBliss</span>
-                <span className="text-xs text-pink-300 font-medium">Africa&apos;s Trusted platform for christian singles</span>
+                <span className="text-xs text-pink-300 font-medium">Africa&apos;s Trusted Platform for Christian Singles</span>
               </div>
             </div>
             <div className="hidden md:flex space-x-8">
@@ -200,8 +200,8 @@ export default function Home() {
             <div className="flex gap-2">
               
               <Link href="/onboarding">
-                <button className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-all">
-                  Get Started
+                <button className="text-sm md:text-base bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-all whitespace-nowrap">
+                  Sign up
                 </button>
               </Link>
             </div>
