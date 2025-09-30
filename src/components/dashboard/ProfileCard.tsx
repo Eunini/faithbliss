@@ -45,7 +45,6 @@ export const ProfileCard = ({
   onLike, 
   onPass, 
   onToggleExpand,
-  expanded = false,
   isStackCard = false,
   onClick,
   onTouchStart,
