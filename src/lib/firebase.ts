@@ -6,49 +6,65 @@ import { getFirestore } from "firebase/firestore/lite";
 import { getStorage } from "firebase/storage";
 
 // Validate environment variables
-const requiredEnvVars = [
-  'NEXT_PUBLIC_FIREBASE_API_KEY',
-  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-  'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-  'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-  'NEXT_PUBLIC_FIREBASE_APP_ID'
-];
+let firebaseConfig: {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
+  measurementId: string;
+} | undefined;
 
-for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar]) {
-    throw new Error(`Missing required environment variable: ${envVar}`);
+if (typeof window !== "undefined") {
+  // only check when in browser and environment variables are available
+  try {
+    const requiredEnvVars = [
+      'NEXT_PUBLIC_FIREBASE_API_KEY',
+      'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+      'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+      'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+      'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+      'NEXT_PUBLIC_FIREBASE_APP_ID'
+    ];
+
+    const missingVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+    
+    if (missingVars.length === 0) {
+      firebaseConfig = {
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+        measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!,
+      };
+    } else {
+      console.warn('Firebase environment variables not available:', missingVars);
+    }
+  } catch (error) {
+    console.warn('Failed to load Firebase config:', error);
   }
 }
 
-// Your config
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!
-};
-
-console.log('Firebase config loaded successfully for project:', firebaseConfig.projectId);
+console.log('Firebase config loaded successfully for project:', firebaseConfig?.projectId);
 
 // Ensure Firebase isn’t initialized more than once (Next.js hot reload issue)
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app = firebaseConfig ? (!getApps().length ? initializeApp(firebaseConfig) : getApp()) : null;
 
 // Optional: Analytics (only in browser, not during SSR)
 let analytics: ReturnType<typeof getAnalytics> | null = null;
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && app) {
   isSupported().then((yes: boolean) => {
     if (yes) analytics = getAnalytics(app);
   });
 }
 
-// Services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+// Services - only initialize if app is available
+export const auth = app ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
+export const storage = app ? getStorage(app) : null;
 
 // Firestore connection management  
 const firestoreOnline = true;
@@ -160,10 +176,13 @@ if (typeof window !== "undefined") {
   };
 }
 
-// Google Auth Provider
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({
-  prompt: 'select_account'
-});
+// Google Auth Provider - only initialize if we have auth
+export const googleProvider = auth ? (() => {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({
+    prompt: 'select_account'
+  });
+  return provider;
+})() : null;
 
 export { app, analytics };

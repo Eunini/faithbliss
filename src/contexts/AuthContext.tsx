@@ -49,6 +49,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check if Firebase is initialized
+    if (!auth || !db) {
+      console.warn('Firebase services not available, authentication disabled');
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user: any) => {
       if (user) {
         setUser(user);
@@ -80,7 +87,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const loadUserProfile = async (user: any) => {
     try {
-      const userDocRef = doc(db, 'users', user.uid);
+      const userDocRef = doc(db!, 'users', user.uid);
       
       // Retry getting user document
       const userDoc: any = await retryFirestoreOperation(
@@ -129,6 +136,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signInWithGoogle = async () => {
+    if (!auth || !db || !googleProvider) {
+      throw new Error('Firebase not initialized');
+    }
+    
     try {
       console.log('AuthContext: Starting Google sign-in...');
       
@@ -186,6 +197,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signInWithEmail = async (email: string, password: string) => {
+    if (!auth || !db) {
+      throw new Error('Firebase not initialized');
+    }
+    
     try {
       console.log('Attempting email sign-in for:', email);
       
@@ -236,6 +251,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signUpWithEmail = async (email: string, password: string, displayName: string) => {
+    if (!auth || !db) {
+      throw new Error('Firebase not initialized');
+    }
+    
     try {
       console.log('Creating account for:', email, 'with display name:', displayName);
       
@@ -260,7 +279,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Create profile with retry and fallback
       try {
         await retryFirestoreOperation(
-          () => setDoc(doc(db, 'users', result.user.uid), newProfile),
+          () => setDoc(doc(db!, 'users', result.user.uid), newProfile),
           3,
           1000
         );
@@ -292,6 +311,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const completeOnboarding = async (profileData: any) => {
+    if (!auth || !db) {
+      throw new Error('Firebase not initialized');
+    }
     if (!user || !userProfile) return;
     
     try {
@@ -304,7 +326,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       // Update profile with retry
       await retryFirestoreOperation(
-        () => setDoc(doc(db, 'users', user.uid), updatedProfile, { merge: true }),
+        () => setDoc(doc(db!, 'users', user.uid), updatedProfile, { merge: true }),
         3,
         1000
       );
@@ -316,6 +338,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const resetPassword = async (email: string) => {
+    if (!auth) {
+      throw new Error('Firebase not initialized');
+    }
+    
     try {
       console.log('Sending password reset email to:', email);
       
@@ -345,6 +371,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signOut = async () => {
+    if (!auth) {
+      throw new Error('Firebase not initialized');
+    }
+    
     try {
       await firebaseSignOut(auth);
       setUser(null);
