@@ -8,8 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { FcGoogle } from 'react-icons/fc';
 import { Eye, EyeOff, Mail, Lock, Heart, LogIn } from 'lucide-react';
 import { HeartBeatIcon } from '@/components/HeartBeatIcon';
-import { AuthDebugger } from '@/components/AuthDebugger';
-import { AuthTester } from '@/components/AuthTester';
+
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -317,9 +316,6 @@ export default function Login() {
           </div>
         </div>
       )}
-      
-      <AuthDebugger />
-      <AuthTester />
     </div>
   );
 }

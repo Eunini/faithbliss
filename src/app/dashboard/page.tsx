@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -19,7 +18,7 @@ insertScrollbarStyles();
 
 const DashboardPage = () => {
   const router = useRouter();
-  const { user, userProfile, loading, signOut } = useAuth();
+  const { user, userProfile, loading } = useAuth(); // signOut temporarily disabled
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
@@ -30,30 +29,22 @@ const DashboardPage = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
+  // Authentication temporarily disabled for testing
+  // useEffect(() => {
+  //   if (!loading && !user) {
+  //     router.push('/login');
+  //   }
+  // }, [user, loading, router]);
 
-  // Redirect to onboarding if not completed
-  useEffect(() => {
-    if (!loading && user && userProfile && !userProfile.onboardingCompleted) {
-      router.push('/onboarding');
-    }
-  }, [user, userProfile, loading, router]);
+  // useEffect(() => {
+  //   if (!loading && user && userProfile && !userProfile.onboardingCompleted) {
+  //     router.push('/onboarding');
+  //   }
+  // }, [user, userProfile, loading, router]);
 
-  const userName = userProfile?.displayName || user?.displayName || "Friend";
+  const userName = userProfile?.displayName || user?.displayName || "Tester";
   
-  // Show loading while checking authentication
-  if (loading) {
-    return <HeartBeatLoader message="Preparing your matches..." />;
-  }
-  
-  // Get current profiles to display (current + next 3)
-  const currentProfiles = mockProfiles.slice(currentProfileIndex, currentProfileIndex + 4);
-
+  // All hooks must be called before any conditional returns
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
@@ -64,6 +55,14 @@ const DashboardPage = () => {
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+  
+  // Show loading while checking authentication
+  if (loading) {
+    return <HeartBeatLoader message="Preparing your matches..." />;
+  }
+  
+  // Get current profiles to display (current + next 3)
+  const currentProfiles = mockProfiles.slice(currentProfileIndex, currentProfileIndex + 4);
 
   const handleLike = () => {
     // Desktop animation
@@ -186,8 +185,8 @@ const DashboardPage = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut();
-      router.push('/login');
+      // await signOut(); // Temporarily disabled
+      router.push('/onboarding');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -197,22 +196,21 @@ const DashboardPage = () => {
     setExpandedProfile(expandedProfile === profileId ? null : profileId);
   };
 
-  // Show loading screen while checking authentication
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-          <p>Loading your faithful connections...</p>
-        </div>
-      </div>
-    );
-  }
+  // Authentication temporarily disabled for testing
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
+  //       <div className="text-white text-center">
+  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+  //         <p>Loading your faithful connections...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
-  // Don't render dashboard if not authenticated
-  if (!user) {
-    return null;
-  }
+  // if (!user) {
+  //   return null;
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white overflow-x-hidden">

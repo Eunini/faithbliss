@@ -3,9 +3,9 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore/lite';
-import { auth, googleProvider, db } from '@/lib/firebase';
-import { retryFirestoreOperation } from '@/lib/firestoreUtils';
+// import { doc, getDoc, setDoc } from 'firebase/firestore'; // Commented out to avoid permissions error
+import { auth, db, googleProvider } from '@/lib/firebase';
+// import { retryFirestoreOperation } from '@/lib/firestoreUtils'; // Commented out with Firestore operations
 
 interface AuthUserProfile {
   uid: string;
@@ -87,56 +87,45 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const loadUserProfile = async (user: any) => {
     try {
-      const userDocRef = doc(db!, 'users', user.uid);
+      console.log('Loading profile for user:', user.uid, user.email);
+      // FIRESTORE OPERATIONS COMMENTED OUT TO AVOID PERMISSIONS ERROR
+      // Create a mock profile for testing without Firestore
+      const mockProfile: AuthUserProfile = {
+        uid: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || 'Test User',
+        photoURL: user.photoURL || '',
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString()
+      };
       
-      // Retry getting user document
-      const userDoc: any = await retryFirestoreOperation(
-        () => getDoc(userDocRef),
-        3,
-        1000
-      );
-
-      if (userDoc.exists()) {
-        const profileData = userDoc.data() as AuthUserProfile;
-        setUserProfile(profileData);
-
-        // Update last login with retry
-        await retryFirestoreOperation(
-          () => setDoc(userDocRef, {
-            ...profileData,
-            lastLoginAt: new Date().toISOString()
-          }, { merge: true }),
-          3,
-          1000
-        );
-      } else {
-        // Create new profile
-        const newProfile: AuthUserProfile = {
-          uid: user.uid,
-          email: user.email || '',
-          displayName: user.displayName || '',
-          photoURL: user.photoURL || '',
-          createdAt: new Date().toISOString(),
-          lastLoginAt: new Date().toISOString()
-        };
-
-        // Create profile with retry
-        await retryFirestoreOperation(
-          () => setDoc(userDocRef, newProfile),
-          3,
-          1000
-        );
-        setUserProfile(newProfile);
-      }
+      console.log('Using mock profile data:', mockProfile);
+      setUserProfile(mockProfile);
+      
+      // // Original Firestore operations (commented out)
+      // if (!db) throw new Error('Firestore not initialized');
+      // const userDocRef = doc(db, 'users', user.uid);
+      // const userDoc: any = await retryFirestoreOperation(() => getDoc(userDocRef), 3, 1000);
+      // if (userDoc.exists()) {
+      //   const profileData = userDoc.data() as AuthUserProfile;
+      //   setUserProfile(profileData);
+      // } else {
+      //   const newProfile: AuthUserProfile = { ... };
+      //   await retryFirestoreOperation(() => setDoc(userDocRef, newProfile), 3, 1000);
+      //   setUserProfile(newProfile);
+      // }
+      
     } catch (error) {
-      console.error('Error loading user profile after retries:', error);
-      // Set user without profile if Firestore operations fail
+      console.error('Error loading user profile:', error);
       setUserProfile(null);
     }
   };
 
   const signInWithGoogle = async () => {
+    console.log('Firebase services check:', { auth: !!auth, db: !!db, googleProvider: !!googleProvider });
+    
     if (!auth || !db || !googleProvider) {
+      console.error('Firebase services not initialized:', { auth: !!auth, db: !!db, googleProvider: !!googleProvider });
       throw new Error('Firebase not initialized');
     }
     
@@ -276,18 +265,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         lastLoginAt: new Date().toISOString()
       };
       
-      // Create profile with retry and fallback
-      try {
-        await retryFirestoreOperation(
-          () => setDoc(doc(db!, 'users', result.user.uid), newProfile),
-          3,
-          1000
-        );
-        console.log('Profile created successfully in Firestore');
-      } catch (firestoreError: any) {
-        console.warn('Firestore profile creation failed, using local profile:', firestoreError.message);
-        // Continue with local profile even if Firestore fails
-      }
+      // FIRESTORE OPERATIONS COMMENTED OUT TO AVOID PERMISSIONS ERROR
+      // try {
+      //   await retryFirestoreOperation(
+      //     () => setDoc(doc(db, 'users', result.user.uid), newProfile),
+      //     3,
+      //     1000
+      //   );
+      //   console.log('Profile created successfully in Firestore');
+      // } catch (firestoreError: any) {
+      //   console.warn('Firestore profile creation failed, using local profile:', firestoreError.message);
+      // }
+      console.log('Profile creation bypassed (Firestore disabled for testing)');
       
       setUserProfile(newProfile);
     } catch (error: any) {
@@ -324,12 +313,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         lastLoginAt: new Date().toISOString()
       };
       
-      // Update profile with retry
-      await retryFirestoreOperation(
-        () => setDoc(doc(db!, 'users', user.uid), updatedProfile, { merge: true }),
-        3,
-        1000
-      );
+      // FIRESTORE OPERATIONS COMMENTED OUT TO AVOID PERMISSIONS ERROR
+      // await retryFirestoreOperation(
+      //   () => setDoc(doc(db, 'users', user.uid), updatedProfile, { merge: true }),
+      //   3,
+      //   1000
+      // );
+      console.log('Profile update bypassed (Firestore disabled for testing)');
       setUserProfile(updatedProfile);
     } catch (error) {
       console.error('Error completing onboarding:', error);

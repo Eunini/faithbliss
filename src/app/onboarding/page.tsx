@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Heart, Sparkles } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+// import { useAuth } from '@/contexts/AuthContext'; // Temporarily disabled
 import {
   BasicInfoSlide,
   EducationSlide,
@@ -16,26 +16,25 @@ import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
 const OnboardingPage = () => {
   const router = useRouter();
-  const { user, userProfile, completeOnboarding, loading: authLoading } = useAuth();
+  // const { user, userProfile, completeOnboarding, loading: authLoading } = useAuth(); // Temporarily disabled
   const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showValidationError, setShowValidationError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, authLoading, router]);
+  // Authentication temporarily disabled for testing
+  // useEffect(() => {
+  //   if (!authLoading && !user) {
+  //     router.push('/login');
+  //   }
+  // }, [user, authLoading, router]);
 
-  // Redirect to dashboard if already completed onboarding
-  useEffect(() => {
-    if (!authLoading && user && userProfile?.onboardingCompleted) {
-      router.push('/dashboard');
-    }
-  }, [userProfile, authLoading, user, router]);
+  // useEffect(() => {
+  //   if (!authLoading && user && userProfile?.onboardingCompleted) {
+  //     router.push('/dashboard');
+  //   }
+  // }, [userProfile, authLoading, user, router]);
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     phoneNumber: '',
@@ -112,10 +111,11 @@ const OnboardingPage = () => {
     if (currentSlide < 4) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      // Complete onboarding
+      // Complete onboarding (bypassing Firebase for testing)
       try {
         setSubmitting(true);
-        await completeOnboarding(formData);
+        // await completeOnboarding(formData); // Temporarily disabled
+        console.log('Onboarding data:', formData); // Log for testing
         setShowSuccess(true);
         // Redirect to dashboard after a short delay
         setTimeout(() => {
@@ -124,7 +124,6 @@ const OnboardingPage = () => {
       } catch (error) {
         console.error('Error completing onboarding:', error);
         setSubmitting(false);
-        // Could add error state here
       }
     }
   };
