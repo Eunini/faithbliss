@@ -189,7 +189,7 @@ export default function Home() {
               <Heart className="h-8 w-8 text-pink-500" />
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-white">FaithBliss</span>
-                <span className="text-xs text-pink-300 font-medium">Africa&apos;s Trusted Platform for Christian Singles</span>
+                <span className="text-xs text-pink-300 font-medium">Africa&apos;s Trusted Platform for<br />Christian Singles</span>
               </div>
             </div>
             <div className="hidden md:flex space-x-8">
