@@ -3,12 +3,11 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { 
-  Heart, MessageCircle, User, Camera, 
+  ArrowLeft, Heart, MessageCircle, User, Camera, 
   Church, Plus, X, Upload,
-  Sparkles, 
+  Sparkles, Settings, Edit3
 } from 'lucide-react';
-// import Link from 'next/link';
-import { TopBar } from '@/components/dashboard/TopBar';
+import { useRouter } from 'next/navigation';
 
 interface ProfileData {
   name: string;
@@ -51,6 +50,7 @@ interface SectionProps {
 }
 
 const ProfilePage = () => {
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState('photos');
   const [profileData, setProfileData] = useState({
     name: 'Blessing',
@@ -142,15 +142,32 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white pb-20">
       {/* Header */}
-      <TopBar 
-        userName={profileData.name}
-        title="Edit Profile"
-        showBackButton={true}
-        onBack={() => window.history.back()}
-        showFilters={false}
-      />
+      <div className="sticky top-0 bg-gray-900/95 backdrop-blur-xl border-b border-gray-700/50 z-30 px-4 py-4">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-sm">Back</span>
+          </button>
+          
+          <h1 className="text-xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+            My Profile
+          </h1>
+          
+          <div className="flex gap-3">
+            <button className="p-2 bg-gray-800/50 rounded-xl hover:bg-gray-700/50 transition-colors">
+              <Edit3 className="w-5 h-5 text-gray-300" />
+            </button>
+            <button className="p-2 bg-gray-800/50 rounded-xl hover:bg-gray-700/50 transition-colors">
+              <Settings className="w-5 h-5 text-gray-300" />
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Navigation Tabs */}
       <div className="bg-gray-900/60 backdrop-blur-xl border-b border-gray-700/30 sticky top-20 z-50 shadow-2xl">

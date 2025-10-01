@@ -53,7 +53,6 @@ const OnboardingPage = () => {
     currentLocation: '',
     denomination: '',
     customDenomination: '',
-    spiritualLevel: '',
     isWorker: false,
     churchDepartment: '',
     completedClasses: '',
@@ -61,7 +60,6 @@ const OnboardingPage = () => {
     faithJourney: '',
     faithInRelationships: '',
     favoriteVerse: '',
-    faithLove: '',
     lookingFor: '',
     hobbies: [],
     values: [],
@@ -92,7 +90,7 @@ const OnboardingPage = () => {
         return formData.grewUp && formData.hometown && formData.currentLocation;
       case 3:
         const denominationValid = formData.denomination && (formData.denomination !== 'Other' || formData.customDenomination);
-        return denominationValid && formData.spiritualLevel && formData.faithLove;
+        return denominationValid && formData.completedClasses && formData.churchDuration && formData.faithJourney && formData.faithInRelationships && formData.favoriteVerse;
       case 4:
         return formData.lookingFor && formData.hobbies.length > 0 && formData.values.length > 0 && formData.sundayActivity && formData.personality && formData.aboutMe;
       default:

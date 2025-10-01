@@ -23,7 +23,6 @@ export interface FormData {
   // Faith
   denomination: string;
   customDenomination: string;
-  spiritualLevel: string;
   isWorker: boolean;
   churchDepartment: string;
   completedClasses: string;
@@ -31,7 +30,6 @@ export interface FormData {
   faithJourney: string;
   faithInRelationships: string;
   favoriteVerse: string;
-  faithLove: string;
 
   // Personal
   lookingFor: string;

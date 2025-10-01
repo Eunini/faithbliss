@@ -5,10 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { 
   MessageCircle, ArrowLeft, Search, Send, Phone, Video, 
-  Smile, Paperclip, Info, Check, CheckCheck
+  Smile, Paperclip, Info, Check, CheckCheck, Users, Heart
 } from 'lucide-react';
 import Link from 'next/link';
-import { TopBar } from '@/components/dashboard/TopBar';
 
 const MessagesContent = () => {
   const searchParams = useSearchParams();
@@ -144,12 +143,38 @@ const MessagesContent = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white overflow-x-hidden">
-      <TopBar 
-        userName="Believer"
-        showBackButton={true}
-        onBack={() => window.history.back()}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white overflow-x-hidden pb-20">
+      {/* Header */}
+      <div className="sticky top-0 bg-gray-900/95 backdrop-blur-xl border-b border-gray-700/50 z-30 px-4 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            Messages
+          </h1>
+          <div className="flex gap-3">
+            <button className="p-2 bg-gray-800/50 rounded-xl hover:bg-gray-700/50 transition-colors">
+              <Search className="w-5 h-5 text-gray-300" />
+            </button>
+          </div>
+        </div>
+        
+        {/* Tabs */}
+        <div className="flex justify-center mt-4">
+          <div className="bg-gray-800/50 rounded-2xl p-1 flex gap-1">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
+              <MessageCircle className="w-4 h-4" />
+              Connections
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-700/50">
+              <Heart className="w-4 h-4" />
+              Matches
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-700/50">
+              <Users className="w-4 h-4" />
+              Groups
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="pt-20 h-screen flex flex-col md:flex-row overflow-hidden max-w-full">
         {/* Conversations List */}
