@@ -44,6 +44,7 @@ const OnboardingPage = () => {
     showAge: false,
     profilePhoto1: null,
     profilePhoto2: null,
+    profilePhoto3: null,
     fieldOfStudy: '',
     customFieldOfStudy: '',
     degree: '',
@@ -82,7 +83,8 @@ const OnboardingPage = () => {
   const validateCurrentSlide = () => {
     switch (currentSlide) {
       case 0:
-        return formData.fullName && formData.phoneNumber && formData.countryCode && formData.gender && formData.birthday && formData.profilePhoto1 && formData.profilePhoto2;
+        const photosUploaded = [formData.profilePhoto1, formData.profilePhoto2, formData.profilePhoto3].filter(Boolean).length;
+        return formData.fullName && formData.phoneNumber && formData.countryCode && formData.gender && formData.birthday && photosUploaded >= 2;
       case 1:
         const fieldOfStudyValid = formData.fieldOfStudy && (formData.fieldOfStudy !== 'Other' || formData.customFieldOfStudy);
         return fieldOfStudyValid && formData.degree && formData.profession;

@@ -19,7 +19,7 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
     }
   }, [formData.countryCode, updateFormData]);
 
-  const handlePhotoUpload = (photoNumber: 1 | 2) => (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = (photoNumber: 1 | 2 | 3) => (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log('Photo upload triggered for photo', photoNumber);
     const file = event.target.files?.[0];
     
@@ -31,38 +31,87 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
         lastModified: file.lastModified
       });
 
-      // Check file size (max 10MB for mobile compatibility)
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      // Check file size (max 15MB for iOS HEIC compatibility)
+      const maxSize = 15 * 1024 * 1024; // 15MB
       if (file.size > maxSize) {
         console.error('File too large:', file.size);
-        alert('File size too large. Please choose an image smaller than 10MB.');
+        alert('File size too large. Please choose an image smaller than 15MB.');
         return;
       }
 
-      // Check if it's a valid image type (including iOS HEIC/HEIF)
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
-      const isValidType = validTypes.includes(file.type) || file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|heic|heif)$/);
+      // Enhanced validation with stricter rules for third photo
+      const strictImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      const strictImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+      
+      const allImageTypes = [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 
+        'image/heic', 'image/heif', 'image/avif', 'image/bmp', 'image/tiff'
+      ];
+      const allImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'avif', 'bmp', 'tiff', 'tif'];
+      
+      const fileExtension = file.name.toLowerCase().split('.').pop();
+      
+      let isValidType = false;
+      let errorMessage = '';
+      
+      if (photoNumber === 3) {
+        // Third photo: strictly images only - no HEIC, HEIF, or other formats
+        isValidType = strictImageTypes.includes(file.type) || 
+                     strictImageExtensions.includes(fileExtension || '') ||
+                     (file.type.startsWith('image/') && strictImageTypes.some(type => file.type === type));
+        errorMessage = 'Photo 3 must be a standard image file (JPG, PNG, GIF, or WebP only).';
+      } else {
+        // Photos 1 & 2: allow all image formats including iOS HEIC/HEIF
+        isValidType = allImageTypes.includes(file.type) || 
+                     allImageExtensions.includes(fileExtension || '') ||
+                     file.type.startsWith('image/');
+        errorMessage = 'Please select a valid image file (JPG, PNG, GIF, WebP, HEIC, HEIF, or other image formats).';
+      }
       
       if (!isValidType) {
-        console.error('Invalid file type:', file.type, 'filename:', file.name);
-        alert('Please select a valid image file (JPG, PNG, GIF, WebP, HEIC, or HEIF).');
+        console.error('Invalid file type for photo', photoNumber, ':', file.type, 'filename:', file.name, 'extension:', fileExtension);
+        alert(errorMessage);
         return;
       }
 
       console.log('File validation passed, reading file...');
+      
+      // Show loading state (you could add a loading indicator here)
       const reader = new FileReader();
+      
+      reader.onloadstart = () => {
+        console.log('Starting to read file for photo', photoNumber);
+        // You could set loading state here if needed
+      };
       
       reader.onload = (e) => {
         console.log('File read successfully for photo', photoNumber);
-        updateFormData(`profilePhoto${photoNumber}`, e.target?.result as string);
+        const result = e.target?.result as string;
+        
+        // Additional validation for the loaded image
+        if (result && result.length > 0) {
+          updateFormData(`profilePhoto${photoNumber}`, result);
+        } else {
+          console.error('Empty or invalid image data');
+          alert('Failed to load image. Please try a different photo.');
+        }
       };
       
       reader.onerror = (error) => {
         console.error('FileReader error:', error);
-        alert('Error reading file. Please try again.');
+        alert('Error reading file. Please try again or choose a different image.');
       };
       
-      reader.readAsDataURL(file);
+      reader.onabort = () => {
+        console.log('File reading was aborted');
+      };
+      
+      try {
+        reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('Error starting file read:', error);
+        alert('Error processing image. Please try again.');
+      }
     } else {
       console.log('No file selected');
     }
@@ -75,59 +124,54 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
     setSelectedCountry(country);
     updateFormData('countryCode', country.dialCode);
   };
-  const PhotoUpload = ({ photoNumber, photo }: { photoNumber: 1 | 2; photo: string | null }) => (
+  const PhotoUpload = ({ photoNumber, photo }: { photoNumber: 1 | 2 | 3; photo: string | null }) => (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-300 text-center">
-        Photo {photoNumber} <span className="text-pink-500">*</span>
+        Photo {photoNumber} {photoNumber <= 2 ? <span className="text-pink-500">*</span> : <span className="text-gray-500">(optional)</span>}
+        {photoNumber === 3 && <div className="text-xs text-gray-500 mt-1">Standard formats only</div>}
       </label>
       <div className="relative">
         {photo ? (
-          <div className="relative w-32 h-32 mx-auto sm:w-28 sm:h-28">
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mx-auto">
             <Image
               src={photo}
               alt={`Profile ${photoNumber}`}
               width={128}
               height={128}
-              className="w-full h-full object-cover rounded-2xl border-2 border-gray-700"
+              className="w-full h-full object-cover rounded-2xl border-2 border-gray-700 shadow-lg"
             />
             <button
               onClick={() => updateFormData(`profilePhoto${photoNumber}`, null)}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg z-10"
+              aria-label={`Remove photo ${photoNumber}`}
             >
               <X className="w-4 h-4" />
             </button>
           </div>
         ) : (
-          <div className="w-32 h-32 mx-auto sm:w-28 sm:h-28">
-            {/* Camera/Photo Library Button */}
-            <label className="block w-full h-full border-2 border-dashed border-gray-600 rounded-2xl hover:border-pink-500 cursor-pointer transition-colors group">
-              <div className="flex flex-col items-center justify-center h-full">
-                <Camera className="w-6 h-6 text-gray-500 mb-1 group-hover:text-pink-500 transition-colors" />
-                <span className="text-xs text-gray-500 text-center px-2 group-hover:text-pink-500 transition-colors">Add Photo</span>
-              </div>
-              <input
-                type="file"
-                accept="image/*,image/heic,image/heif"
-                capture="environment"
-                onChange={handlePhotoUpload(photoNumber)}
-                className="hidden"
-                id={`camera-${photoNumber}`}
-              />
-            </label>
-            
-            {/* Alternative: Photo Library Only (for iOS compatibility) */}
-            <label className="block mt-1">
-              <div className="text-xs text-center">
-                <span className="text-blue-400 hover:text-blue-300 cursor-pointer">
-                  Choose from Library
+          <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mx-auto">
+            <label 
+              className="block w-full h-full border-2 border-dashed border-gray-600 rounded-2xl hover:border-pink-500 cursor-pointer transition-all group hover:bg-gray-800/50 active:scale-95 touch-manipulation"
+              style={{ minHeight: '44px', minWidth: '44px' }} // iOS minimum touch target
+            >
+              <div className="flex flex-col items-center justify-center h-full p-2">
+                <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500 mb-1 group-hover:text-pink-500 transition-colors" />
+                <span className="text-xs text-gray-500 text-center px-1 group-hover:text-pink-500 transition-colors leading-tight">
+                  Add Photo
                 </span>
               </div>
               <input
                 type="file"
-                accept="image/*,image/heic,image/heif"
+                accept={photoNumber === 3 
+                  ? "image/jpeg,image/jpg,image/png,image/gif,image/webp" 
+                  : "image/*,image/heic,image/heif,image/jpeg,image/jpg,image/png,image/webp,image/avif"
+                }
+                capture={photoNumber === 3 ? undefined : "environment"}
                 onChange={handlePhotoUpload(photoNumber)}
                 className="hidden"
-                id={`library-${photoNumber}`}
+                id={`photo-upload-${photoNumber}`}
+                multiple={false}
+                aria-label={`Upload photo ${photoNumber}${photoNumber === 3 ? ' (standard image formats only)' : ''}`}
               />
             </label>
           </div>
@@ -147,10 +191,30 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Photo Upload Section */}
         <div className="lg:order-2 flex flex-col items-center space-y-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Upload Your Photos</h3>
-          <div className="flex flex-row lg:flex-col gap-6 justify-center">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-white mb-2">Upload Your Photos</h3>
+            <p className="text-sm text-gray-400 mb-2">Add 2-3 photos to showcase yourself (minimum 2 required)</p>
+            <p className="text-xs text-gray-500 mb-4">Note: Photo 3 accepts standard image formats only (JPG, PNG, GIF, WebP)</p>
+          </div>
+          
+          {/* Mobile: 3 photos in a responsive grid layout */}
+          <div className="lg:hidden w-full max-w-sm mx-auto">
+            {/* First photo centered */}
+            <div className="flex justify-center mb-4">
+              <PhotoUpload photoNumber={1} photo={formData.profilePhoto1} />
+            </div>
+            {/* Second and third photos side by side */}
+            <div className="grid grid-cols-2 gap-4 justify-items-center">
+              <PhotoUpload photoNumber={2} photo={formData.profilePhoto2} />
+              <PhotoUpload photoNumber={3} photo={formData.profilePhoto3} />
+            </div>
+          </div>
+          
+          {/* Desktop: 3 photos in a column layout */}
+          <div className="hidden lg:flex lg:flex-col gap-6 justify-center">
             <PhotoUpload photoNumber={1} photo={formData.profilePhoto1} />
             <PhotoUpload photoNumber={2} photo={formData.profilePhoto2} />
+            <PhotoUpload photoNumber={3} photo={formData.profilePhoto3} />
           </div>
         </div>
 

@@ -8,6 +8,7 @@ export interface FormData {
   showAge: boolean;
   profilePhoto1: string | null;
   profilePhoto2: string | null;
+  profilePhoto3: string | null;
 
   // Educational Background
   fieldOfStudy: string;
