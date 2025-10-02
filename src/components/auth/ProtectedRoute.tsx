@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNextAuth } from '@/contexts/NextAuthContext';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
 interface ProtectedRouteProps {
@@ -11,14 +11,14 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, redirectTo = '/login' }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, isAuthenticated } = useNextAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !isAuthenticated) {
       router.push(redirectTo);
     }
-  }, [user, loading, router, redirectTo]);
+  }, [isAuthenticated, loading, router, redirectTo]);
 
   // Show loading screen while checking authentication
   if (loading) {
@@ -26,7 +26,7 @@ export default function ProtectedRoute({ children, redirectTo = '/login' }: Prot
   }
 
   // Don't render children if not authenticated
-  if (!user) {
+  if (!isAuthenticated || !user) {
     return null;
   }
 

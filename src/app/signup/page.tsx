@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNextAuth } from '@/contexts/NextAuthContext';
 import { FcGoogle } from 'react-icons/fc';
 import { Eye, EyeOff, Mail, Lock, User, Heart, Sparkles } from 'lucide-react';
 import { PopupInstruction } from '@/components/auth/PopupInstruction';
@@ -24,19 +24,19 @@ export default function Signup() {
   const [showPopupInstruction, setShowPopupInstruction] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   
-  const { signInWithGoogle, signUpWithEmail, user, userProfile, loading: authLoading } = useAuth();
+  const { signInWithGoogle, user, loading: authLoading } = useNextAuth();
   const router = useRouter();
 
   // Handle redirect after successful registration - show success modal first
   useEffect(() => {
-    if (!authLoading && user && userProfile) {
+    if (!authLoading && user) {
       setLoading(false);
       setShowSuccessModal(true);
     } else if (!authLoading && !user) {
       // Reset loading if auth is complete but no user (failed auth)
       setLoading(false);
     }
-  }, [user, userProfile, authLoading]);
+  }, [user, authLoading]);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -97,7 +97,8 @@ export default function Signup() {
       setLoading(true);
       setError('');
       console.log('Starting signup process for:', formData.email);
-      await signUpWithEmail(formData.email.trim(), formData.password, formData.name.trim());
+      // Email signup disabled - using Google OAuth only
+      setError('Email signup is currently disabled. Please use Google Sign In.');
       // Note: Success modal and redirect logic will be handled by useEffect after auth state updates
     } catch (error: any) {
       setError(error.message || 'Failed to create account');

@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { 
   Heart, 
   MessageCircle, 
@@ -330,4 +331,10 @@ const NotificationsPage = () => {
   );
 };
 
-export default NotificationsPage;
+export default function ProtectedNotifications() {
+  return (
+    <ProtectedRoute>
+      <NotificationsPage />
+    </ProtectedRoute>
+  );
+}

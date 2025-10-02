@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Heart, MessageCircle, User, ArrowLeft, Filter, Search, MapPin, Church, Users, Clock, Check, X } from 'lucide-react';
 import Link from 'next/link';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { TopBar } from '@/components/dashboard/TopBar';
 
 const MatchesPage = () => {
@@ -296,4 +297,10 @@ const MatchesPage = () => {
   );
 };
 
-export default MatchesPage;
+export default function ProtectedMatches() {
+  return (
+    <ProtectedRoute>
+      <MatchesPage />
+    </ProtectedRoute>
+  );
+}

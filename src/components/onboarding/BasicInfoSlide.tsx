@@ -1,8 +1,10 @@
-import { User, Camera, X } from 'lucide-react';
+import { User, Camera, X, Upload } from 'lucide-react';
 import { FormData } from './types';
 import { CountryCodeSelect, defaultCountry, type Country } from '../CountryCodeSelect';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { CloudinaryService } from '@/lib/cloudinary';
+import { useNextAuth } from '@/contexts/NextAuthContext';
 
 interface BasicInfoSlideProps {
   formData: FormData;
@@ -11,6 +13,8 @@ interface BasicInfoSlideProps {
 
 export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps) => {
   const [selectedCountry, setSelectedCountry] = useState(defaultCountry);
+  const [uploadingPhotos, setUploadingPhotos] = useState<{[key: number]: boolean}>({});
+  const { user } = useNextAuth();
 
   // Initialize country code if not set
   useEffect(() => {
@@ -19,7 +23,7 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
     }
   }, [formData.countryCode, updateFormData]);
 
-  const handlePhotoUpload = (photoNumber: 1 | 2 | 3) => (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = (photoNumber: 1 | 2 | 3) => async (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log('Photo upload triggered for photo', photoNumber);
     const file = event.target.files?.[0];
     
@@ -39,34 +43,16 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
         return;
       }
 
-      // Enhanced validation with stricter rules for third photo
-      const strictImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      const strictImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-      
-      const allImageTypes = [
-        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 
-        'image/heic', 'image/heif', 'image/avif', 'image/bmp', 'image/tiff'
-      ];
-      const allImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'avif', 'bmp', 'tiff', 'tif'];
+      // Validate file type - only allow standard picture formats for all photos
+      const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      const allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
       
       const fileExtension = file.name.toLowerCase().split('.').pop();
       
-      let isValidType = false;
-      let errorMessage = '';
-      
-      if (photoNumber === 3) {
-        // Third photo: strictly images only - no HEIC, HEIF, or other formats
-        isValidType = strictImageTypes.includes(file.type) || 
-                     strictImageExtensions.includes(fileExtension || '') ||
-                     (file.type.startsWith('image/') && strictImageTypes.some(type => file.type === type));
-        errorMessage = 'Photo 3 must be a standard image file (JPG, PNG, GIF, or WebP only).';
-      } else {
-        // Photos 1 & 2: allow all image formats including iOS HEIC/HEIF
-        isValidType = allImageTypes.includes(file.type) || 
-                     allImageExtensions.includes(fileExtension || '') ||
-                     file.type.startsWith('image/');
-        errorMessage = 'Please select a valid image file (JPG, PNG, GIF, WebP, HEIC, HEIF, or other image formats).';
-      }
+      // Check if file type and extension are both valid picture formats
+      const isValidType = allowedImageTypes.includes(file.type) || 
+                         allowedImageExtensions.includes(fileExtension || '');
+      const errorMessage = 'Please select a standard picture file (JPG, PNG, GIF, or WebP only).';
       
       if (!isValidType) {
         console.error('Invalid file type for photo', photoNumber, ':', file.type, 'filename:', file.name, 'extension:', fileExtension);
@@ -74,43 +60,34 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
         return;
       }
 
-      console.log('File validation passed, reading file...');
-      
-      // Show loading state (you could add a loading indicator here)
-      const reader = new FileReader();
-      
-      reader.onloadstart = () => {
-        console.log('Starting to read file for photo', photoNumber);
-        // You could set loading state here if needed
-      };
-      
-      reader.onload = (e) => {
-        console.log('File read successfully for photo', photoNumber);
-        const result = e.target?.result as string;
-        
-        // Additional validation for the loaded image
-        if (result && result.length > 0) {
-          updateFormData(`profilePhoto${photoNumber}`, result);
-        } else {
-          console.error('Empty or invalid image data');
-          alert('Failed to load image. Please try a different photo.');
-        }
-      };
-      
-      reader.onerror = (error) => {
-        console.error('FileReader error:', error);
-        alert('Error reading file. Please try again or choose a different image.');
-      };
-      
-      reader.onabort = () => {
-        console.log('File reading was aborted');
-      };
+      console.log('File validation passed, uploading to Cloudinary...');
       
       try {
-        reader.readAsDataURL(file);
+        // Set uploading state
+        setUploadingPhotos(prev => ({ ...prev, [photoNumber]: true }));
+        
+        // Upload to Cloudinary
+        const result = await CloudinaryService.uploadImage(
+          file,
+          'faithbliss/profile-photos',
+          user?.id || 'anonymous',
+          photoNumber
+        );
+
+        console.log('Cloudinary upload successful:', result);
+
+        // Update form data with Cloudinary URL
+        updateFormData(`profilePhoto${photoNumber}`, result.secure_url);
+        
+        // Show success feedback
+        console.log(`Photo ${photoNumber} uploaded successfully to Cloudinary`);
+        
       } catch (error) {
-        console.error('Error starting file read:', error);
-        alert('Error processing image. Please try again.');
+        console.error('Cloudinary upload error:', error);
+        alert(`Failed to upload photo ${photoNumber}. Please try again.`);
+      } finally {
+        // Clear uploading state
+        setUploadingPhotos(prev => ({ ...prev, [photoNumber]: false }));
       }
     } else {
       console.log('No file selected');
@@ -124,61 +101,84 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
     setSelectedCountry(country);
     updateFormData('countryCode', country.dialCode);
   };
-  const PhotoUpload = ({ photoNumber, photo }: { photoNumber: 1 | 2 | 3; photo: string | null }) => (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-300 text-center">
-        Photo {photoNumber} {photoNumber <= 2 ? <span className="text-pink-500">*</span> : <span className="text-gray-500">(optional)</span>}
-        {photoNumber === 3 && <div className="text-xs text-gray-500 mt-1">Standard formats only</div>}
-      </label>
-      <div className="relative">
-        {photo ? (
-          <div className="relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mx-auto">
-            <Image
-              src={photo}
-              alt={`Profile ${photoNumber}`}
-              width={128}
-              height={128}
-              className="w-full h-full object-cover rounded-2xl border-2 border-gray-700 shadow-lg"
-            />
-            <button
-              onClick={() => updateFormData(`profilePhoto${photoNumber}`, null)}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg z-10"
-              aria-label={`Remove photo ${photoNumber}`}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mx-auto">
-            <label 
-              className="block w-full h-full border-2 border-dashed border-gray-600 rounded-2xl hover:border-pink-500 cursor-pointer transition-all group hover:bg-gray-800/50 active:scale-95 touch-manipulation"
-              style={{ minHeight: '44px', minWidth: '44px' }} // iOS minimum touch target
-            >
-              <div className="flex flex-col items-center justify-center h-full p-2">
-                <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500 mb-1 group-hover:text-pink-500 transition-colors" />
-                <span className="text-xs text-gray-500 text-center px-1 group-hover:text-pink-500 transition-colors leading-tight">
-                  Add Photo
-                </span>
-              </div>
-              <input
-                type="file"
-                accept={photoNumber === 3 
-                  ? "image/jpeg,image/jpg,image/png,image/gif,image/webp" 
-                  : "image/*,image/heic,image/heif,image/jpeg,image/jpg,image/png,image/webp,image/avif"
-                }
-                capture={photoNumber === 3 ? undefined : "environment"}
-                onChange={handlePhotoUpload(photoNumber)}
-                className="hidden"
-                id={`photo-upload-${photoNumber}`}
-                multiple={false}
-                aria-label={`Upload photo ${photoNumber}${photoNumber === 3 ? ' (standard image formats only)' : ''}`}
+  const PhotoUpload = ({ photoNumber, photo }: { photoNumber: 1 | 2 | 3; photo: string | null }) => {
+    const isUploading = uploadingPhotos[photoNumber];
+    
+    return (
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-300 text-center">
+          Photo {photoNumber} {photoNumber <= 2 ? <span className="text-pink-500">*</span> : <span className="text-gray-500">(optional)</span>}
+          <div className="text-xs text-gray-500 mt-1">JPG, PNG, GIF, or WebP only</div>
+        </label>
+        <div className="relative">
+          {photo ? (
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mx-auto">
+              <Image
+                src={photo}
+                alt={`Profile ${photoNumber}`}
+                width={128}
+                height={128}
+                className="w-full h-full object-cover rounded-2xl border-2 border-gray-700 shadow-lg"
+                onError={() => {
+                  console.error(`Failed to load photo ${photoNumber}:`, photo);
+                  // Fallback or retry logic could go here
+                }}
               />
-            </label>
-          </div>
-        )}
+              <button
+                onClick={() => updateFormData(`profilePhoto${photoNumber}`, null)}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg z-10"
+                aria-label={`Remove photo ${photoNumber}`}
+                disabled={isUploading}
+              >
+                <X className="w-4 h-4" />
+              </button>
+              {isUploading && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-2xl flex items-center justify-center">
+                  <Upload className="w-6 h-6 text-white animate-pulse" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mx-auto">
+              <label 
+                className={`block w-full h-full border-2 border-dashed border-gray-600 rounded-2xl hover:border-pink-500 cursor-pointer transition-all group hover:bg-gray-800/50 active:scale-95 touch-manipulation ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                style={{ minHeight: '44px', minWidth: '44px' }} // iOS minimum touch target
+              >
+                <div className="flex flex-col items-center justify-center h-full p-2">
+                  {isUploading ? (
+                    <>
+                      <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 mb-1 animate-pulse" />
+                      <span className="text-xs text-pink-500 text-center px-1 leading-tight">
+                        Uploading...
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500 mb-1 group-hover:text-pink-500 transition-colors" />
+                      <span className="text-xs text-gray-500 text-center px-1 group-hover:text-pink-500 transition-colors leading-tight">
+                        Add Photo
+                      </span>
+                    </>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                  capture="environment"
+                  onChange={handlePhotoUpload(photoNumber)}
+                  className="hidden"
+                  id={`photo-upload-${photoNumber}`}
+                  multiple={false}
+                  aria-label={`Upload photo ${photoNumber} (standard picture formats only)`}
+                  disabled={isUploading}
+                />
+              </label>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 animate-in slide-in-from-right duration-500">

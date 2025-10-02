@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { 
   ArrowLeft, Heart, MessageCircle, User, Camera, 
   Church, Plus, X, Upload,
@@ -722,4 +723,10 @@ const FaithSection = ({ profileData, setProfileData }: SectionProps) => (
   </div>
 );
 
-export default ProfilePage;
+export default function ProtectedProfile() {
+  return (
+    <ProtectedRoute>
+      <ProfilePage />
+    </ProtectedRoute>
+  );
+}

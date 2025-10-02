@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { NextAuthProvider } from "@/contexts/NextAuthContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
+import { UserDebugInfo } from "@/components/UserDebugInfo";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,10 +27,13 @@ export default function RootLayout({
       <body
         className="font-sans antialiased"
       >
-        <AuthProvider>
-          {children}
-          <NetworkStatusIndicator />
-        </AuthProvider>
+        <NextAuthProvider>
+          <ToastProvider>
+            {children}
+            <NetworkStatusIndicator />
+            {process.env.NODE_ENV === 'development' && <UserDebugInfo />}
+          </ToastProvider>
+        </NextAuthProvider>
       </body>
     </html>
   );

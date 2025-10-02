@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { 
   ArrowLeft,
   Heart,
@@ -127,4 +128,10 @@ const CommunityPage = () => {
   );
 };
 
-export default CommunityPage;
+export default function ProtectedCommunity() {
+  return (
+    <ProtectedRoute>
+      <CommunityPage />
+    </ProtectedRoute>
+  );
+}

@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
-import { useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useNextAuth } from '@/contexts/NextAuthContext';
 import { 
   ArrowLeft,
   MapPin, 
@@ -18,7 +19,7 @@ import {
 
 const DiscoverPage = () => {
   const router = useRouter();
-  const { loading } = useAuth();
+  const { loading } = useNextAuth();
 
   if (loading) {
     return <HeartBeatLoader message="Discovering faithful connections..." />;
@@ -273,4 +274,10 @@ const DiscoverPage = () => {
   );
 };
 
-export default DiscoverPage;
+export default function ProtectedDiscover() {
+  return (
+    <ProtectedRoute>
+      <DiscoverPage />
+    </ProtectedRoute>
+  );
+}

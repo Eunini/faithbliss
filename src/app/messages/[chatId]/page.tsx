@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { 
   ArrowLeft, Send, Phone, Video, Info, Smile, Camera, Heart, Check, CheckCheck, Flag, UserX
 } from 'lucide-react';
@@ -295,4 +296,10 @@ const ChatPage = () => {
   );
 };
 
-export default ChatPage;
+export default function ProtectedChat() {
+  return (
+    <ProtectedRoute>
+      <ChatPage />
+    </ProtectedRoute>
+  );
+}

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { 
   ArrowLeft, Heart, X, MessageCircle, MapPin, 
   Calendar, Church, BookOpen, Coffee, Music,
@@ -419,4 +420,10 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default function ProtectedProfileView() {
+  return (
+    <ProtectedRoute>
+      <ProfilePage />
+    </ProtectedRoute>
+  );
+}

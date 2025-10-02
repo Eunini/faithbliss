@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { 
   MessageCircle, ArrowLeft, Search, Send, Phone, Video, 
   Smile, Paperclip, Info, Check, CheckCheck, Users, Heart
@@ -437,4 +438,10 @@ const MessagesPage = () => {
   );
 };
 
-export default MessagesPage;
+export default function ProtectedMessages() {
+  return (
+    <ProtectedRoute>
+      <MessagesPage />
+    </ProtectedRoute>
+  );
+}
