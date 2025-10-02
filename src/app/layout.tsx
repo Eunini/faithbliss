@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { NextAuthProvider } from "@/contexts/NextAuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
-import { UserDebugInfo } from "@/components/UserDebugInfo";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,7 +30,6 @@ export default function RootLayout({
           <ToastProvider>
             {children}
             <NetworkStatusIndicator />
-            {process.env.NODE_ENV === 'development' && <UserDebugInfo />}
           </ToastProvider>
         </NextAuthProvider>
       </body>
