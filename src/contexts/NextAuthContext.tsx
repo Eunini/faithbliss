@@ -4,7 +4,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useSession, signIn, signOut, SessionProvider } from 'next-auth/react';
-import { CloudinaryService } from '@/lib/cloudinary';
+
 
 interface UserProfile {
   id: string;
@@ -49,16 +49,41 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
   const loading = status === 'loading';
   const isAuthenticated = !!session?.user;
 
-  // Sync session with user state
+  // Sync session with user state and fetch from backend
   useEffect(() => {
+    const fetchUserData = async () => {
+      if (session?.user?.email) {
+        try {
+          // Import API dynamically to avoid circular dependencies
+          const { API } = await import('@/services/api');
+          const backendUser = await API.User.getMe();
+          
+          setUser({
+            id: backendUser.id || session.user.email,
+            email: backendUser.email || session.user.email,
+            name: backendUser.name || session.user.name || '',
+            image: backendUser.profilePhotos?.photo1 || session.user.image || undefined,
+            onboardingCompleted: backendUser.onboardingCompleted || false,
+            profilePhotos: backendUser.profilePhotos,
+          });
+        } catch (error) {
+          console.error('Failed to fetch user from backend:', error);
+          // Fallback to session data
+          setUser({
+            id: session.user.email,
+            email: session.user.email,
+            name: session.user.name || '',
+            image: session.user.image || undefined,
+            onboardingCompleted: false,
+          });
+        }
+      } else {
+        setUser(null);
+      }
+    };
+
     if (session?.user) {
-      setUser({
-        id: session.user.email || '',
-        email: session.user.email || '',
-        name: session.user.name || '',
-        image: session.user.image || undefined,
-        onboardingCompleted: false, // This will be fetched from backend
-      });
+      fetchUserData();
     } else {
       setUser(null);
     }
@@ -95,24 +120,27 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
     }
 
     try {
-      const uploadResults = await CloudinaryService.uploadMultipleImages(
-        photos,
-        'faithbliss/profile-photos',
-        user.id
-      );
-
-      const photoUrls = uploadResults.map(result => result.secure_url);
+      // Use backend API for photo upload instead of direct Cloudinary
+      const { API } = await import('@/services/api');
+      
+      const formData = new FormData();
+      photos.forEach((photo, index) => {
+        formData.append(`photo${index + 1}`, photo);
+      });
+      
+      const uploadResult = await API.User.uploadPhotos(formData);
 
       // Update user profile with new photo URLs
       setUser(prev => prev ? {
         ...prev,
         profilePhotos: {
-          photo1: photoUrls[0] || prev.profilePhotos?.photo1,
-          photo2: photoUrls[1] || prev.profilePhotos?.photo2,
-          photo3: photoUrls[2] || prev.profilePhotos?.photo3,
-        }
+          photo1: uploadResult[0]?.url,
+          photo2: uploadResult[1]?.url,
+          photo3: uploadResult[2]?.url,
+        },
       } : null);
 
+      const photoUrls = uploadResult.map(photo => photo.url).filter(Boolean);
       return photoUrls;
     } catch (error) {
       console.error('Photo upload error:', error);
@@ -126,26 +154,13 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
     }
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      // Import API dynamically to avoid circular dependencies
+      const { API } = await import('@/services/api');
       
-      const response = await fetch(`${backendUrl}/auth/complete-onboarding`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.accessToken}`,
-        },
-        body: JSON.stringify({
-          ...profileData,
-          email: user.email,
-        }),
+      const updatedUser = await API.Auth.completeOnboarding({
+        ...profileData,
+        email: user.email,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to complete onboarding');
-      }
-
-      const updatedUser = await response.json();
       
       // Update local user state
       setUser(prev => prev ? {

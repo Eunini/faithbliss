@@ -1,6 +1,7 @@
 // lib/auth.ts - NextAuth configuration
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 interface GoogleProfile {
   sub: string;
@@ -36,9 +37,9 @@ export const authOptions: NextAuthOptions = {
     },
     async signIn({ account, profile }) {
       if (account?.provider === "google" && profile?.email) {
-        // Here we can register/update user in our backend (optional for now)
+        // Register/update user in our backend
         try {
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
           
           const response = await fetch(`${backendUrl}/auth/google`, {
             method: 'POST',
@@ -50,16 +51,22 @@ export const authOptions: NextAuthOptions = {
               name: profile.name,
               picture: (profile as GoogleProfile).picture,
               googleId: (profile as GoogleProfile).sub,
+              accessToken: account.access_token,
             }),
           });
           
           if (response.ok) {
-            console.log('User registered with backend successfully');
+            const userData = await response.json();
+            console.log('User registered with backend successfully:', userData);
+            return true;
           } else {
-            console.warn('Backend registration failed, but allowing sign-in');
+            const error = await response.json().catch(() => null);
+            console.error('Backend registration failed:', error);
+            return false;
           }
         } catch (error) {
-          console.warn('Backend not available, but allowing sign-in:', error);
+          console.error('Failed to connect to backend:', error);
+          return false;
         }
       }
       return true;
