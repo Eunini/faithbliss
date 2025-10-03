@@ -6,28 +6,45 @@ import Image from 'next/image';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { 
-  ArrowLeft, Heart, X, MessageCircle, MapPin, 
-  Calendar, Church, BookOpen, Coffee, Music,
+  ArrowLeft, Heart, X, MessageCircle, MapPin, Church, BookOpen, Coffee, Music,
   Trophy, Verified, ChevronLeft, ChevronRight
 } from 'lucide-react';
-import { mockProfiles } from '@/data/mockProfiles';
+import { API } from '@/services/api';
 
-interface Profile {
-  id: number;
+interface User {
+  id: string;
+  email: string;
   name: string;
-  age: number;
-  location: string;
-  profilePicture: string;
-  lookingFor: string;
-  icebreaker: string;
-  denomination: string;
-  faithLevel: string;
-  distance: string;
-  isOnline: boolean;
-  verse: string;
-  hobbies: string[];
-  // Extended profile data
+  profilePhotos?: {
+    photo1?: string;
+    photo2?: string;
+    photo3?: string;
+  };
+  preferences?: {
+    ageRange: [number, number];
+    maxDistance: number;
+    denomination?: string;
+    lookingFor?: string;
+  };
+  onboardingCompleted?: boolean;
+  isActive?: boolean;
   bio?: string;
+  age?: number;
+  denomination?: string;
+  interests?: string[];
+  location?: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  };
+  // Extended profile data for display
+  lookingFor?: string;
+  icebreaker?: string;
+  faithLevel?: string;
+  distance?: string;
+  isOnline?: boolean;
+  verse?: string;
+  hobbies?: string[];
   occupation?: string;
   education?: string;
   height?: string;
@@ -35,8 +52,6 @@ interface Profile {
   prayerFrequency?: string;
   bibleReading?: string;
   ministry?: string;
-  photos?: string[];
-  interests?: string[];
   lifestyle?: {
     drinking?: string;
     smoking?: string;
@@ -46,48 +61,72 @@ interface Profile {
   values?: string[];
 }
 
+// Helper function to get profile photos
+const getProfilePhotos = (user: User): string[] => {
+  const photos: string[] = [];
+  if (user.profilePhotos?.photo1) photos.push(user.profilePhotos.photo1);
+  if (user.profilePhotos?.photo2) photos.push(user.profilePhotos.photo2);
+  if (user.profilePhotos?.photo3) photos.push(user.profilePhotos.photo3);
+  return photos.length > 0 ? photos : ['/default-avatar.png'];
+};
+
+const getProfilePhoto = (user: User, index: number): string => {
+  const photos = getProfilePhotos(user);
+  return photos[index] || photos[0] || '/default-avatar.png';
+};
+
 const ProfilePage = () => {
   const params = useParams();
   const router = useRouter();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<User | null>(null);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get profile by ID
-    const profileId = parseInt(params.id as string);
-    const foundProfile = mockProfiles.find(p => p.id === profileId);
-    
-    if (foundProfile) {
-      // Add extended mock data for demo
-      const extendedProfile: Profile = {
-        ...foundProfile,
-        bio: "Passionate believer seeking a God-centered relationship. I love exploring new places, serving in my local church, and building meaningful connections. Looking for someone who shares my faith and values authenticity, kindness, and growing together in Christ.",
-        occupation: "Marketing Manager",
-        education: "Bachelor's in Communications",
-        height: "5'7\"",
-        churchInvolvement: "Small Group Leader",
-        prayerFrequency: "Daily",
-        bibleReading: "Daily devotions",
-        ministry: "Youth Ministry Volunteer",
-        photos: [
-          foundProfile.profilePicture,
-          "https://images.unsplash.com/photo-1494790108755-2616c6d29366?w=400&h=600&fit=crop",
-          "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=600&fit=crop",
-          "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=600&fit=crop"
-        ],
-        interests: ["Photography", "Hiking", "Cooking", "Reading", "Volunteering", "Music"],
-        lifestyle: {
-          drinking: "Never",
-          smoking: "Never", 
-          exercise: "Regularly",
-          diet: "Balanced"
-        },
-        values: ["Faith-Centered", "Family-Oriented", "Community Service", "Personal Growth", "Authenticity"]
-      };
-      setProfile(extendedProfile);
-    }
-    setLoading(false);
+    const fetchProfile = async () => {
+      try {
+        const profileId = params.id as string;
+        const userData = await API.User.getUserById(profileId);
+        
+        // Add extended data for demo purposes (would normally come from API)
+        const extendedProfile: User = {
+          ...userData,
+          bio: userData.bio || "Passionate believer seeking a God-centered relationship. I love exploring new places, serving in my local church, and building meaningful connections.",
+          occupation: "Marketing Manager",
+          education: "Bachelor's in Communications", 
+          height: "5'7\"",
+          churchInvolvement: "Small Group Leader",
+          prayerFrequency: "Daily",
+          bibleReading: "Daily devotions",
+          ministry: "Youth Ministry Volunteer",
+          interests: userData.interests || ["Photography", "Hiking", "Cooking", "Reading", "Volunteering", "Music"],
+          lifestyle: {
+            drinking: "Never",
+            smoking: "Never",
+            exercise: "Regularly", 
+            diet: "Balanced"
+          },
+          values: ["Faith-Centered", "Family-Oriented", "Community Service", "Personal Growth", "Authenticity"],
+          lookingFor: "Long-term relationship",
+          icebreaker: "What's your favorite way to spend a Sunday afternoon?",
+          faithLevel: "Strong",
+          distance: "2.5 miles away",
+          isOnline: true,
+          verse: "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, to give you hope and a future. - Jeremiah 29:11",
+          hobbies: userData.interests || []
+        };
+        
+        setProfile(extendedProfile);
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+        // Profile not found or error occurred
+        setProfile(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
   }, [params.id]);
 
   const handleLike = () => {
@@ -110,14 +149,16 @@ const ProfilePage = () => {
   };
 
   const nextPhoto = () => {
-    if (profile?.photos) {
-      setCurrentPhotoIndex((prev) => (prev + 1) % profile.photos!.length);
+    if (profile) {
+      const photos = getProfilePhotos(profile);
+      setCurrentPhotoIndex((prev) => (prev + 1) % photos.length);
     }
   };
 
   const prevPhoto = () => {
-    if (profile?.photos) {
-      setCurrentPhotoIndex((prev) => (prev - 1 + profile.photos!.length) % profile.photos!.length);
+    if (profile) {
+      const photos = getProfilePhotos(profile);
+      setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
     }
   };
 
@@ -162,7 +203,7 @@ const ProfilePage = () => {
         <div className="relative overflow-hidden">
           <div className="aspect-[4/5] md:aspect-[16/10] relative overflow-hidden">
             <Image
-              src={profile.photos?.[currentPhotoIndex] || profile.profilePicture}
+              src={getProfilePhoto(profile, currentPhotoIndex)}
               alt={`${profile.name} photo ${currentPhotoIndex + 1}`}
               fill
               className="object-cover"
@@ -170,7 +211,7 @@ const ProfilePage = () => {
             />
             
             {/* Photo Navigation */}
-            {profile.photos && profile.photos.length > 1 && (
+            {profile && getProfilePhotos(profile).length > 1 && (
               <>
                 <button
                   onClick={prevPhoto}
@@ -187,7 +228,7 @@ const ProfilePage = () => {
                 
                 {/* Photo Indicators */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                  {profile.photos.map((_, index) => (
+                  {getProfilePhotos(profile).map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentPhotoIndex(index)}
@@ -225,17 +266,12 @@ const ProfilePage = () => {
                 <div className="flex items-center space-x-4 text-gray-300">
                   <div className="flex items-center space-x-1">
                     <MapPin className="w-4 h-4" />
-                    <span>{profile.location} • {profile.distance}</span>
+                    <span>{profile.location?.address || 'Location not specified'} • Distance calculation needed</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>{profile.occupation}</span>
-                  </div>
+                  {/* Occupation - not available in current User interface */}
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 backdrop-blur-md text-pink-300 px-3 py-1 rounded-full border border-pink-500/30 text-sm">
-                    {profile.lookingFor}
-                  </div>
+                  {/* Looking For - not available in current User interface */}
                   <div className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-500/30 text-sm">
                     {profile.denomination}
                   </div>
@@ -251,25 +287,9 @@ const ProfilePage = () => {
               </div>
             )}
 
-            {/* Favorite Verse */}
-            <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl p-4 border border-purple-500/30">
-              <div className="flex items-start space-x-3">
-                <BookOpen className="w-5 h-5 text-purple-400 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-purple-300 mb-1">Favorite Verse</h3>
-                  <p className="text-white italic">&quot;{profile.verse}&quot;</p>
-                </div>
-              </div>
-            </div>
+            {/* Favorite Verse - not available in current User interface */}
 
-            {/* Icebreaker */}
-            <div className="bg-gray-800/50 rounded-2xl p-4">
-              <h3 className="text-lg font-semibold mb-2 flex items-center space-x-2">
-                <Coffee className="w-5 h-5 text-yellow-400" />
-                <span>Conversation Starter</span>
-              </h3>
-              <p className="text-gray-300 italic">&quot;{profile.icebreaker}&quot;</p>
-            </div>
+            {/* Icebreaker - not available in current User interface */}
           </div>
 
           {/* Faith & Values */}
@@ -316,34 +336,7 @@ const ProfilePage = () => {
             )}
           </div>
 
-          {/* Lifestyle */}
-          {profile.lifestyle && (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold flex items-center space-x-2">
-                <Trophy className="w-6 h-6 text-green-400" />
-                <span>Lifestyle</span>
-              </h2>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-gray-800/50 rounded-xl p-4 text-center">
-                  <h4 className="font-semibold text-green-300 mb-1">Exercise</h4>
-                  <p className="text-gray-300 text-sm">{profile.lifestyle.exercise}</p>
-                </div>
-                <div className="bg-gray-800/50 rounded-xl p-4 text-center">
-                  <h4 className="font-semibold text-green-300 mb-1">Diet</h4>
-                  <p className="text-gray-300 text-sm">{profile.lifestyle.diet}</p>
-                </div>
-                <div className="bg-gray-800/50 rounded-xl p-4 text-center">
-                  <h4 className="font-semibold text-green-300 mb-1">Drinking</h4>
-                  <p className="text-gray-300 text-sm">{profile.lifestyle.drinking}</p>
-                </div>
-                <div className="bg-gray-800/50 rounded-xl p-4 text-center">
-                  <h4 className="font-semibold text-green-300 mb-1">Smoking</h4>
-                  <p className="text-gray-300 text-sm">{profile.lifestyle.smoking}</p>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Lifestyle - not available in current User interface */}
 
           {/* Interests & Hobbies */}
           <div className="space-y-4">
@@ -353,12 +346,12 @@ const ProfilePage = () => {
             </h2>
             
             <div className="flex flex-wrap gap-3">
-              {(profile.interests || profile.hobbies)?.map((hobby, index) => (
+              {profile.interests?.map((interest, index) => (
                 <div
                   key={index}
                   className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-300 px-4 py-2 rounded-full text-sm font-medium"
                 >
-                  {hobby}
+                  {interest}
                 </div>
               ))}
             </div>
