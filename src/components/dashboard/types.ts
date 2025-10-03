@@ -1,12 +1,21 @@
 export interface Profile {
-  id: number;
+  id: string;
   name: string;
-  age: number;
-  location: string;
+  age?: number;
+  location?: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  };
   profilePhotoUrl?: string;
   profilePicture?: string;
+  profilePhotos?: {
+    photo1?: string;
+    photo2?: string;
+    photo3?: string;
+  };
   bio?: string;
-  denomination: string;
+  denomination?: string;
   education?: string;
   jobTitle?: string;
   church?: string;
@@ -18,4 +27,6 @@ export interface Profile {
   isOnline?: boolean;
   verse?: string;
   hobbies?: string[];
+  interests?: string[];
+  email?: string;
 }

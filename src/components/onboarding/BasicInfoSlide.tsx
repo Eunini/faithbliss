@@ -108,7 +108,6 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-300 text-center">
           Photo {photoNumber} {photoNumber <= 2 ? <span className="text-pink-500">*</span> : <span className="text-gray-500">(optional)</span>}
-          <div className="text-xs text-gray-500 mt-1">JPG, PNG, GIF, or WebP only</div>
         </label>
         <div className="relative">
           {photo ? (
@@ -194,7 +193,6 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
           <div className="text-center">
             <h3 className="text-lg font-semibold text-white mb-2">Upload Your Photos</h3>
             <p className="text-sm text-gray-400 mb-2">Add 2-3 photos to showcase yourself (minimum 2 required)</p>
-            <p className="text-xs text-gray-500 mb-4">Note: Photo 3 accepts standard image formats only (JPG, PNG, GIF, WebP)</p>
           </div>
           
           {/* Mobile: 3 photos in a responsive grid layout */}

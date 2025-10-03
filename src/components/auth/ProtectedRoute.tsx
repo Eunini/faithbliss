@@ -17,8 +17,11 @@ export default function ProtectedRoute({ children, redirectTo = '/login' }: Prot
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push(redirectTo);
+    } else if (!loading && isAuthenticated && user && !user.onboardingCompleted) {
+      // Redirect to onboarding if user hasn't completed it
+      router.push('/onboarding');
     }
-  }, [isAuthenticated, loading, router, redirectTo]);
+  }, [isAuthenticated, loading, router, redirectTo, user]);
 
   // Show loading screen while checking authentication
   if (loading) {
@@ -28,6 +31,11 @@ export default function ProtectedRoute({ children, redirectTo = '/login' }: Prot
   // Don't render children if not authenticated
   if (!isAuthenticated || !user) {
     return null;
+  }
+
+  // Don't render children if onboarding is not completed
+  if (!user.onboardingCompleted) {
+    return <HeartBeatLoader message="Redirecting to onboarding..." />;
   }
 
   return <>{children}</>;

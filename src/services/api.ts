@@ -3,6 +3,24 @@ import { getSession } from 'next-auth/react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
 
+// 🏥 API Information & Health Check Endpoints
+export const SystemAPI = {
+  // Get API information
+  getApiInfo: async (): Promise<{
+    name: string;
+    version: string;
+    description: string;
+    endpoints: Record<string, string>;
+  }> => {
+    return apiRequest('/api', { method: 'GET' }, false);
+  },
+
+  // Health check
+  healthCheck: async (): Promise<{ status: string; timestamp: string }> => {
+    return apiRequest('/api/health', { method: 'GET' }, false);
+  },
+};
+
 // Types for API responses
 interface ApiResponse<T> {
   data?: T;
@@ -275,6 +293,11 @@ export const AuthAPI = {
       address: string;
     };
     preferences?: UserPreferences;
+    profilePhotos?: {
+      photo1?: string;
+      photo2?: string;
+      photo3?: string;
+    };
   }): Promise<User> => {
     return apiRequest('/auth/complete-onboarding', {
       method: 'PUT',
@@ -292,6 +315,20 @@ export const AuthAPI = {
     return apiRequest('/auth/google', {
       method: 'POST',
       body: JSON.stringify(googleData),
+    }, false);
+  },
+
+  // Debug: Check if user exists (for testing only)
+  debugUser: async (email: string): Promise<{ exists: boolean; user?: User }> => {
+    return apiRequest(`/auth/debug/user/${encodeURIComponent(email)}`, {
+      method: 'GET',
+    }, false);
+  },
+
+  // Initiate Google OAuth login
+  initiateGoogleAuth: async (): Promise<{ authUrl: string }> => {
+    return apiRequest('/auth/google', {
+      method: 'GET',
     }, false);
   },
 };
@@ -606,6 +643,7 @@ export const DiscoveryAPI = {
 
 // Export all APIs
 export const API = {
+  System: SystemAPI,
   Auth: AuthAPI,
   User: UserAPI,
   Match: MatchAPI,

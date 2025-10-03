@@ -24,14 +24,17 @@ export default function Login() {
 
   // Handle redirect after successful authentication
   useEffect(() => {
-    if (status !== 'loading' && session?.user) {
+    if (status !== 'loading' && session?.user && user) {
+      // Show success message only after user data is loaded from backend
+      showSuccess('Signed in successfully! 🎉', 'Welcome to FaithBliss');
+      
       if (user?.onboardingCompleted) {
         router.push('/dashboard');
       } else {
         router.push('/onboarding');
       }
     }
-  }, [session, user, status, router]);
+  }, [session, user, status, router, showSuccess]);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -40,8 +43,7 @@ export default function Login() {
       console.log('Starting Google sign-in...');
       
       await signInWithGoogle();
-      showSuccess('Signed in successfully! 🎉', 'Welcome to FaithBliss');
-      // NextAuth handles the redirect automatically
+      // Success message will be shown in useEffect after user data is loaded
       
     } catch (error) {
       console.error('Google sign-in error:', error);

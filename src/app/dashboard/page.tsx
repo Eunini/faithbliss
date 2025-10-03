@@ -11,8 +11,8 @@ import { MobileLayout } from '@/components/dashboard/MobileLayout';
 import { ProfileDisplay } from '@/components/dashboard/ProfileDisplay';
 import { OverlayPanels } from '@/components/dashboard/OverlayPanels';
 import { insertScrollbarStyles } from '@/components/dashboard/styles';
-import { mockProfiles } from '@/data/mockProfiles';
-// import { Profile } from '@/components/dashboard/types';
+import { usePotentialMatches, useMatching } from '@/hooks/useAPI';
+import { Profile } from '@/components/dashboard/types';
 
 // Insert scrollbar styles
 insertScrollbarStyles();
@@ -23,28 +23,81 @@ const DashboardPage = () => {
   const { showSuccess, showInfo } = useToast();
   const [showFilters, setShowFilters] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
-  const [profiles] = useState(mockProfiles);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
+  
+  // Fetch real potential matches from backend
+  const { data: profiles, loading: matchesLoading, error, refetch } = usePotentialMatches();
+  const { likeUser, passUser } = useMatching();
 
   const userName = user?.name || user?.email || "Tester";
 
-  // Show loading while checking authentication
-  if (loading) {
+  // Show loading while checking authentication or fetching matches
+  if (loading || matchesLoading) {
     return <HeartBeatLoader message="Preparing your matches..." />;
   }
 
-  const currentProfile = profiles[currentProfileIndex];
+  // Handle errors or no profiles
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="text-center p-8">
+          <p className="text-red-600 mb-4">Failed to load matches: {error}</p>
+          <button 
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const handleLike = () => {
-    console.log(`Liked profile ${currentProfile?.id}`);
-    showSuccess(`You liked ${currentProfile?.name}! 💕`, 'Great Choice!');
-    goToNextProfile();
+  if (!profiles || profiles.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="text-center p-8">
+          <p className="text-gray-600 mb-4">No potential matches found</p>
+          <button 
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentProfile = profiles[currentProfileIndex] as Profile;
+
+  const handleLike = async () => {
+    if (!currentProfile) return;
+    
+    try {
+      await likeUser(currentProfile.id);
+      console.log(`Liked profile ${currentProfile.id}`);
+      showSuccess(`You liked ${currentProfile.name}! 💕`, 'Great Choice!');
+      goToNextProfile();
+    } catch (error) {
+      console.error('Failed to like user:', error);
+      showInfo('Failed to send like. Please try again.', 'Error');
+    }
   };
 
-  const handlePass = () => {
-    console.log(`Passed on profile ${currentProfile?.id}`);
-    showInfo(`Passed on ${currentProfile?.name}`, 'No worries!');
-    goToNextProfile();
+  const handlePass = async () => {
+    if (!currentProfile) return;
+    
+    try {
+      await passUser(currentProfile.id);
+      console.log(`Passed on profile ${currentProfile.id}`);
+      showInfo(`Passed on ${currentProfile.name}`, 'No worries!');
+      goToNextProfile();
+    } catch (error) {
+      console.error('Failed to pass user:', error);
+      // Still go to next profile even if pass fails
+      goToNextProfile();
+    }
   };
 
   const handleBless = () => {
@@ -60,10 +113,13 @@ const DashboardPage = () => {
   };
 
   const goToNextProfile = () => {
+    if (!profiles) return;
+    
     if (currentProfileIndex < profiles.length - 1) {
       setCurrentProfileIndex(prev => prev + 1);
     } else {
-      // Reset to start or show "no more profiles" state
+      // No more profiles - fetch more or show end state
+      refetch(); // Fetch more potential matches
       setCurrentProfileIndex(0);
     }
   };

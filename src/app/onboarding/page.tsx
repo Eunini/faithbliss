@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { useToast } from '@/contexts/ToastContext';
+import { useOnboarding } from '@/hooks/useAPI';
 import {
   OnboardingHeader,
   OnboardingNavigation,
@@ -17,8 +17,7 @@ import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
 const OnboardingPage = () => {
   const router = useRouter();
-  const { showSuccess: showToast, showError } = useToast();
-  // const { user, userProfile, completeOnboarding, loading: authLoading } = useAuth(); // Temporarily disabled
+  const { completeOnboarding } = useOnboarding();
   const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -95,20 +94,42 @@ const OnboardingPage = () => {
     if (currentSlide < 4) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      // Complete onboarding (bypassing Firebase for testing)
+      // Complete onboarding with real backend API
       try {
         setSubmitting(true);
-        // await completeOnboarding(formData); // Temporarily disabled
-        console.log('Onboarding data:', formData); // Log for testing
-        showToast('Welcome to FaithBliss! 🎉', 'Profile Complete!');
+        
+        // Transform form data to API format
+        const onboardingData = {
+          bio: formData.aboutMe,
+          denomination: formData.denomination === 'Other' ? formData.customDenomination : formData.denomination,
+          interests: [...formData.hobbies, ...formData.values],
+          location: {
+            latitude: 0, // These would come from geocoding the currentLocation
+            longitude: 0,
+            address: formData.currentLocation
+          },
+          preferences: {
+            ageRange: [18, 35] as [number, number], // Default age range
+            maxDistance: 50, // Default distance
+            denomination: formData.denomination === 'Other' ? formData.customDenomination : formData.denomination,
+            interests: formData.hobbies
+          },
+          profilePhotos: {
+            photo1: formData.profilePhoto1 || undefined,
+            photo2: formData.profilePhoto2 || undefined,
+            photo3: formData.profilePhoto3 || undefined,
+          }
+        };
+
+        await completeOnboarding(onboardingData);
         setShowSuccessModal(true);
-        // Redirect to dashboard after a short delay
+        
+        // Redirect to dashboard after success modal
         setTimeout(() => {
           router.push('/dashboard');
-        }, 2000);
+        }, 3000);
       } catch (error) {
         console.error('Error completing onboarding:', error);
-        showError('Failed to complete profile setup. Please try again.');
         setSubmitting(false);
       }
     }

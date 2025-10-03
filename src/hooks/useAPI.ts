@@ -1,4 +1,4 @@
-// Custom hooks for API integration
+// Custom hooks for API integration - CLEANED VERSION
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/contexts/ToastContext';
@@ -109,6 +109,17 @@ export function useConversations() {
     () => API.Message.getConversations(),
     [session?.user?.email],
     { immediate: !!session?.user }
+  );
+}
+
+// Hook for conversation messages
+export function useConversationMessages(conversationId: string) {
+  const { data: session } = useSession();
+  
+  return useApi(
+    () => API.Message.getMessages(conversationId),
+    [session?.user?.email, conversationId],
+    { immediate: !!session?.user && !!conversationId }
   );
 }
 
@@ -258,4 +269,75 @@ export function useProfileUpdate() {
   }, [showSuccess, showError]);
 
   return { updateProfile, uploadPhotos };
+}
+
+// Hook for community interactions
+export function useCommunityActions() {
+  const { showSuccess, showError } = useToast();
+
+  const createPost = useCallback(async (content: string, imageUrl?: string) => {
+    try {
+      const post = await API.Community.createPost({ content, imageUrl });
+      showSuccess('Post created successfully!');
+      return post;
+    } catch (error) {
+      showError('Failed to create post', 'Error');
+      throw error;
+    }
+  }, [showSuccess, showError]);
+
+  const likePost = useCallback(async (postId: string) => {
+    try {
+      await API.Community.likePost(postId);
+    } catch (error) {
+      showError('Failed to like post', 'Error');
+      throw error;
+    }
+  }, [showError]);
+
+  const createPrayerRequest = useCallback(async (title: string, content: string) => {
+    try {
+      const prayer = await API.Community.createPrayerRequest({ title, content });
+      showSuccess('Prayer request submitted!');
+      return prayer;
+    } catch (error) {
+      showError('Failed to submit prayer request', 'Error');
+      throw error;
+    }
+  }, [showSuccess, showError]);
+
+  return { createPost, likePost, createPrayerRequest };
+}
+
+// Hook for completing onboarding
+export function useOnboarding() {
+  const { showSuccess, showError } = useToast();
+
+  const completeOnboarding = useCallback(async (onboardingData: {
+    bio?: string;
+    denomination?: string;
+    interests?: string[];
+    location?: {
+      latitude: number;
+      longitude: number;
+      address: string;
+    };
+    preferences?: {
+      ageRange: [number, number];
+      maxDistance: number;
+      denomination?: string;
+      interests?: string[];
+    };
+  }) => {
+    try {
+      const result = await API.Auth.completeOnboarding(onboardingData);
+      showSuccess('Profile setup complete! Welcome to FaithBliss! 🎉', 'Ready to Find Love');
+      return result;
+    } catch (error) {
+      showError('Failed to complete profile setup. Please try again.', 'Setup Error');
+      throw error;
+    }
+  }, [showSuccess, showError]);
+
+  return { completeOnboarding };
 }

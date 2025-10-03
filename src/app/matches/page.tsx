@@ -2,52 +2,49 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Heart, MessageCircle, User, ArrowLeft, Filter, Search, MapPin, Church, Users, Clock, Check, X } from 'lucide-react';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { TopBar } from '@/components/dashboard/TopBar';
+import { useMatches } from '@/hooks/useAPI';
+import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
 const MatchesPage = () => {
   const [activeTab, setActiveTab] = useState('mutual');
+  const router = useRouter();
+  
+  // Fetch real matches data from backend
+  const { data: matchesData, loading, error, refetch } = useMatches();
 
-  // Mock matches data
-  const mutualMatches = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      age: 26,
-      location: 'Lagos, Nigeria',
-      denomination: 'Baptist',
-      photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b647?w=400',
-      compatibility: 92,
-      lastActive: '2 hours ago',
-      status: 'online'
-    },
-    {
-      id: 2,
-      name: 'Grace Adebayo',
-      age: 24,
-      location: 'Ibadan, Nigeria',
-      denomination: 'Methodist',
-      photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
-      compatibility: 85,
-      lastActive: '1 day ago',
-      status: 'offline'
-    }
-  ];
+  // Show loading state
+  if (loading) {
+    return <HeartBeatLoader message="Loading your matches..." />;
+  }
 
-  const sentRequests = [
-    {
-      id: 3,
-      name: 'David Emmanuel',
-      age: 29,
-      location: 'Abuja, Nigeria',
-      denomination: 'Pentecostal',
-      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-      compatibility: 88,
-      sentDate: '3 days ago'
-    }
-  ];
+  // Handle error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+        <TopBar userName="User" title="Matches" showBackButton onBack={() => router.push('/dashboard')} />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-center p-8">
+            <p className="text-red-600 mb-4">Failed to load matches: {error}</p>
+            <button 
+              onClick={() => refetch()}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Use real matches data or empty arrays
+  const mutualMatches = matchesData || [];
+  const sentRequests: typeof mutualMatches = []; // This would come from a different API endpoint
 
   const receivedRequests = [
     {
@@ -148,50 +145,52 @@ const MatchesPage = () => {
                       <div className="flex items-center gap-4 mb-4">
                         <div className="relative">
                           <Image
-                            src={match.photo}
-                            alt={match.name}
+                            src={match.matchedUser?.profilePhotos?.photo1 || '/default-avatar.png'}
+                            alt={match.matchedUser?.name || 'User'}
                             width={64}
                             height={64}
                             className="w-16 h-16 object-cover rounded-full ring-2 ring-pink-500/30"
                           />
                           <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-gray-900 ${
-                            match.status === 'online' ? 'bg-emerald-400' : 'bg-gray-500'
+                            match.matchedUser?.isActive ? 'bg-emerald-400' : 'bg-gray-500'
                           }`}></div>
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <h3 className="font-semibold text-white group-hover:text-pink-200 transition-colors">
-                              {match.name}, {match.age}
+                              {match.matchedUser?.name || 'Unknown'}, {match.matchedUser?.age || 0}
                             </h3>
                             <div className="flex items-center space-x-2">
                               <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
                               <span className="text-sm font-medium text-emerald-400">
-                                {match.compatibility}% Match
+                                95% Match
                               </span>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 text-gray-300 text-sm mt-1">
                             <MapPin className="w-4 h-4" />
-                            <span>{match.location}</span>
+                            <span>{match.matchedUser?.location?.address || 'Location not specified'}</span>
                           </div>
                           <div className="flex items-center gap-2 text-gray-300 text-sm">
                             <Church className="w-4 h-4" />
-                            <span>{match.denomination}</span>
+                            <span>{match.matchedUser?.denomination || 'Not specified'}</span>
                           </div>
                         </div>
                       </div>
                       
                       <div className="flex gap-3 mt-4">
-                        <Link href="/messages" className="flex-1">
+                        <Link href={`/messages/${match.id}`} className="flex-1">
                           <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white py-3 rounded-2xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/25 flex items-center justify-center gap-2 group">
                             <MessageCircle className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
                             Message
                           </button>
                         </Link>
-                        <button className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 text-gray-300 hover:text-white py-3 rounded-2xl font-medium transition-all duration-300 flex items-center justify-center gap-2 group">
-                          <User className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
-                          View Profile
-                        </button>
+                        <Link href={`/profile/${match.matchedUserId}`} className="flex-1">
+                          <button className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 text-gray-300 hover:text-white py-3 rounded-2xl font-medium transition-all duration-300 flex items-center justify-center gap-2 group">
+                            <User className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                            View Profile
+                          </button>
+                        </Link>
                       </div>
                     </div>
                   ))
@@ -209,84 +208,91 @@ const MatchesPage = () => {
 
             {activeTab === 'sent' && (
               <div className="space-y-4">
-                {sentRequests.map((request) => (
-                  <div key={request.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300">
-                    <div className="flex items-center gap-4 mb-4">
-                      <Image
-                        src={request.photo}
-                        alt={request.name}
-                        width={64}
-                        height={64}
-                        className="w-16 h-16 object-cover rounded-full ring-2 ring-blue-500/30"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-white">
-                            {request.name}, {request.age}
-                          </h3>
-                          <span className="text-sm font-medium text-blue-400">
-                            {request.compatibility}% Match
-                          </span>
+                {sentRequests.map((request) => {
+                  const matchedUser = request.matchedUser;
+                  return (
+                    <div key={request.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300">
+                      <div className="flex items-center gap-4 mb-4">
+                        <Image
+                          src={matchedUser?.profilePhotos?.photo1 || '/default-avatar.png'}
+                          alt={matchedUser?.name || 'User'}
+                          width={64}
+                          height={64}
+                          className="w-16 h-16 object-cover rounded-full ring-2 ring-blue-500/30"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold text-white">
+                              {matchedUser?.name || 'Unknown'}, {matchedUser?.age || 'N/A'}
+                            </h3>
+                            <span className="text-sm font-medium text-blue-400">
+                              95% Match
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-300 text-sm mt-1">
+                            <MapPin className="w-4 h-4" />
+                            <span>{matchedUser?.location?.address || 'Location unknown'}</span>
+                          </div>
+                          <p className="text-sm text-gray-400">
+                            Sent {new Date(request.createdAt).toLocaleDateString()}
+                          </p>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-300 text-sm mt-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>{request.location}</span>
+                      </div>
+                      <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-2xl p-4">
+                        <div className="flex items-center justify-center space-x-2">
+                          <Clock className="w-4 h-4 text-yellow-400" />
+                          <p className="text-sm text-yellow-300 font-medium">
+                            Connection request pending...
+                          </p>
                         </div>
-                        <p className="text-sm text-gray-400">Sent {request.sentDate}</p>
                       </div>
                     </div>
-                    <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-2xl p-4">
-                      <div className="flex items-center justify-center space-x-2">
-                        <Clock className="w-4 h-4 text-yellow-400" />
-                        <p className="text-sm text-yellow-300 font-medium">
-                          Connection request pending...
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
             {activeTab === 'received' && (
               <div className="space-y-4">
                 {receivedRequests.map((request) => (
-                  <div key={request.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300">
-                    <div className="flex items-center gap-4 mb-4">
-                      <Image
-                        src={request.photo}
-                        alt={request.name}
-                        width={64}
-                        height={64}
-                        className="w-16 h-16 object-cover rounded-full ring-2 ring-purple-500/30"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-white">
-                            {request.name}, {request.age}
-                          </h3>
-                          <span className="text-sm font-medium text-purple-400">
-                            {request.compatibility}% Match
-                          </span>
+                    <div key={request.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300">
+                      <div className="flex items-center gap-4 mb-4">
+                        <Image
+                          src={request.photo}
+                          alt={request.name}
+                          width={64}
+                          height={64}
+                          className="w-16 h-16 object-cover rounded-full ring-2 ring-purple-500/30"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold text-white">
+                              {request.name}, {request.age}
+                            </h3>
+                            <span className="text-sm font-medium text-purple-400">
+                              {request.compatibility}% Match
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-300 text-sm mt-1">
+                            <MapPin className="w-4 h-4" />
+                            <span>{request.location}</span>
+                          </div>
+                          <p className="text-sm text-gray-400">
+                            Received {request.receivedDate}
+                          </p>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-300 text-sm mt-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>{request.location}</span>
-                        </div>
-                        <p className="text-sm text-gray-400">Received {request.receivedDate}</p>
+                      </div>
+                      <div className="flex gap-3">
+                        <button className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white py-3 rounded-2xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25 flex items-center justify-center gap-2 group">
+                          <Check className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                          Accept
+                        </button>
+                        <button className="flex-1 bg-red-500/20 hover:bg-red-500/30 backdrop-blur-xl border border-red-500/30 hover:border-red-400/50 text-red-400 hover:text-red-300 py-3 rounded-2xl font-medium transition-all duration-300 flex items-center justify-center gap-2 group">
+                          <X className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                          Decline
+                        </button>
                       </div>
                     </div>
-                    <div className="flex gap-3">
-                      <button className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white py-3 rounded-2xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25 flex items-center justify-center gap-2 group">
-                        <Check className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
-                        Accept
-                      </button>
-                      <button className="flex-1 bg-red-500/20 hover:bg-red-500/30 backdrop-blur-xl border border-red-500/30 hover:border-red-400/50 text-red-400 hover:text-red-300 py-3 rounded-2xl font-medium transition-all duration-300 flex items-center justify-center gap-2 group">
-                        <X className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
-                        Decline
-                      </button>
-                    </div>
-                  </div>
                 ))}
               </div>
             )}

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { 
   ArrowLeft, Send, Phone, Video, Info, Smile, Camera, Heart, Check, CheckCheck, Flag, UserX
@@ -9,61 +10,23 @@ import {
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { EmojiPicker } from '@/components/chat/EmojiPicker';
+import { useConversationMessages, useMessaging, useWebSocket } from '@/hooks/useAPI';
+import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
 const ChatPage = () => {
   const params = useParams();
   const chatId = params.chatId as string;
+  const { data: session } = useSession();
   const [newMessage, setNewMessage] = useState('');
   const [showInfo, setShowInfo] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Mock conversation data based on chatId
-  const conversation = {
-    id: parseInt(chatId),
-    name: 'Sarah Johnson',
-    photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b647?w=400',
-    age: 26,
-    location: 'Lagos, Nigeria',
-    online: true,
-    lastSeen: 'Active now',
-    messages: [
-      { 
-        id: 1, 
-        text: 'Hi! I loved your favorite verse - Proverbs 31:25 is so beautiful!', 
-        sender: 'me', 
-        time: '2:30 PM',
-        status: 'read'
-      },
-      { 
-        id: 2, 
-        text: 'Thank you! It\'s been my anchor through many seasons. What drew you to share Philippians 4:13?', 
-        sender: 'them', 
-        time: '2:32 PM'
-      },
-      { 
-        id: 3, 
-        text: 'I\'ve always found strength in that verse, especially during challenging times in my career and faith journey.', 
-        sender: 'me', 
-        time: '2:35 PM',
-        status: 'read'
-      },
-      { 
-        id: 4, 
-        text: 'That verse really speaks to me too! 🙏', 
-        sender: 'them', 
-        time: '2:38 PM'
-      },
-      { 
-        id: 5, 
-        text: 'I\'d love to hear more about your faith journey! What\'s been the most impactful moment for you?', 
-        sender: 'me', 
-        time: '2:40 PM',
-        status: 'delivered'
-      }
-    ]
-  };
+  // Fetch real conversation data from backend
+  const { data: messages, loading: messagesLoading, error: messagesError } = useConversationMessages(chatId);
+  const { sendMessage } = useMessaging();
+  const { connected, sendTyping, onTyping } = useWebSocket();
+  const [isTyping] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -71,20 +34,81 @@ const ChatPage = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, []);
+  }, [messages]);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      // In a real app, this would send the message to the API
-      setNewMessage('');
-      setIsTyping(false);
-      scrollToBottom();
+  useEffect(() => {
+    // Set up typing indicators
+    if (onTyping) {
+      onTyping((data) => {
+        // Handle typing indicator updates
+        console.log('Typing indicator:', data);
+      });
+    }
+  }, [onTyping]);
+
+  const handleTyping = (value: string) => {
+    setNewMessage(value);
+    if (sendTyping) {
+      sendTyping({
+        matchId: chatId,
+        userId: session?.user?.id || '',
+        isTyping: value.length > 0
+      });
     }
   };
 
-  const handleTyping = (text: string) => {
-    setNewMessage(text);
-    setIsTyping(text.length > 0);
+  const handleSendMessage = async () => {
+    if (newMessage.trim()) {
+      try {
+        await sendMessage(chatId, newMessage.trim());
+        setNewMessage('');
+        scrollToBottom();
+      } catch (error) {
+        console.error('Failed to send message:', error);
+      }
+    }
+  };
+
+
+
+  // Show loading state
+  if (messagesLoading) {
+    return <HeartBeatLoader message="Loading conversation..." />;
+  }
+
+  // Handle error state
+  if (messagesError) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">
+        <div className="text-center p-8">
+          <p className="text-red-400 mb-4">Failed to load conversation: {messagesError}</p>
+          <Link 
+            href="/messages"
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Back to Messages
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Use real conversation data
+  const realMessages = messages || [];
+  
+  // Get conversation partner info from messages
+  const otherUserMessage = realMessages.find(msg => msg.senderId !== session?.user?.id);
+  const otherUser = otherUserMessage?.sender;
+  
+  const conversation = {
+    id: chatId,
+    name: otherUser?.name || 'Chat User',
+    photo: otherUser?.profilePhotos?.photo1 || '/default-avatar.png',
+    age: otherUser?.age || 0,
+    location: otherUser?.location?.address || 'Unknown',
+    online: connected,
+    lastSeen: connected ? 'Active now' : 'Last seen recently',
+    messages: realMessages
   };
 
   return (
@@ -154,41 +178,44 @@ const ChatPage = () => {
               </div>
             </div>
 
-            {conversation.messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom duration-300`}
-              >
-                <div className={`max-w-xs lg:max-w-md group ${
-                  message.sender === 'me' ? 'ml-16' : 'mr-16'
-                }`}>
-                  <div className={`px-4 py-3 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${
-                    message.sender === 'me'
-                      ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-br-md shadow-lg shadow-pink-500/25'
-                      : 'bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-bl-md hover:bg-white/15'
+            {messages && messages.map((message) => {
+              const isMyMessage = message.senderId === session?.user?.id;
+              return (
+                <div
+                  key={message.id}
+                  className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom duration-300`}
+                >
+                  <div className={`max-w-xs lg:max-w-md group ${
+                    isMyMessage ? 'ml-16' : 'mr-16'
                   }`}>
-                    <p className="text-sm leading-relaxed">{message.text}</p>
-                  </div>
-                  
-                  <div className={`flex items-center mt-1 space-x-1 ${
-                    message.sender === 'me' ? 'justify-end' : 'justify-start'
-                  }`}>
-                    <span className="text-xs text-gray-400">{message.time}</span>
-                    {message.sender === 'me' && (
-                      <div>
-                        {message.status === 'read' ? (
-                          <CheckCheck className="w-3 h-3 text-pink-400" />
-                        ) : message.status === 'delivered' ? (
-                          <CheckCheck className="w-3 h-3 text-gray-400" />
-                        ) : (
-                          <Check className="w-3 h-3 text-gray-400" />
-                        )}
-                      </div>
-                    )}
+                    <div className={`px-4 py-3 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${
+                      isMyMessage
+                        ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-br-md shadow-lg shadow-pink-500/25'
+                        : 'bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-bl-md hover:bg-white/15'
+                    }`}>
+                      <p className="text-sm leading-relaxed">{message.content}</p>
+                    </div>
+                    
+                    <div className={`flex items-center mt-1 space-x-1 ${
+                      isMyMessage ? 'justify-end' : 'justify-start'
+                    }`}>
+                      <span className="text-xs text-gray-400">
+                        {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {isMyMessage && (
+                        <div>
+                          {message.isRead ? (
+                            <CheckCheck className="w-3 h-3 text-pink-400" />
+                          ) : (
+                            <Check className="w-3 h-3 text-gray-400" />
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             
             {isTyping && (
               <div className="flex justify-start animate-in slide-in-from-bottom duration-300">

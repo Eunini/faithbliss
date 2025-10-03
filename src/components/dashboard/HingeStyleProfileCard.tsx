@@ -8,8 +8,32 @@ interface HingeStyleProfileCardProps {
 
 export const HingeStyleProfileCard = ({ profile }: HingeStyleProfileCardProps) => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const mainPhoto = profile.profilePhotoUrl || profile.profilePicture || '';
-  const photos = profile.photos || [mainPhoto];
+  
+  // Handle different photo sources from backend
+  const getPhotos = () => {
+    const photos: string[] = [];
+    
+    // Add profile photos from backend
+    if (profile.profilePhotos?.photo1) photos.push(profile.profilePhotos.photo1);
+    if (profile.profilePhotos?.photo2) photos.push(profile.profilePhotos.photo2);
+    if (profile.profilePhotos?.photo3) photos.push(profile.profilePhotos.photo3);
+    
+    // Fallback to other photo fields
+    if (photos.length === 0) {
+      if (profile.profilePhotoUrl) photos.push(profile.profilePhotoUrl);
+      if (profile.profilePicture) photos.push(profile.profilePicture);
+      if (profile.photos && profile.photos.length > 0) photos.push(...profile.photos);
+    }
+    
+    // Default placeholder if no photos
+    if (photos.length === 0) {
+      photos.push('https://images.unsplash.com/photo-1494790108755-2616b612b647?w=400'); // Default placeholder
+    }
+    
+    return photos;
+  };
+  
+  const photos = getPhotos();
 
   const nextPhoto = () => {
     setCurrentPhotoIndex((prev) => (prev + 1) % photos.length);
@@ -68,8 +92,12 @@ export const HingeStyleProfileCard = ({ profile }: HingeStyleProfileCardProps) =
 
           {/* Basic Info Overlay */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-            <h2 className="text-white text-2xl font-bold">{profile.name}, {profile.age}</h2>
-            <p className="text-white/80">{profile.location}</p>
+            <h2 className="text-white text-2xl font-bold">
+              {profile.name}{profile.age ? `, ${profile.age}` : ''}
+            </h2>
+            <p className="text-white/80">
+              {typeof profile.location === 'string' ? profile.location : profile.location?.address || 'Location not specified'}
+            </p>
           </div>
         </div>
 
@@ -129,14 +157,24 @@ export const HingeStyleProfileCard = ({ profile }: HingeStyleProfileCardProps) =
           </div>
         )}
 
-        {/* Hobbies */}
-        {profile.hobbies && profile.hobbies.length > 0 && (
+        {/* Interests & Hobbies */}
+        {((profile.interests && profile.interests.length > 0) || (profile.hobbies && profile.hobbies.length > 0)) && (
           <div>
             <h3 className="text-pink-400 font-semibold mb-2">Interests</h3>
             <div className="flex flex-wrap gap-2">
-              {profile.hobbies.map((hobby, index) => (
+              {/* Display interests from backend */}
+              {profile.interests?.map((interest, index) => (
                 <span
-                  key={index}
+                  key={`interest-${index}`}
+                  className="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full text-sm"
+                >
+                  {interest}
+                </span>
+              ))}
+              {/* Display hobbies as fallback */}
+              {profile.hobbies?.map((hobby, index) => (
+                <span
+                  key={`hobby-${index}`}
                   className="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full text-sm"
                 >
                   {hobby}

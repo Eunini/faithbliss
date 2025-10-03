@@ -1,7 +1,7 @@
 // lib/auth.ts - NextAuth configuration
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
+// import CredentialsProvider from "next-auth/providers/credentials";
 
 interface GoogleProfile {
   sub: string;
