@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { NextAuthProvider } from "@/contexts/NextAuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -28,10 +29,12 @@ export default function RootLayout({
       >
         <NextAuthProvider>
           <ToastProvider>
-            <div className="no-horizontal-scroll">
-              {children}
-            </div>
-            <NetworkStatusIndicator />
+            <ErrorBoundary>
+              <div className="no-horizontal-scroll">
+                {children}
+              </div>
+              <NetworkStatusIndicator />
+            </ErrorBoundary>
           </ToastProvider>
         </NextAuthProvider>
       </body>

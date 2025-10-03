@@ -219,7 +219,22 @@ const apiRequest = async <T = unknown>(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || `HTTP ${response.status}: ${response.statusText}`);
+      const errorMessage = errorData?.message || `HTTP ${response.status}: ${response.statusText}`;
+      
+      // Create a more detailed error object
+      const apiError = new Error(errorMessage) as Error & {
+        statusCode: number;
+        endpoint: string;
+        isNetworkError: boolean;
+        isCorsError: boolean;
+      };
+      
+      apiError.statusCode = response.status;
+      apiError.endpoint = endpoint;
+      apiError.isNetworkError = false;
+      apiError.isCorsError = false;
+      
+      throw apiError;
     }
 
     const contentType = response.headers.get('content-type');
@@ -230,6 +245,30 @@ const apiRequest = async <T = unknown>(
     return response as T;
   } catch (error) {
     console.error(`API Error [${endpoint}]:`, error);
+    
+    // Enhance error with additional context for better user messaging
+    if (error instanceof Error) {
+      const enhancedError = error as Error & {
+        statusCode?: number;
+        endpoint: string;
+        isNetworkError: boolean;
+        isCorsError: boolean;
+      };
+      
+      if (!enhancedError.statusCode) {
+        enhancedError.endpoint = endpoint;
+        enhancedError.isNetworkError = true;
+        
+        // Check if it's a CORS error
+        if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+          enhancedError.isCorsError = true;
+          enhancedError.message = 'Unable to connect to server. Please check your internet connection or try again later.';
+        } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+          enhancedError.message = 'Network connection failed. Please check your internet connection.';
+        }
+      }
+    }
+    
     throw error;
   }
 };

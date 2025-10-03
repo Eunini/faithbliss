@@ -287,9 +287,25 @@ const ProfilePage = () => {
               </div>
             )}
 
-            {/* Favorite Verse - not available in current User interface */}
+            {/* Favorite Verse */}
+            <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl p-4 border border-purple-500/30">
+              <div className="flex items-start space-x-3">
+                <BookOpen className="w-5 h-5 text-purple-400 mt-1 flex-shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-purple-300 mb-1">Favorite Verse</h3>
+                  <p className="text-white italic">&quot;{profile.verse}&quot;</p>
+                </div>
+              </div>
+            </div>
 
-            {/* Icebreaker - not available in current User interface */}
+            {/* Icebreaker */}
+            <div className="bg-gray-800/50 rounded-2xl p-4">
+              <h3 className="text-lg font-semibold mb-2 flex items-center space-x-2">
+                <Coffee className="w-5 h-5 text-yellow-400" />
+                <span>Conversation Starter</span>
+              </h3>
+              <p className="text-gray-300 italic">&quot;{profile.icebreaker}&quot;</p>
+            </div>
           </div>
 
           {/* Faith & Values */}
@@ -336,7 +352,34 @@ const ProfilePage = () => {
             )}
           </div>
 
-          {/* Lifestyle - not available in current User interface */}
+          {/* Lifestyle */}
+          {profile.lifestyle && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold flex items-center space-x-2">
+                <Trophy className="w-6 h-6 text-green-400" />
+                <span>Lifestyle</span>
+              </h2>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-gray-800/50 rounded-xl p-4 text-center">
+                  <h4 className="font-semibold text-green-300 mb-1">Exercise</h4>
+                  <p className="text-gray-300 text-sm">{profile.lifestyle.exercise}</p>
+                </div>
+                <div className="bg-gray-800/50 rounded-xl p-4 text-center">
+                  <h4 className="font-semibold text-green-300 mb-1">Diet</h4>
+                  <p className="text-gray-300 text-sm">{profile.lifestyle.diet}</p>
+                </div>
+                <div className="bg-gray-800/50 rounded-xl p-4 text-center">
+                  <h4 className="font-semibold text-green-300 mb-1">Drinking</h4>
+                  <p className="text-gray-300 text-sm">{profile.lifestyle.drinking}</p>
+                </div>
+                <div className="bg-gray-800/50 rounded-xl p-4 text-center">
+                  <h4 className="font-semibold text-green-300 mb-1">Smoking</h4>
+                  <p className="text-gray-300 text-sm">{profile.lifestyle.smoking}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Interests & Hobbies */}
           <div className="space-y-4">
@@ -346,12 +389,12 @@ const ProfilePage = () => {
             </h2>
             
             <div className="flex flex-wrap gap-3">
-              {profile.interests?.map((interest, index) => (
+              {(profile.interests || profile.hobbies)?.map((hobby, index) => (
                 <div
                   key={index}
                   className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-300 px-4 py-2 rounded-full text-sm font-medium"
                 >
-                  {interest}
+                  {hobby}
                 </div>
               ))}
             </div>

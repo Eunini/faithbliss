@@ -4,6 +4,8 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useSession, signIn, signOut, SessionProvider } from 'next-auth/react';
+import { useToast } from '@/contexts/ToastContext';
+import { ErrorHandler, type ApiError } from '@/lib/errorHandler';
 
 
 interface UserProfile {
@@ -46,6 +48,7 @@ interface NextAuthProviderProps {
 const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
   const { data: session, status } = useSession();
   const [user, setUser] = useState<UserProfile | null>(null);
+  const { showError, showWarning } = useToast();
   const loading = status === 'loading';
   const isAuthenticated = !!session?.user;
 
@@ -68,6 +71,24 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
           });
         } catch (error) {
           console.error('Failed to fetch user from backend:', error);
+          
+          // Use centralized error handler
+          const apiError = error as ApiError;
+          ErrorHandler.handleApiError(
+            apiError, 
+            (type, message, title) => {
+              if (type === 'error') {
+                showError(message, title);
+              } else {
+                showWarning(message, title);
+              }
+            },
+            {
+              title: 'Profile Load Error',
+              message: 'Unable to load your profile data. Some features may be limited.'
+            }
+          );
+          
           // Fallback to session data
           setUser({
             id: session.user.email,
@@ -87,7 +108,7 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
     } else {
       setUser(null);
     }
-  }, [session]);
+  }, [session, showError, showWarning]);
 
   const signInWithGoogle = async (): Promise<void> => {
     try {
@@ -144,6 +165,20 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
       return photoUrls;
     } catch (error) {
       console.error('Photo upload error:', error);
+      
+      // Handle photo upload errors with user-friendly messages
+      const apiError = error as ApiError;
+      ErrorHandler.handleApiError(
+        apiError,
+        (type, message, title) => {
+          if (type === 'error') {
+            showError(message, title);
+          } else {
+            showWarning(message, title);
+          }
+        }
+      );
+      
       throw error;
     }
   };
@@ -171,6 +206,24 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
 
     } catch (error) {
       console.error('Onboarding completion error:', error);
+      
+      // Handle onboarding errors with user-friendly messages
+      const apiError = error as ApiError;
+      ErrorHandler.handleApiError(
+        apiError,
+        (type, message, title) => {
+          if (type === 'error') {
+            showError(message, title);
+          } else {
+            showWarning(message, title);
+          }
+        },
+        {
+          title: 'Onboarding Error',
+          message: 'Unable to complete your profile setup. Please try again.'
+        }
+      );
+      
       throw error;
     }
   };
