@@ -19,7 +19,7 @@ export const MobileLayout = ({
   children
 }: MobileLayoutProps) => {
   return (
-    <div className="lg:hidden min-h-screen">
+    <div className="lg:hidden min-h-screen no-horizontal-scroll dashboard-main">
       {/* Mobile Top Bar */}
       <TopBar
         userName={userName}

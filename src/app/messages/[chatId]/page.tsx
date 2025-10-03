@@ -88,7 +88,7 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white flex flex-col no-horizontal-scroll dashboard-main">
       {/* Chat Header */}
       <div className="bg-gray-900/90 backdrop-blur-xl border-b border-gray-700/50 p-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">

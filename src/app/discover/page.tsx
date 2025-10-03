@@ -12,7 +12,6 @@ import {
   Music, 
   Mountain, 
   Zap, 
-  Calendar,
   Star,
   Flame
 } from 'lucide-react';
@@ -99,7 +98,7 @@ const DiscoverPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white pb-20 no-horizontal-scroll dashboard-main">
       {/* Header */}
       <div className="sticky top-0 bg-gray-900/95 backdrop-blur-xl border-b border-gray-700/50 z-30">
         <div className="flex items-center justify-between p-4">
@@ -204,36 +203,6 @@ const DiscoverPage = () => {
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Events & Groups Preview */}
-      <div className="px-4 mb-6">
-        <div className="bg-gradient-to-r from-indigo-600/20 to-blue-600/20 rounded-2xl p-6 border border-indigo-500/30">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-xl">
-              <Calendar className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h3 className="font-bold text-white">Upcoming Events</h3>
-              <p className="text-sm text-gray-300">Join faith-based gatherings</p>
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="bg-gray-800/30 rounded-xl p-3">
-              <h4 className="font-semibold text-white text-sm">Virtual Bible Study</h4>
-              <p className="text-xs text-gray-400">Tonight 7 PM • 15 attending</p>
-            </div>
-            <div className="bg-gray-800/30 rounded-xl p-3">
-              <h4 className="font-semibold text-white text-sm">Prayer Circle</h4>
-              <p className="text-xs text-gray-400">Tomorrow 6 AM • 8 attending</p>
-            </div>
-          </div>
-          
-          <button className="w-full mt-4 bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-2 rounded-xl font-medium hover:scale-105 transition-transform duration-200">
-            View All Events
-          </button>
         </div>
       </div>
 

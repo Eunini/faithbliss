@@ -133,7 +133,7 @@ const OnboardingPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-900 no-horizontal-scroll dashboard-main">
       <OnboardingHeader
         currentSlide={currentSlide}
         totalSlides={5}

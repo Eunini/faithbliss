@@ -174,7 +174,7 @@ export default function Home() {
   const navOpacity = Math.min(scrollY / 100, 0.95);
 
   return (
-    <main className="bg-gray-900" style={{ scrollBehavior: 'smooth' }}>
+    <main className="bg-gray-900 no-horizontal-scroll dashboard-main" style={{ scrollBehavior: 'smooth' }}>
       {/* Navigation */}
       <nav 
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"

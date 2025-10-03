@@ -28,7 +28,9 @@ export default function RootLayout({
       >
         <NextAuthProvider>
           <ToastProvider>
-            {children}
+            <div className="no-horizontal-scroll">
+              {children}
+            </div>
             <NetworkStatusIndicator />
           </ToastProvider>
         </NextAuthProvider>

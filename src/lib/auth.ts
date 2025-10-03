@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
     },
     async signIn({ account, profile }) {
       if (account?.provider === "google" && profile?.email) {
-        // Here we can register/update user in our backend
+        // Here we can register/update user in our backend (optional for now)
         try {
           const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
           
@@ -54,10 +54,12 @@ export const authOptions: NextAuthOptions = {
           });
           
           if (response.ok) {
-            return true;
+            console.log('User registered with backend successfully');
+          } else {
+            console.warn('Backend registration failed, but allowing sign-in');
           }
         } catch (error) {
-          console.error('Error registering user with backend:', error);
+          console.warn('Backend not available, but allowing sign-in:', error);
         }
       }
       return true;
