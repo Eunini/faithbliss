@@ -72,7 +72,7 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
   }
   
   const loading = status === 'loading';
-  const isAuthenticated = !!session?.user;
+  const isAuthenticated = !!session?.user && !!session?.accessToken;
 
   // Sync session with user state and fetch from backend
   useEffect(() => {
@@ -94,7 +94,20 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
         } catch (error) {
           console.error('Failed to fetch user from backend:', error);
           
-          const apiError = error as ApiError;
+          const apiError = error as ApiError & { isAuthError?: boolean };
+          
+          // Check if it's an authentication error (invalid/expired JWT)
+          if (apiError.statusCode === 401 || apiError.isAuthError) {
+            console.log('🔄 JWT token expired, signing out user...');
+            showError(
+              'Your session has expired. Please sign in again.',
+              'Session Expired'
+            );
+            // Sign out the user to clear invalid tokens
+            const { signOut } = await import('next-auth/react');
+            await signOut({ callbackUrl: '/login' });
+            return;
+          }
           
           // Check if it's a CORS or network error
           if (apiError.isCorsError || apiError.isNetworkError) {

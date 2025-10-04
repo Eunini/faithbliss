@@ -186,8 +186,19 @@ interface Comment {
 
 // Helper function to get auth token
 const getAuthToken = async (): Promise<string | null> => {
-  const session = await getSession();
-  return session?.accessToken as string || null;
+  try {
+    const session = await getSession();
+    
+    if (!session?.accessToken) {
+      console.warn('No access token found in session');
+      return null;
+    }
+    
+    return session.accessToken as string;
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return null;
+  }
 };
 
 // Generic API request function
@@ -208,6 +219,15 @@ const apiRequest = async <T = unknown>(
     const token = await getAuthToken();
     if (token) {
       headers.Authorization = `Bearer ${token}`;
+    } else if (requireAuth) {
+      console.error('Auth token required but not available');
+      const authError = new Error('Authentication required') as Error & {
+        statusCode: number;
+        isAuthError: boolean;
+      };
+      authError.statusCode = 401;
+      authError.isAuthError = true;
+      throw authError;
     }
   }
 
@@ -253,6 +273,7 @@ const apiRequest = async <T = unknown>(
         endpoint: string;
         isNetworkError: boolean;
         isCorsError: boolean;
+        isAuthError: boolean;
       };
       
       if (!enhancedError.statusCode) {
@@ -264,13 +285,19 @@ const apiRequest = async <T = unknown>(
         const isCorsError = errorMessage.includes('cors') || 
                            errorMessage.includes('access-control-allow-origin') ||
                            errorMessage.includes('preflight') ||
-                           (errorMessage.includes('failed to fetch') && !navigator.onLine === false);
+                           (errorMessage.includes('failed to fetch') && navigator.onLine !== false);
         
         if (isCorsError) {
           enhancedError.isCorsError = true;
           enhancedError.message = 'Server connection blocked. This appears to be a server configuration issue.';
         } else if (errorMessage.includes('networkerror') || errorMessage.includes('failed to fetch')) {
           enhancedError.message = 'Network connection failed. Please check your internet connection.';
+        }
+      } else if (enhancedError.statusCode === 401) {
+        // Handle JWT token expiration
+        enhancedError.isAuthError = true;
+        if (error.message.includes('Invalid or expired token')) {
+          enhancedError.message = 'Your session has expired. Please sign in again.';
         }
       }
     }

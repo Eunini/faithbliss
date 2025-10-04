@@ -18,11 +18,15 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account, profile }) {
-      // If this is the initial sign-in, exchange Google token for our JWT
-      if (account?.provider === "google" && profile?.email) {
+    async jwt({ token, account, profile, trigger }) {
+      // If this is a sign-in or token update
+      if ((trigger === "signIn" || trigger === "signUp") && account?.provider === "google" && profile?.email) {
         try {
           const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
+          
+          console.log('🔄 Exchanging Google token for JWT...');
+          console.log('📧 Email:', profile.email);
+          console.log('🔑 Google token preview:', account.access_token?.substring(0, 20) + '...');
           
           const response = await fetch(`${backendUrl}/auth/google`, {
             method: 'POST',
@@ -38,26 +42,40 @@ export const authOptions: NextAuthOptions = {
             }),
           });
           
-          if (response.ok) {
-            const userData = await response.json();
-            console.log('Backend auth response:', userData);
+          if (!response.ok) {
+            console.error('❌ Backend auth failed - HTTP error:', response.status);
+            // Try to get error message from response
+            try {
+              const errorData = await response.json();
+              console.error('Error data:', errorData);
+              throw new Error(`Backend authentication failed: ${errorData.message || `HTTP ${response.status}`}`);
+            } catch {
+              // If can't parse JSON response
+              throw new Error(`Backend authentication failed: HTTP ${response.status}`);
+            }
+          }
+          
+          const userData = await response.json();
+          console.log('📥 Backend auth response received');
+          
+          if (userData.access_token || userData.token) {
+            const jwtToken = userData.access_token || userData.token;
+            console.log('✅ JWT token received, preview:', jwtToken.substring(0, 20) + '...');
             
             // Store the JWT token from our backend (not the Google token)
-            token.accessToken = userData.access_token || userData.token;
+            token.accessToken = jwtToken;
             token.userId = userData.user?.id || profile.email;
             token.userEmail = profile.email;
           } else {
-            console.error('Backend auth failed');
-            // Fallback - we'll handle this in the session
-            token.accessToken = undefined;
-            token.userId = profile.email;
-            token.userEmail = profile.email;
+            console.error('❌ Backend auth failed - no JWT token in response');
+            console.error('Response data:', userData);
+            
+            throw new Error(`Backend authentication failed: ${userData.message || 'No JWT token received'}`);
           }
         } catch (error) {
-          console.error('Failed to exchange token with backend:', error);
-          token.accessToken = undefined;
-          token.userId = profile.email;
-          token.userEmail = profile.email;
+          console.error('💥 Failed to exchange token with backend:', error);
+          // Re-throw to fail the sign-in process
+          throw error;
         }
       }
       return token;
@@ -66,6 +84,12 @@ export const authOptions: NextAuthOptions = {
       // Send properties to the client - now with proper JWT token
       session.accessToken = token.accessToken as string;
       session.userId = token.userId as string;
+      
+      // Add userId to the user object as well for convenience
+      if (session.user) {
+        session.user.id = token.userId as string;
+      }
+      
       return session;
     },
     async signIn({ account, profile }) {

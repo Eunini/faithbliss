@@ -8,6 +8,7 @@ import { useNextAuth } from '@/contexts/NextAuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { FcGoogle } from 'react-icons/fc';
 import { Heart, LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { AuthTokenDebugger } from '@/components/AuthTokenDebugger';
 import { HeartBeatIcon } from '@/components/HeartBeatIcon';
 
 export default function Login() {
@@ -222,6 +223,14 @@ export default function Login() {
             ← Back to Home
           </Link>
         </div>
+        
+        {/* Auth Token Debugger - only visible in development */}
+        {process.env.NODE_ENV !== 'production' && session && (
+          <div className="mt-8 border-t border-gray-700 pt-6">
+            <h3 className="text-sm font-medium text-gray-300 mb-3">Debug Authentication</h3>
+            <AuthTokenDebugger />
+          </div>
+        )}
       </div>
     </div>
   );
