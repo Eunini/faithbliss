@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNextAuth } from '@/contexts/NextAuthContext';
-import { AlertTriangle, RefreshCw, X, Wifi, WifiOff } from 'lucide-react';
+import { RefreshCw, X, Wifi, WifiOff } from 'lucide-react';
 
 export const ConnectionStatusBanner: React.FC = () => {
   const { hasConnectionError, retryConnection } = useNextAuth();

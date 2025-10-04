@@ -52,7 +52,25 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [hasConnectionError, setHasConnectionError] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
-  const { showError, showWarning } = useToast();
+  
+  // Safe toast hook usage with fallback for SSR
+  let showError: (message: string, title?: string) => void;
+  let showWarning: (message: string, title?: string) => void;
+  
+  try {
+    const toast = useToast();
+    showError = toast.showError;
+    showWarning = toast.showWarning;
+  } catch {
+    // Fallback for SSR or when context is not available
+    showError = (message: string, title?: string) => {
+      console.error(`${title || 'Error'}:`, message);
+    };
+    showWarning = (message: string, title?: string) => {
+      console.warn(`${title || 'Warning'}:`, message);
+    };
+  }
+  
   const loading = status === 'loading';
   const isAuthenticated = !!session?.user;
 

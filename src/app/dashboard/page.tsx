@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useNextAuth } from '@/contexts/NextAuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { AuthTokenDebugger } from '@/components/AuthTokenDebugger';
 import { DesktopLayout } from '@/components/dashboard/DesktopLayout';
 import { MobileLayout } from '@/components/dashboard/MobileLayout';
 import { ProfileDisplay } from '@/components/dashboard/ProfileDisplay';
@@ -130,6 +131,9 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white pb-20 no-horizontal-scroll dashboard-main">
+      {/* Debug Component - Remove after testing */}
+      <AuthTokenDebugger />
+      
       {/* Desktop Layout */}
       <DesktopLayout
         userName={userName}
