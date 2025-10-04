@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { NextAuthProvider } from "@/contexts/NextAuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
+import { ConnectionStatusBanner } from "@/components/ConnectionStatusBanner";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import "./globals.css";
 
@@ -30,6 +31,7 @@ export default function RootLayout({
         <NextAuthProvider>
           <ToastProvider>
             <ErrorBoundary>
+              <ConnectionStatusBanner />
               <div className="no-horizontal-scroll">
                 {children}
               </div>

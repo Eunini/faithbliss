@@ -25,10 +25,12 @@ interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   isAuthenticated: boolean;
+  hasConnectionError: boolean;
   signInWithGoogle: () => Promise<void>;
   signOutUser: () => Promise<void>;
   uploadProfilePhotos: (photos: File[]) => Promise<string[]>;
   completeOnboarding: (profileData: any) => Promise<void>;
+  retryConnection: () => Promise<void>;
 }
 
 const NextAuthContext = createContext<AuthContextType | null>(null);
@@ -48,6 +50,8 @@ interface NextAuthProviderProps {
 const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
   const { data: session, status } = useSession();
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [hasConnectionError, setHasConnectionError] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
   const { showError, showWarning } = useToast();
   const loading = status === 'loading';
   const isAuthenticated = !!session?.user;
@@ -72,22 +76,32 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
         } catch (error) {
           console.error('Failed to fetch user from backend:', error);
           
-          // Use centralized error handler
           const apiError = error as ApiError;
-          ErrorHandler.handleApiError(
-            apiError, 
-            (type, message, title) => {
-              if (type === 'error') {
-                showError(message, title);
-              } else {
-                showWarning(message, title);
+          
+          // Check if it's a CORS or network error
+          if (apiError.isCorsError || apiError.isNetworkError) {
+            setHasConnectionError(true);
+            showError(
+              'Unable to connect to our servers. Please check your internet connection or try again later.',
+              'Connection Problem'
+            );
+          } else {
+            // Use centralized error handler for other errors
+            ErrorHandler.handleApiError(
+              apiError, 
+              (type, message, title) => {
+                if (type === 'error') {
+                  showError(message, title);
+                } else {
+                  showWarning(message, title);
+                }
+              },
+              {
+                title: 'Profile Load Error',
+                message: 'Unable to load your profile data. Some features may be limited.'
               }
-            },
-            {
-              title: 'Profile Load Error',
-              message: 'Unable to load your profile data. Some features may be limited.'
-            }
-          );
+            );
+          }
           
           // Fallback to session data
           setUser({
@@ -228,14 +242,54 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
     }
   };
 
+  const retryConnection = async (): Promise<void> => {
+    if (isRetrying) return;
+    
+    setIsRetrying(true);
+    setHasConnectionError(false);
+    
+    try {
+      if (session?.user?.email) {
+        const { API } = await import('@/services/api');
+        const backendUser = await API.User.getMe();
+        
+        setUser({
+          id: backendUser.id || session.user.email,
+          email: backendUser.email || session.user.email,
+          name: backendUser.name || session.user.name || '',
+          image: backendUser.profilePhotos?.photo1 || session.user.image || undefined,
+          onboardingCompleted: backendUser.onboardingCompleted || false,
+          profilePhotos: backendUser.profilePhotos,
+        });
+        
+        setHasConnectionError(false);
+      }
+    } catch (error) {
+      console.error('Retry connection failed:', error);
+      const apiError = error as ApiError;
+      
+      if (apiError.isCorsError || apiError.isNetworkError) {
+        setHasConnectionError(true);
+        showError(
+          'Connection is still unavailable. Please try again in a moment.',
+          'Still Having Connection Issues'
+        );
+      }
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
   const contextValue: AuthContextType = {
     user,
     loading,
     isAuthenticated,
+    hasConnectionError,
     signInWithGoogle,
     signOutUser,
     uploadProfilePhotos,
     completeOnboarding,
+    retryConnection,
   };
 
   return (

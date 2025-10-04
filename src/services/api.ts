@@ -259,11 +259,17 @@ const apiRequest = async <T = unknown>(
         enhancedError.endpoint = endpoint;
         enhancedError.isNetworkError = true;
         
-        // Check if it's a CORS error
-        if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+        // Improved CORS error detection
+        const errorMessage = error.message.toLowerCase();
+        const isCorsError = errorMessage.includes('cors') || 
+                           errorMessage.includes('access-control-allow-origin') ||
+                           errorMessage.includes('preflight') ||
+                           (errorMessage.includes('failed to fetch') && !navigator.onLine === false);
+        
+        if (isCorsError) {
           enhancedError.isCorsError = true;
-          enhancedError.message = 'Unable to connect to server. Please check your internet connection or try again later.';
-        } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+          enhancedError.message = 'Server connection blocked. This appears to be a server configuration issue.';
+        } else if (errorMessage.includes('networkerror') || errorMessage.includes('failed to fetch')) {
           enhancedError.message = 'Network connection failed. Please check your internet connection.';
         }
       }
