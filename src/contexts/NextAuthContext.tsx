@@ -157,19 +157,17 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
 
   const signInWithGoogle = async (): Promise<void> => {
     try {
-      // Important: Set redirect to false to prevent NextAuth from handling redirects
-      // We'll handle redirects ourselves in the useEffect based on user data
-      const result = await signIn('google', { 
-        redirect: false
+      console.log('Initiating Google sign-in from context...');
+      
+      // Use direct redirect to dashboard to avoid redirect loops
+      await signIn('google', {
+        callbackUrl: '/dashboard',
+        redirect: true
       });
       
-      if (!result?.ok) {
-        console.error('Google sign-in failed:', result?.error);
-        throw new Error(result?.error || 'Failed to sign in with Google');
-      }
+      // Code below won't execute if redirect is successful
+      console.log('Note: Redirect did not occur as expected');
       
-      // Don't redirect here - we'll do it in the useEffect hook
-      // after the user data is loaded from the backend
     } catch (error) {
       console.error('Google sign-in error:', error);
       throw error;
@@ -178,11 +176,17 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
 
   const signOutUser = async (): Promise<void> => {
     try {
+      console.log('Signing out user...');
+      setUser(null);
+      
+      // Always redirect to home page after sign out
       await signOut({ 
         callbackUrl: '/',
         redirect: true 
       });
-      setUser(null);
+      
+      // Code below won't execute if redirect is successful
+      console.log('Note: Redirect after signout did not occur as expected');
     } catch (error) {
       console.error('Sign-out error:', error);
       throw error;

@@ -99,17 +99,29 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    // Add redirect callback to prevent automatic redirects
+    // Custom redirect logic to prevent redirect loops
     async redirect({ url, baseUrl }) {
-      // If it's an absolute URL and from our site, allow it
+      // Force redirect to dashboard for all login page redirects
+      if (url.includes('/login') || url === baseUrl) {
+        console.log('🔀 Intercepted redirect to login, sending to dashboard instead');
+        return `${baseUrl}/dashboard`;
+      }
+      
+      // Handle URLs from the same origin
       if (url.startsWith(baseUrl)) {
+        console.log(`🔀 Allowing redirect to same-origin URL: ${url}`);
         return url;
       }
-      // If it's a relative URL, allow it
-      else if (url.startsWith('/')) {
-        return new URL(url, baseUrl).toString();
+      
+      // Handle relative URLs
+      if (url.startsWith('/')) {
+        const fullUrl = new URL(url, baseUrl).toString();
+        console.log(`🔀 Converting relative URL to absolute: ${fullUrl}`);
+        return fullUrl;
       }
-      // Default fallback to dashboard
+      
+      // Default fallback for any other case
+      console.log(`🔀 Using default redirect to dashboard`);
       return `${baseUrl}/dashboard`;
     },
   },

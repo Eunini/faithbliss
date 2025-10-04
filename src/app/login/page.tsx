@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from "next/link";
-import { useRouter } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import { useNextAuth } from '@/contexts/NextAuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useAuthRedirect, ROUTES } from '@/lib/redirect';
 import { FcGoogle } from 'react-icons/fc';
 import { Heart, LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { AuthTokenDebugger } from '@/components/AuthTokenDebugger';
@@ -19,41 +19,22 @@ export default function Login() {
   const [error, setError] = useState('');
   
   const { data: session, status } = useSession();
-  const { signInWithGoogle, user } = useNextAuth();
+  const { user } = useNextAuth();
   const { showSuccess, showError } = useToast();
-  const router = useRouter();
-
-  // Handle redirect after successful authentication
+  
+  // Use our auth redirect utility to handle redirects
+  const { isLoading } = useAuthRedirect({
+    ifAuthenticated: ROUTES.DASHBOARD,
+    requireOnboarding: true,
+    debug: true,
+  });
+  
+  // Show success message when user is authenticated
   useEffect(() => {
-    // Only proceed if we have a session and are not in loading state
-    if (status !== 'loading' && session?.user) {
-      console.log('Authentication successful, preparing redirect...');
-      
-      if (session?.accessToken) {
-        console.log('JWT token present, user authenticated');
-        
-        // If we have user data from the backend
-        if (user) {
-          console.log('User data loaded from backend');
-          showSuccess('Signed in successfully! 🎉', 'Welcome to FaithBliss');
-          
-          // Redirect based on onboarding status
-          if (user.onboardingCompleted) {
-            console.log('User has completed onboarding, redirecting to dashboard');
-            router.push('/dashboard');
-          } else {
-            console.log('User needs to complete onboarding');
-            router.push('/onboarding');
-          }
-        } else {
-          // User authenticated but backend data not loaded yet
-          console.log('Waiting for backend user data...');
-        }
-      } else {
-        console.warn('Session exists but no JWT token found');
-      }
+    if (status === 'authenticated' && session?.user && !isLoading) {
+      showSuccess('Signed in successfully! 🎉', 'Welcome to FaithBliss');
     }
-  }, [session, user, status, router, showSuccess]);
+  }, [status, session, showSuccess, isLoading]);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -67,11 +48,14 @@ export default function Login() {
         window.history.replaceState({}, document.title, cleanUrl);
       }
       
-      await signInWithGoogle();
-      // We're no longer redirecting here. Instead, the useEffect above
-      // will handle redirects after the user data is loaded from the backend
+      // Use signIn directly with callbackUrl for more reliable redirect
+      await signIn('google', {
+        callbackUrl: ROUTES.DASHBOARD,
+        redirect: true,
+      });
       
-      console.log('Google sign-in initiated successfully');
+      // If execution reaches here, the redirect failed
+      console.log('Google sign-in initiated, waiting for redirect...');
       
     } catch (error) {
       console.error('Google sign-in error:', error);
@@ -95,27 +79,34 @@ export default function Login() {
       setLoading(true);
       setError('');
       
-      // Use NextAuth credentials provider (you'll need to set this up)
-      const result = await signIn('credentials', {
+      // Use NextAuth credentials provider with redirect
+      await signIn('credentials', {
         email,
         password,
-        redirect: false,
+        callbackUrl: ROUTES.DASHBOARD,
+        redirect: true,
       });
-
-      if (result?.error) {
-        setError('Invalid email or password. Please try again.');
-      } else {
-        showSuccess('Signed in successfully! 🎉', 'Welcome back to FaithBliss');
-        // Redirect will be handled by useEffect
-      }
+      
+      // If execution reaches here, the redirect failed
+      console.log('Credentials sign-in initiated, waiting for redirect...');
       
     } catch (error) {
       console.error('Email sign-in error:', error);
       setError(error instanceof Error ? error.message : 'Failed to sign in. Please try again.');
+      showError('Authentication failed. Please check your credentials.', 'Sign In Failed');
     } finally {
       setLoading(false);
     }
   };
+
+  // Effect to clean URL params on initial load (to prevent redirect loops)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('callbackUrl=/login')) {
+      // This indicates a potential redirect loop - remove all query params
+      console.warn('Detected potential redirect loop, clearing URL parameters');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // Show loading if NextAuth is still loading
   if (status === 'loading') {
@@ -265,7 +256,23 @@ export default function Login() {
               {session?.accessToken && (
                 <div>Token Preview: {session.accessToken.substring(0, 15)}...</div>
               )}
+              <div className="mt-2">
+                <strong>Current URL:</strong> {typeof window !== 'undefined' ? window.location.href : 'N/A'}
+              </div>
             </div>
+            
+            {/* Check for callback URL in the query params */}
+            {typeof window !== 'undefined' && window.location.search.includes('callbackUrl') && (
+              <div className="mb-3 p-2 bg-red-900/30 text-red-300 rounded-md text-xs">
+                <strong>Warning:</strong> Redirect loop detected! 
+                <button 
+                  onClick={() => window.history.replaceState({}, document.title, window.location.pathname)}
+                  className="ml-2 px-2 py-1 bg-red-700 text-white rounded text-xs"
+                >
+                  Clear URL Params
+                </button>
+              </div>
+            )}
             
             {session && <AuthTokenDebugger />}
           </div>
