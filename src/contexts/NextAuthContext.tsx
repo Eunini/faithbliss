@@ -157,10 +157,19 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
 
   const signInWithGoogle = async (): Promise<void> => {
     try {
-      await signIn('google', { 
-        callbackUrl: '/dashboard',
-        redirect: true 
+      // Important: Set redirect to false to prevent NextAuth from handling redirects
+      // We'll handle redirects ourselves in the useEffect based on user data
+      const result = await signIn('google', { 
+        redirect: false
       });
+      
+      if (!result?.ok) {
+        console.error('Google sign-in failed:', result?.error);
+        throw new Error(result?.error || 'Failed to sign in with Google');
+      }
+      
+      // Don't redirect here - we'll do it in the useEffect hook
+      // after the user data is loaded from the backend
     } catch (error) {
       console.error('Google sign-in error:', error);
       throw error;

@@ -99,6 +99,19 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
+    // Add redirect callback to prevent automatic redirects
+    async redirect({ url, baseUrl }) {
+      // If it's an absolute URL and from our site, allow it
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+      // If it's a relative URL, allow it
+      else if (url.startsWith('/')) {
+        return new URL(url, baseUrl).toString();
+      }
+      // Default fallback to dashboard
+      return `${baseUrl}/dashboard`;
+    },
   },
   pages: {
     signIn: '/login',
@@ -106,5 +119,6 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 24 hours
   },
 };

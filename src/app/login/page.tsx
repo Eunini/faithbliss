@@ -25,14 +25,32 @@ export default function Login() {
 
   // Handle redirect after successful authentication
   useEffect(() => {
-    if (status !== 'loading' && session?.user && user) {
-      // Show success message only after user data is loaded from backend
-      showSuccess('Signed in successfully! 🎉', 'Welcome to FaithBliss');
+    // Only proceed if we have a session and are not in loading state
+    if (status !== 'loading' && session?.user) {
+      console.log('Authentication successful, preparing redirect...');
       
-      if (user?.onboardingCompleted) {
-        router.push('/dashboard');
+      if (session?.accessToken) {
+        console.log('JWT token present, user authenticated');
+        
+        // If we have user data from the backend
+        if (user) {
+          console.log('User data loaded from backend');
+          showSuccess('Signed in successfully! 🎉', 'Welcome to FaithBliss');
+          
+          // Redirect based on onboarding status
+          if (user.onboardingCompleted) {
+            console.log('User has completed onboarding, redirecting to dashboard');
+            router.push('/dashboard');
+          } else {
+            console.log('User needs to complete onboarding');
+            router.push('/onboarding');
+          }
+        } else {
+          // User authenticated but backend data not loaded yet
+          console.log('Waiting for backend user data...');
+        }
       } else {
-        router.push('/onboarding');
+        console.warn('Session exists but no JWT token found');
       }
     }
   }, [session, user, status, router, showSuccess]);
@@ -43,8 +61,17 @@ export default function Login() {
       setError('');
       console.log('Starting Google sign-in...');
       
+      // Clear any URL parameters that might be causing issues
+      if (window.location.search) {
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+      
       await signInWithGoogle();
-      // Success message will be shown in useEffect after user data is loaded
+      // We're no longer redirecting here. Instead, the useEffect above
+      // will handle redirects after the user data is loaded from the backend
+      
+      console.log('Google sign-in initiated successfully');
       
     } catch (error) {
       console.error('Google sign-in error:', error);
@@ -225,10 +252,22 @@ export default function Login() {
         </div>
         
         {/* Auth Token Debugger - only visible in development */}
-        {process.env.NODE_ENV !== 'production' && session && (
+        {process.env.NODE_ENV !== 'production' && (
           <div className="mt-8 border-t border-gray-700 pt-6">
             <h3 className="text-sm font-medium text-gray-300 mb-3">Debug Authentication</h3>
-            <AuthTokenDebugger />
+            
+            {/* Authentication status */}
+            <div className="mb-3 text-xs text-gray-400">
+              <div>Status: {status}</div>
+              <div>Has Session: {session ? '✓' : '✗'}</div>
+              <div>Has User: {user ? '✓' : '✗'}</div>
+              <div>Has Token: {session?.accessToken ? '✓' : '✗'}</div>
+              {session?.accessToken && (
+                <div>Token Preview: {session.accessToken.substring(0, 15)}...</div>
+              )}
+            </div>
+            
+            {session && <AuthTokenDebugger />}
           </div>
         )}
       </div>
