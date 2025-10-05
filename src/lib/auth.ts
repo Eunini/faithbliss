@@ -66,6 +66,9 @@ export const authOptions: NextAuthOptions = {
             token.accessToken = jwtToken;
             token.userId = userData.user?.id || profile.email;
             token.userEmail = profile.email;
+            token.onboardingCompleted = userData.user?.onboardingCompleted || false;
+            
+            console.log('📋 User onboarding status:', token.onboardingCompleted ? 'Completed' : 'Not completed');
           } else {
             console.error('❌ Backend auth failed - no JWT token in response');
             console.error('Response data:', userData);
@@ -85,23 +88,42 @@ export const authOptions: NextAuthOptions = {
       session.accessToken = token.accessToken as string;
       session.userId = token.userId as string;
       
-      // Add userId to the user object as well for convenience
+      // Add userId and onboarding status to the user object
       if (session.user) {
         session.user.id = token.userId as string;
+        session.user.onboardingCompleted = token.onboardingCompleted as boolean || false;
       }
+      
+      console.log('📤 Session created with onboarding status:', session.user?.onboardingCompleted);
       
       return session;
     },
     async signIn({ account, profile }) {
       // Allow sign-in for Google OAuth
       if (account?.provider === "google" && profile?.email) {
+        console.log('✅ Google OAuth successful for:', profile.email);
+        // Return true to allow NextAuth to proceed to the jwt callback
+        // The jwt callback will handle the backend token exchange
         return true;
       }
-      return true;
+      
+      // For other providers or missing data, deny sign-in
+      console.warn('⚠️ Sign-in attempt with invalid provider or missing profile');
+      return false;
     },
-    // Custom redirect logic to prevent redirect loops
+    // Custom redirect logic - simpler approach
     async redirect({ url, baseUrl }) {
-      // Force redirect to dashboard for all login page redirects
+      console.log('🔀 Redirect callback triggered');
+      console.log('   URL:', url);
+      console.log('   Base URL:', baseUrl);
+      
+      // Check if the URL is trying to redirect to onboarding
+      if (url.includes('/onboarding')) {
+        console.log('🔀 Allowing redirect to onboarding');
+        return url.startsWith('http') ? url : `${baseUrl}${url}`;
+      }
+      
+      // Prevent redirect loops to login page
       if (url.includes('/login') || url === baseUrl) {
         console.log('🔀 Intercepted redirect to login, sending to dashboard instead');
         return `${baseUrl}/dashboard`;
@@ -120,7 +142,7 @@ export const authOptions: NextAuthOptions = {
         return fullUrl;
       }
       
-      // Default fallback for any other case
+      // Default fallback
       console.log(`🔀 Using default redirect to dashboard`);
       return `${baseUrl}/dashboard`;
     },

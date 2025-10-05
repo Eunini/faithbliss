@@ -159,9 +159,9 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
     try {
       console.log('Initiating Google sign-in from context...');
       
-      // Use direct redirect to dashboard to avoid redirect loops
+      // Let NextAuth handle the redirect based on the redirect callback in auth.ts
+      // Don't specify callbackUrl here - the redirect callback will determine it
       await signIn('google', {
-        callbackUrl: '/dashboard',
         redirect: true
       });
       

@@ -66,19 +66,20 @@ export function useAuthRedirect(
 
     // Handle redirection for authenticated users
     if (isAuth && ifAuthenticated && currentPath !== ifAuthenticated) {
-      // Check for onboarding requirement
+      // Check for onboarding requirement using session data
       const needsOnboarding = requireOnboarding && 
-                             !session.user.onboardingCompleted && 
+                             !session.user?.onboardingCompleted && 
                              currentPath !== ROUTES.ONBOARDING;
       
       if (needsOnboarding) {
         if (debug) {
           console.log(`🔀 Redirecting to onboarding: ${ROUTES.ONBOARDING}`);
+          console.log('   Onboarding status:', session.user?.onboardingCompleted);
         }
         router.replace(ROUTES.ONBOARDING);
-      } else {
+      } else if (session.user?.onboardingCompleted && currentPath !== ifAuthenticated) {
         if (debug) {
-          console.log(`🔀 User authenticated, redirecting to: ${ifAuthenticated}`);
+          console.log(`🔀 User authenticated and onboarded, redirecting to: ${ifAuthenticated}`);
         }
         router.replace(ifAuthenticated);
       }

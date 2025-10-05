@@ -48,9 +48,9 @@ export default function Login() {
         window.history.replaceState({}, document.title, cleanUrl);
       }
       
-      // Use signIn directly with callbackUrl for more reliable redirect
+      // Don't specify callbackUrl - let NextAuth handle it based on user's onboarding status
+      // The redirect callback in auth.ts will determine the proper redirect
       await signIn('google', {
-        callbackUrl: ROUTES.DASHBOARD,
         redirect: true,
       });
       
