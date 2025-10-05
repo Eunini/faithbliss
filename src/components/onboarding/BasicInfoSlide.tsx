@@ -113,6 +113,19 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
   const PhotoUpload = ({ photoNumber, photo }: { photoNumber: 1 | 2 | 3; photo: string | null }) => {
     const isUploading = uploadingPhotos[photoNumber];
     
+    const handleClick = () => {
+      if (!isUploading) {
+        console.log(`🖱️ Clicked on photo ${photoNumber} upload area`);
+        const input = document.getElementById(`photo-upload-${photoNumber}`) as HTMLInputElement;
+        if (input) {
+          console.log(`📂 Triggering file picker for photo ${photoNumber}`);
+          input.click();
+        } else {
+          console.error(`❌ Could not find input element for photo ${photoNumber}`);
+        }
+      }
+    };
+    
     return (
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-300 text-center">
@@ -148,10 +161,13 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
             </div>
           ) : (
             <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mx-auto">
-              <label 
-                htmlFor={`photo-upload-${photoNumber}`}
-                className={`block w-full h-full border-2 border-dashed border-gray-600 rounded-2xl hover:border-pink-500 cursor-pointer transition-all group hover:bg-gray-800/50 active:scale-95 touch-manipulation ${isUploading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+              <button
+                type="button"
+                onClick={handleClick}
+                disabled={isUploading}
+                className={`w-full h-full border-2 border-dashed border-gray-600 rounded-2xl hover:border-pink-500 cursor-pointer transition-all group hover:bg-gray-800/50 active:scale-95 touch-manipulation ${isUploading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
                 style={{ minHeight: '44px', minWidth: '44px' }} // iOS minimum touch target
+                aria-label={`Upload photo ${photoNumber}`}
               >
                 <div className="flex flex-col items-center justify-center h-full p-2">
                   {isUploading ? (
@@ -170,13 +186,13 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
                     </>
                   )}
                 </div>
-              </label>
+              </button>
               <input
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                 capture="environment"
                 onChange={handlePhotoUpload(photoNumber)}
-                className="hidden"
+                className="sr-only"
                 id={`photo-upload-${photoNumber}`}
                 multiple={false}
                 aria-label={`Upload photo ${photoNumber} (standard picture formats only)`}
