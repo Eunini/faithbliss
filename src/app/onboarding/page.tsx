@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -13,12 +13,10 @@ import {
   validateSlide,
   FormData
 } from '@/components/onboarding';
-import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
 const OnboardingPage = () => {
   const router = useRouter();
   const { completeOnboarding } = useOnboarding();
-  const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showValidationError, setShowValidationError] = useState(false);
@@ -69,13 +67,6 @@ const OnboardingPage = () => {
     personality: '',
     aboutMe: ''
   });
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, []);
 
   const updateFormData = (field: string, value: string | string[] | boolean | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -140,13 +131,6 @@ const OnboardingPage = () => {
       setCurrentSlide(currentSlide - 1);
     }
   };
-
-
-
-  // Loading Screen
-  if (isLoading) {
-    return <HeartBeatLoader />;
-  }
 
   // Success Modal
   if (showSuccessModal) {
