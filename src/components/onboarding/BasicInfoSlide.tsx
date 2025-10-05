@@ -24,73 +24,82 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
   }, [formData.countryCode, updateFormData]);
 
   const handlePhotoUpload = (photoNumber: 1 | 2 | 3) => async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('Photo upload triggered for photo', photoNumber);
+    console.log('📸 Photo upload triggered for photo', photoNumber);
     const file = event.target.files?.[0];
     
-    if (file) {
-      console.log('File selected:', {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: file.lastModified
+    if (!file) {
+      console.log('❌ No file selected');
+      return;
+    }
+    
+    console.log('✅ File selected:', {
+      name: file.name,
+      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+      type: file.type,
+      lastModified: new Date(file.lastModified).toISOString()
+    });
+
+    // Check file size (max 15MB for iOS HEIC compatibility)
+    const maxSize = 15 * 1024 * 1024; // 15MB
+    if (file.size > maxSize) {
+      console.error('❌ File too large:', file.size);
+      alert('File size too large. Please choose an image smaller than 15MB.');
+      return;
+    }
+
+    // Validate file type - only allow standard picture formats for all photos
+    const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    
+    // Check if file type and extension are both valid picture formats
+    const isValidType = allowedImageTypes.includes(file.type) || 
+                       allowedImageExtensions.includes(fileExtension || '');
+    const errorMessage = 'Please select a standard picture file (JPG, PNG, GIF, or WebP only).';
+    
+    if (!isValidType) {
+      console.error('❌ Invalid file type for photo', photoNumber, ':', file.type, 'filename:', file.name, 'extension:', fileExtension);
+      alert(errorMessage);
+      return;
+    }
+
+    console.log('✅ File validation passed, uploading to Cloudinary...');
+    
+    try {
+      // Set uploading state
+      setUploadingPhotos(prev => ({ ...prev, [photoNumber]: true }));
+      console.log(`⏳ Upload started for photo ${photoNumber}...`);
+      
+      // Upload to Cloudinary
+      const result = await CloudinaryService.uploadImage(
+        file,
+        'faithbliss/profile-photos',
+        user?.id || 'anonymous',
+        photoNumber
+      );
+
+      console.log('✅ Cloudinary upload successful:', {
+        url: result.secure_url,
+        publicId: result.public_id,
+        dimensions: `${result.width}x${result.height}`,
+        format: result.format
       });
 
-      // Check file size (max 15MB for iOS HEIC compatibility)
-      const maxSize = 15 * 1024 * 1024; // 15MB
-      if (file.size > maxSize) {
-        console.error('File too large:', file.size);
-        alert('File size too large. Please choose an image smaller than 15MB.');
-        return;
-      }
-
-      // Validate file type - only allow standard picture formats for all photos
-      const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      const allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+      // Update form data with Cloudinary URL
+      updateFormData(`profilePhoto${photoNumber}`, result.secure_url);
       
-      const fileExtension = file.name.toLowerCase().split('.').pop();
+      // Show success feedback
+      console.log(`🎉 Photo ${photoNumber} uploaded successfully to Cloudinary`);
       
-      // Check if file type and extension are both valid picture formats
-      const isValidType = allowedImageTypes.includes(file.type) || 
-                         allowedImageExtensions.includes(fileExtension || '');
-      const errorMessage = 'Please select a standard picture file (JPG, PNG, GIF, or WebP only).';
-      
-      if (!isValidType) {
-        console.error('Invalid file type for photo', photoNumber, ':', file.type, 'filename:', file.name, 'extension:', fileExtension);
-        alert(errorMessage);
-        return;
-      }
-
-      console.log('File validation passed, uploading to Cloudinary...');
-      
-      try {
-        // Set uploading state
-        setUploadingPhotos(prev => ({ ...prev, [photoNumber]: true }));
-        
-        // Upload to Cloudinary
-        const result = await CloudinaryService.uploadImage(
-          file,
-          'faithbliss/profile-photos',
-          user?.id || 'anonymous',
-          photoNumber
-        );
-
-        console.log('Cloudinary upload successful:', result);
-
-        // Update form data with Cloudinary URL
-        updateFormData(`profilePhoto${photoNumber}`, result.secure_url);
-        
-        // Show success feedback
-        console.log(`Photo ${photoNumber} uploaded successfully to Cloudinary`);
-        
-      } catch (error) {
-        console.error('Cloudinary upload error:', error);
-        alert(`Failed to upload photo ${photoNumber}. Please try again.`);
-      } finally {
-        // Clear uploading state
-        setUploadingPhotos(prev => ({ ...prev, [photoNumber]: false }));
-      }
-    } else {
-      console.log('No file selected');
+    } catch (error) {
+      console.error(`❌ Cloudinary upload error for photo ${photoNumber}:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to upload photo ${photoNumber}: ${errorMessage}\n\nPlease try again.`);
+    } finally {
+      // Clear uploading state
+      setUploadingPhotos(prev => ({ ...prev, [photoNumber]: false }));
+      console.log(`✔️ Upload state cleared for photo ${photoNumber}`);
     }
 
     // Reset the input value to allow selecting the same file again if needed
@@ -141,18 +150,8 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
             <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mx-auto">
               <label 
                 htmlFor={`photo-upload-${photoNumber}`}
-                className={`block w-full h-full border-2 border-dashed border-gray-600 rounded-2xl hover:border-pink-500 cursor-pointer transition-all group hover:bg-gray-800/50 active:scale-95 touch-manipulation ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`block w-full h-full border-2 border-dashed border-gray-600 rounded-2xl hover:border-pink-500 cursor-pointer transition-all group hover:bg-gray-800/50 active:scale-95 touch-manipulation ${isUploading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
                 style={{ minHeight: '44px', minWidth: '44px' }} // iOS minimum touch target
-                onClick={() => {
-                  console.log(`Clicked photo upload label for photo ${photoNumber}`);
-                  // Fallback for mobile devices - directly trigger file input
-                  if (!isUploading) {
-                    const fileInput = document.getElementById(`photo-upload-${photoNumber}`) as HTMLInputElement;
-                    if (fileInput) {
-                      fileInput.click();
-                    }
-                  }
-                }}
               >
                 <div className="flex flex-col items-center justify-center h-full p-2">
                   {isUploading ? (
@@ -177,12 +176,11 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
                 accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                 capture="environment"
                 onChange={handlePhotoUpload(photoNumber)}
-                className="absolute opacity-0 w-0 h-0 overflow-hidden"
+                className="hidden"
                 id={`photo-upload-${photoNumber}`}
                 multiple={false}
                 aria-label={`Upload photo ${photoNumber} (standard picture formats only)`}
                 disabled={isUploading}
-                tabIndex={-1}
               />
             </div>
           )}
