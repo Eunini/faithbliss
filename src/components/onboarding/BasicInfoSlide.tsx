@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CloudinaryService } from '@/lib/cloudinary';
 import { useNextAuth } from '@/contexts/NextAuthContext';
+import { useToast } from '@/contexts/ToastContext';
 
 interface BasicInfoSlideProps {
   formData: FormData;
@@ -15,6 +16,7 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
   const [selectedCountry, setSelectedCountry] = useState(defaultCountry);
   const [uploadingPhotos, setUploadingPhotos] = useState<{[key: number]: boolean}>({});
   const { user } = useNextAuth();
+  const { showSuccess, showError } = useToast();
 
   // Initialize country code if not set
   useEffect(() => {
@@ -43,7 +45,7 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
     const maxSize = 15 * 1024 * 1024; // 15MB
     if (file.size > maxSize) {
       console.error('❌ File too large:', file.size);
-      alert('File size too large. Please choose an image smaller than 15MB.');
+      showError('File size too large. Please choose an image smaller than 15MB.', 'File Too Large');
       return;
     }
 
@@ -56,11 +58,10 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
     // Check if file type and extension are both valid picture formats
     const isValidType = allowedImageTypes.includes(file.type) || 
                        allowedImageExtensions.includes(fileExtension || '');
-    const errorMessage = 'Please select a standard picture file (JPG, PNG, GIF, or WebP only).';
     
     if (!isValidType) {
       console.error('❌ Invalid file type for photo', photoNumber, ':', file.type, 'filename:', file.name, 'extension:', fileExtension);
-      alert(errorMessage);
+      showError('Please select a standard picture file (JPG, PNG, GIF, or WebP only).', 'Invalid File Type');
       return;
     }
 
@@ -91,11 +92,12 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
       
       // Show success feedback
       console.log(`🎉 Photo ${photoNumber} uploaded successfully to Cloudinary`);
+      showSuccess(`Photo ${photoNumber} uploaded successfully!`, 'Upload Complete');
       
     } catch (error) {
       console.error(`❌ Cloudinary upload error for photo ${photoNumber}:`, error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Failed to upload photo ${photoNumber}: ${errorMessage}\n\nPlease try again.`);
+      showError(`Failed to upload photo ${photoNumber}: ${errorMessage}`, 'Upload Failed');
     } finally {
       // Clear uploading state
       setUploadingPhotos(prev => ({ ...prev, [photoNumber]: false }));
@@ -119,7 +121,28 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
         const input = document.getElementById(`photo-upload-${photoNumber}`) as HTMLInputElement;
         if (input) {
           console.log(`📂 Triggering file picker for photo ${photoNumber}`);
-          input.click();
+          
+          // Create a new input to ensure clean state
+          const newInput = document.createElement('input');
+          newInput.type = 'file';
+          newInput.accept = 'image/jpeg,image/jpg,image/png,image/gif,image/webp';
+          if ('capture' in newInput) {
+            newInput.setAttribute('capture', 'environment');
+          }
+          
+          // Attach the handler directly
+          newInput.onchange = async (e) => {
+            const target = e.target as HTMLInputElement;
+            console.log('📸 File input changed, files:', target.files?.length);
+            
+            if (target.files && target.files[0]) {
+              const syntheticEvent = { target } as React.ChangeEvent<HTMLInputElement>;
+              await handlePhotoUpload(photoNumber)(syntheticEvent);
+            }
+          };
+          
+          // Trigger the click
+          newInput.click();
         } else {
           console.error(`❌ Could not find input element for photo ${photoNumber}`);
         }
@@ -187,17 +210,6 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
                   )}
                 </div>
               </button>
-              <input
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                capture="environment"
-                onChange={handlePhotoUpload(photoNumber)}
-                className="sr-only"
-                id={`photo-upload-${photoNumber}`}
-                multiple={false}
-                aria-label={`Upload photo ${photoNumber} (standard picture formats only)`}
-                disabled={isUploading}
-              />
             </div>
           )}
         </div>
