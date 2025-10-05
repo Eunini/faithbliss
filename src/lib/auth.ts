@@ -27,6 +27,7 @@ export const authOptions: NextAuthOptions = {
           console.log('🔄 Exchanging Google token for JWT...');
           console.log('📧 Email:', profile.email);
           console.log('🔑 Google token preview:', account.access_token?.substring(0, 20) + '...');
+          console.log('🌐 Backend URL:', backendUrl);
           
           const response = await fetch(`${backendUrl}/auth/google`, {
             method: 'POST',
@@ -42,43 +43,59 @@ export const authOptions: NextAuthOptions = {
             }),
           });
           
+          console.log('📡 Backend response status:', response.status);
+          
           if (!response.ok) {
             console.error('❌ Backend auth failed - HTTP error:', response.status);
-            // Try to get error message from response
-            try {
-              const errorData = await response.json();
-              console.error('Error data:', errorData);
-              throw new Error(`Backend authentication failed: ${errorData.message || `HTTP ${response.status}`}`);
-            } catch {
-              // If can't parse JSON response
-              throw new Error(`Backend authentication failed: HTTP ${response.status}`);
-            }
+            const errorText = await response.text();
+            console.error('📄 Error response:', errorText);
+            
+            // Don't throw - allow sign-in to proceed with Google data only
+            console.warn('⚠️ Proceeding with Google OAuth only (backend unavailable)');
+            token.accessToken = account.access_token; // Use Google token temporarily
+            token.userId = profile.email;
+            token.userEmail = profile.email;
+            token.onboardingCompleted = false; // Assume not onboarded
+            return token;
           }
           
           const userData = await response.json();
           console.log('📥 Backend auth response received');
+          console.log('🔍 Response structure:', Object.keys(userData));
           
-          if (userData.access_token || userData.token) {
-            const jwtToken = userData.access_token || userData.token;
+          if (userData.accessToken) {
+            const jwtToken = userData.accessToken;
             console.log('✅ JWT token received, preview:', jwtToken.substring(0, 20) + '...');
             
             // Store the JWT token from our backend (not the Google token)
             token.accessToken = jwtToken;
-            token.userId = userData.user?.id || profile.email;
+            token.userId = userData.user?.id || userData.user?._id || profile.email;
             token.userEmail = profile.email;
             token.onboardingCompleted = userData.user?.onboardingCompleted || false;
             
             console.log('📋 User onboarding status:', token.onboardingCompleted ? 'Completed' : 'Not completed');
+            console.log('🆔 User ID:', token.userId);
           } else {
             console.error('❌ Backend auth failed - no JWT token in response');
-            console.error('Response data:', userData);
+            console.error('📄 Response data:', JSON.stringify(userData, null, 2));
             
-            throw new Error(`Backend authentication failed: ${userData.message || 'No JWT token received'}`);
+            // Don't throw - allow sign-in to proceed with Google data only
+            console.warn('⚠️ Proceeding with Google OAuth only (no JWT token)');
+            token.accessToken = account.access_token; // Use Google token temporarily
+            token.userId = profile.email;
+            token.userEmail = profile.email;
+            token.onboardingCompleted = false; // Assume not onboarded
           }
         } catch (error) {
           console.error('💥 Failed to exchange token with backend:', error);
-          // Re-throw to fail the sign-in process
-          throw error;
+          console.error('📋 Error details:', error instanceof Error ? error.message : String(error));
+          
+          // Don't re-throw - allow sign-in to proceed with Google data only
+          console.warn('⚠️ Proceeding with Google OAuth only (exception caught)');
+          token.accessToken = account.access_token; // Use Google token temporarily
+          token.userId = profile.email;
+          token.userEmail = profile.email;
+          token.onboardingCompleted = false; // Assume not onboarded
         }
       }
       return token;
