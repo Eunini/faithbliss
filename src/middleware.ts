@@ -46,13 +46,37 @@ export default withAuth(
         const path = req.nextUrl.pathname;
         
         // Public routes that don't require authentication
-        const publicRoutes = ['/', '/login', '/signup'];
+        const publicRoutes = [
+          '/', 
+          '/login', 
+          '/signup',
+          '/test-cloudinary',
+          '/test-upload'
+        ];
+        
         if (publicRoutes.includes(path)) {
           return true;
         }
 
-        // All other routes require authentication
-        return !!token;
+        // Protected routes that require authentication
+        const protectedRoutes = [
+          '/dashboard',
+          '/discover', 
+          '/matches', 
+          '/messages', 
+          '/profile',
+          '/community',
+          '/onboarding',
+          '/notifications'
+        ];
+        
+        // Only require auth for protected routes
+        if (protectedRoutes.some(route => path.startsWith(route))) {
+          return !!token;
+        }
+
+        // Allow all other routes without authentication
+        return true;
       },
     },
   }
