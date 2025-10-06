@@ -82,6 +82,18 @@ export const authOptions: NextAuthOptions = {
       }
       return false;
     },
+    async redirect({ url, baseUrl }) {
+      // Allow callback URLs from the same origin
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+      // Allow relative URLs
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+      // Default to dashboard
+      return `${baseUrl}/dashboard`;
+    },
   },
   pages: {
     signIn: '/login',
