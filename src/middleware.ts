@@ -3,24 +3,9 @@ import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
 export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const path = req.nextUrl.pathname;
-
-    // If user is authenticated
-    if (token) {
-      // Redirect from onboarding if already completed
-      if (path === '/onboarding' && token.onboardingCompleted) {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
-      }
-
-      // Redirect to onboarding if accessing protected routes without completing onboarding
-      const protectedRoutes = ['/dashboard', '/discover', '/matches', '/messages', '/profile', '/community'];
-      if (protectedRoutes.some(route => path.startsWith(route)) && !token.onboardingCompleted) {
-        return NextResponse.redirect(new URL('/onboarding', req.url));
-      }
-    }
-
+  function middleware() {
+    // Let the middleware just handle auth
+    // All redirect logic will be handled by client-side components
     return NextResponse.next();
   },
   {

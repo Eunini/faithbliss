@@ -83,16 +83,16 @@ export const authOptions: NextAuthOptions = {
       return false;
     },
     async redirect({ url, baseUrl }) {
-      // After successful sign-in, always go to dashboard first
-      // The dashboard page will check onboarding status and redirect if needed
+      // Allow same-origin URLs
       if (url.startsWith(baseUrl)) {
         return url;
       }
+      // Allow relative URLs  
       if (url.startsWith('/')) {
         return `${baseUrl}${url}`;
       }
-      // Default: go to dashboard which will handle onboarding redirect
-      return `${baseUrl}/dashboard`;
+      // Default to base URL (will be handled by client-side routing)
+      return baseUrl;
     },
   },
   pages: {

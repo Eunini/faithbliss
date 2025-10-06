@@ -47,9 +47,9 @@ export default function Login() {
         window.history.replaceState({}, document.title, cleanUrl);
       }
       
-      // Don't set callbackUrl - let useAuthRedirect handle the redirect based on onboarding status
+      // Redirect to onboarding - ProtectedRoute will handle redirect to dashboard if already onboarded
       await signIn('google', {
-        redirect: true,
+        callbackUrl: '/onboarding',
       });
       
     } catch (error) {
