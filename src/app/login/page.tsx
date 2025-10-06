@@ -40,7 +40,7 @@ export default function Login() {
     try {
       setLoading(true);
       setError('');
-      console.log('Starting Google sign-in...');
+      console.log('🔐 Starting Google sign-in...');
       
       // Clear any URL parameters that might be causing issues
       if (window.location.search) {
@@ -48,17 +48,16 @@ export default function Login() {
         window.history.replaceState({}, document.title, cleanUrl);
       }
       
-      // Don't specify callbackUrl - let NextAuth handle it based on user's onboarding status
-      // The redirect callback in auth.ts will determine the proper redirect
+      // Let NextAuth handle the redirect
       await signIn('google', {
         redirect: true,
+        callbackUrl: '/dashboard'
       });
       
-      // If execution reaches here, the redirect failed
-      console.log('Google sign-in initiated, waiting for redirect...');
+      console.log('✅ Google sign-in initiated, redirecting...');
       
     } catch (error) {
-      console.error('Google sign-in error:', error);
+      console.error('💥 Google sign-in exception:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign in with Google. Please try again.';
       setError(errorMessage);
       showError(errorMessage, 'Sign In Failed');
