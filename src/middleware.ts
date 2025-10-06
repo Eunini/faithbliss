@@ -7,33 +7,16 @@ export default withAuth(
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
-    console.log('🔒 Middleware executing for path:', path);
-    console.log('   Has token:', !!token);
-    console.log('   Onboarding completed:', token?.onboardingCompleted);
-
     // If user is authenticated
     if (token) {
-      // Redirect from login/signup to appropriate page
-      if (path === '/login' || path === '/signup') {
-        if (token.onboardingCompleted) {
-          console.log('   → Redirecting authenticated user from login to dashboard');
-          return NextResponse.redirect(new URL('/dashboard', req.url));
-        } else {
-          console.log('   → Redirecting authenticated user from login to onboarding');
-          return NextResponse.redirect(new URL('/onboarding', req.url));
-        }
-      }
-
       // Redirect from onboarding if already completed
       if (path === '/onboarding' && token.onboardingCompleted) {
-        console.log('   → Redirecting onboarded user to dashboard');
         return NextResponse.redirect(new URL('/dashboard', req.url));
       }
 
       // Redirect to onboarding if accessing protected routes without completing onboarding
       const protectedRoutes = ['/dashboard', '/discover', '/matches', '/messages', '/profile', '/community'];
       if (protectedRoutes.some(route => path.startsWith(route)) && !token.onboardingCompleted) {
-        console.log('   → Redirecting non-onboarded user to onboarding');
         return NextResponse.redirect(new URL('/onboarding', req.url));
       }
     }
