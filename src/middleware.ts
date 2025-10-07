@@ -1,11 +1,12 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
-// Define public routes that do not require authentication
+// Define public routes that do not require authentication at the middleware's first check
 const publicRoutes = [
   '/', 
   '/login',
   '/signup',
+  '/onboarding', // Treat as public for the initial check, then protect it inside the middleware
   '/test-cloudinary',
   '/test-upload'
 ];
@@ -15,28 +16,32 @@ export default withAuth(
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
-    const isOnPublicRoute = publicRoutes.includes(path);
-    const isOnOnboardingRoute = path === '/onboarding';
-
-    // If user is authenticated
+    // If the user is authenticated
     if (token) {
-      // If user has not completed onboarding, redirect to onboarding page
-      if (!token.onboardingCompleted && !isOnOnboardingRoute) {
+      const onboardingCompleted = token.onboardingCompleted as boolean;
+
+      // Rule 1: If user has NOT onboarded and is NOT on the onboarding page,
+      // force them to the onboarding page.
+      if (!onboardingCompleted && path !== '/onboarding') {
         return NextResponse.redirect(new URL('/onboarding', req.url));
       }
 
-      // If user has completed onboarding and tries to access onboarding page, redirect to dashboard
-      if (token.onboardingCompleted && isOnOnboardingRoute) {
+      // Rule 2: If user HAS onboarded and tries to access login, signup, or onboarding,
+      // send them to the dashboard.
+      if (onboardingCompleted && ['/login', '/signup', '/onboarding'].includes(path)) {
         return NextResponse.redirect(new URL('/dashboard', req.url));
       }
-      
-      // If user is on a public route (like /login), redirect to dashboard
-      if (isOnPublicRoute) {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
+    } 
+    // If the user is NOT authenticated
+    else {
+      // Rule 3: If an unauthenticated user tries to access a protected-by-logic route
+      // like onboarding, redirect them to login.
+      if (path === '/onboarding') {
+        return NextResponse.redirect(new URL('/login', req.url));
       }
     }
 
-    // For unauthenticated users, allow access to public routes
+    // Otherwise, allow the request to proceed.
     return NextResponse.next();
   },
   {
@@ -44,12 +49,14 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const path = req.nextUrl.pathname;
         
-        // If user is trying to access a public route, allow access
+        // If the route is considered public, always run the middleware function.
+        // This allows us to implement custom logic for routes like /onboarding.
         if (publicRoutes.includes(path)) {
           return true;
         }
 
-        // For any other route, require a token
+        // For any other route not in publicRoutes, it is protected and requires a token.
+        // If no token, `withAuth` will automatically redirect to the login page.
         return !!token;
       },
     },
