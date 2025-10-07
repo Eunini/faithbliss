@@ -20,11 +20,6 @@ export default withAuth(
 
     // If user is authenticated
     if (token) {
-      // If user is on a public route (like /login), redirect to dashboard
-      if (isOnPublicRoute) {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
-      }
-
       // If user has not completed onboarding, redirect to onboarding page
       if (!token.onboardingCompleted && !isOnOnboardingRoute) {
         return NextResponse.redirect(new URL('/onboarding', req.url));
@@ -32,6 +27,11 @@ export default withAuth(
 
       // If user has completed onboarding and tries to access onboarding page, redirect to dashboard
       if (token.onboardingCompleted && isOnOnboardingRoute) {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+      }
+      
+      // If user is on a public route (like /login), redirect to dashboard
+      if (isOnPublicRoute) {
         return NextResponse.redirect(new URL('/dashboard', req.url));
       }
     }
