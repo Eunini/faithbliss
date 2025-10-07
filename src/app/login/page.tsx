@@ -28,24 +28,11 @@ export default function Login() {
     requireOnboarding: true,
     debug: true,
   });
-  
-  // Show success message when user is authenticated
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user && !isLoading) {
-      showSuccess('Signed in successfully! 🎉', 'Welcome to FaithBliss');
-    }
-  }, [status, session, showSuccess, isLoading]);
 
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
       setError('');
-      
-      // Clear any URL parameters that might be causing issues
-      if (window.location.search) {
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-      }
       
       // Don't set callbackUrl - let useAuthRedirect handle the redirect based on onboarding status
       await signIn('google', {

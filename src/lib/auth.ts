@@ -82,7 +82,7 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "google" && profile?.email) {
         // The user object here is the result of the `jwt` callback.
         // If there was an error, we deny the sign-in.
-        if (user?.error) {
+        if ((user as any)?.error) {
           return false;
         }
         return true;

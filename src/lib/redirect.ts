@@ -65,7 +65,7 @@ export function useAuthRedirect(
     const currentPath = window.location.pathname;
 
     // Handle redirection for authenticated users
-    if (isAuth && ifAuthenticated && currentPath !== ifAuthenticated) {
+    if (isAuth && ifAuthenticated) {
       // Check for onboarding requirement using session data
       const needsOnboarding = requireOnboarding && 
                              !session.user?.onboardingCompleted && 
