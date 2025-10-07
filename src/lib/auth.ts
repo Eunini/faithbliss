@@ -47,19 +47,16 @@ export const authOptions: NextAuthOptions = {
               token.onboardingCompleted = userData.user?.onboardingCompleted || false;
               return token;
             }
+          } else {
+            const errorData = await response.json();
+            console.error('Backend authentication failed:', errorData);
+            // By returning the token without modifications, we effectively deny the sign-in
+            return { ...token, error: "BackendAuthenticationError" };
           }
-          
-          // Fallback: use Google token if backend fails
-          token.accessToken = account.access_token;
-          token.userId = profile.email;
-          token.userEmail = profile.email;
-          token.onboardingCompleted = false;
         } catch (error) {
-          // Fallback: use Google token on exception
-          token.accessToken = account.access_token;
-          token.userId = profile.email;
-          token.userEmail = profile.email;
-          token.onboardingCompleted = false;
+          console.error('Error during backend authentication:', error);
+          // By returning the token without modifications, we effectively deny the sign-in
+          return { ...token, error: "BackendFetchError" };
         }
       } else if (trigger === "update" && session) {
         // Handle session updates
@@ -81,8 +78,13 @@ export const authOptions: NextAuthOptions = {
       
       return session;
     },
-    async signIn({ account, profile }) {
+    async signIn({ account, profile, user }) {
       if (account?.provider === "google" && profile?.email) {
+        // The user object here is the result of the `jwt` callback.
+        // If there was an error, we deny the sign-in.
+        if (user?.error) {
+          return false;
+        }
         return true;
       }
       return false;
