@@ -14,8 +14,11 @@ import {
   FormData
 } from '@/components/onboarding';
 
+import { useSession } from 'next-auth/react';
+
 const OnboardingPage = () => {
   const router = useRouter();
+  const { update } = useSession();
   const { completeOnboarding } = useOnboarding();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -113,6 +116,10 @@ const OnboardingPage = () => {
         };
 
         await completeOnboarding(onboardingData);
+        
+        // Update the session to reflect onboarding completion
+        await update({ onboardingCompleted: true });
+        
         setShowSuccessModal(true);
         
         // Redirect to dashboard after success modal

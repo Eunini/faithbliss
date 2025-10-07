@@ -17,7 +17,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account, profile, trigger }) {
+    async jwt({ token, account, profile, trigger, session }) {
       // If this is a sign-in or token update
       if ((trigger === "signIn" || trigger === "signUp") && account?.provider === "google" && profile?.email) {
         try {
@@ -61,6 +61,11 @@ export const authOptions: NextAuthOptions = {
           token.userEmail = profile.email;
           token.onboardingCompleted = false;
         }
+      } else if (trigger === "update" && session) {
+        // Handle session updates
+        if (session.onboardingCompleted !== undefined) {
+          token.onboardingCompleted = session.onboardingCompleted;
+        }
       }
       
       return token;
@@ -83,16 +88,16 @@ export const authOptions: NextAuthOptions = {
       return false;
     },
     async redirect({ url, baseUrl }) {
-      // Allow same-origin URLs
+      // If URL already specified and valid, use it
       if (url.startsWith(baseUrl)) {
         return url;
       }
-      // Allow relative URLs  
       if (url.startsWith('/')) {
         return `${baseUrl}${url}`;
       }
-      // Default to base URL (will be handled by client-side routing)
-      return baseUrl;
+      // After sign-in, go to onboarding by default
+      // Middleware will redirect to dashboard if already onboarded
+      return `${baseUrl}/onboarding`;
     },
   },
   pages: {
