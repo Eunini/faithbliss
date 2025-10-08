@@ -13,27 +13,14 @@ export async function middleware(req: NextRequest) {
   // If a token exists, the user is considered authenticated
   if (token) {
     const onboardingCompleted = token.onboardingCompleted as boolean;
-    const isNewUser = token.isNewUser as boolean;
 
-    // If this is a new user (signup), always redirect to onboarding
-    if (isNewUser) {
-      if (pathname !== '/onboarding') {
-        return NextResponse.redirect(new URL('/onboarding', req.url));
-      }
-      return NextResponse.next();
+    // If onboarding is not completed, redirect to onboarding (unless already there)
+    if (!onboardingCompleted && pathname !== '/onboarding') {
+      return NextResponse.redirect(new URL('/onboarding', req.url));
     }
 
-    // For returning users (login)
-    if (!onboardingCompleted) {
-      // If they haven't completed onboarding, redirect to onboarding
-      if (pathname !== '/onboarding') {
-        return NextResponse.redirect(new URL('/onboarding', req.url));
-      }
-      return NextResponse.next();
-    }
-
-    // If they have completed onboarding and try to access public routes, redirect to dashboard
-    if (onboardingCompleted && (publicRoutes.includes(pathname) || pathname === '/onboarding')) {
+    // If onboarding is completed and user tries to access onboarding or public routes, redirect to dashboard
+    if (onboardingCompleted && (pathname === '/onboarding' || publicRoutes.includes(pathname))) {
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
   }
