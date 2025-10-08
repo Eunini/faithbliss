@@ -20,7 +20,6 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, account, profile, trigger, session }) {
-      // If this is a sign-in or token update
       if ((trigger === "signIn" || trigger === "signUp") && account?.provider === "google" && profile?.email) {
         try {
           const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
@@ -93,7 +92,7 @@ export const authOptions: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       // For OAuth callbacks, redirect to home page and let middleware handle final redirect
       if (url.includes('/api/auth/callback/')) {
-        return `${baseUrl}/`;
+        return `${baseUrl}/dashboard`;
       }
 
       // If URL already specified and valid, use it
@@ -102,7 +101,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Default to home page, let middleware handle redirects
-      return `${baseUrl}/`;
+      return `${baseUrl}/dashboard`;
     },
   },
   pages: {

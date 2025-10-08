@@ -16,7 +16,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Define routes that are public and don't require authentication
-  const publicRoutes = ['/', '/login', '/signup'];
+  const publicRoutes = ['/', '/login', '/signup', '/onboarding'];
 
   // If a token exists, the user is considered authenticated
   if (token) {
@@ -27,8 +27,8 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL('/onboarding', req.url));
     }
 
-    // If this is an existing user (login), redirect to dashboard
-    if (!isNewUser && pathname !== '/dashboard') {
+    // If this is an existing user and they're on a public page, redirect them to dashboard
+    if (!isNewUser && publicRoutes.includes(pathname)) {
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
   }
