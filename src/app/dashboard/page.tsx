@@ -124,10 +124,6 @@ const DashboardPage = () => {
     }
   };
 
-  const handleLogout = () => {
-    console.log('Logout clicked');
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white pb-20 no-horizontal-scroll dashboard-main">
       

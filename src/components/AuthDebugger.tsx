@@ -2,10 +2,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNextAuth } from '@/contexts/NextAuthContext';
 
 export const AuthDebugger = () => {
-  const { user, userProfile } = useAuth();
+  const { user, isAuthenticated } = useNextAuth();
   const [showDebug, setShowDebug] = useState(false);
 
   if (!showDebug) {
@@ -36,13 +36,8 @@ export const AuthDebugger = () => {
           </div>
         )}
         <div>
-          <strong>Profile:</strong> {userProfile ? '✓ Loaded' : '✗ No profile'}
+          <strong>Onboarding:</strong> {user?.onboardingCompleted ? '✓ Complete' : '✗ Incomplete'}
         </div>
-        {userProfile && (
-          <div>
-            <strong>Onboarding:</strong> {userProfile.onboardingCompleted ? '✓ Complete' : '✗ Incomplete'}
-          </div>
-        )}
         <div>
           <strong>Network:</strong> {navigator.onLine ? '✓ Online' : '✗ Offline'}
         </div>

@@ -19,7 +19,7 @@ export default function Login() {
   
   const { data: session, status } = useSession();
   const { user } = useNextAuth();
-  const { showSuccess, showError } = useToast();
+  const { showError } = useToast();
   
   const handleGoogleSignIn = async () => {
     try {
