@@ -198,8 +198,8 @@ export default function Home() {
               <a href="#community" className="text-white hover:text-pink-400 transition-colors">Community</a>
             </div>
             <div className="flex gap-2">
-              
-              <Link href="/onboarding">
+
+              <Link href="/signup">
                 <button className="text-sm md:text-base bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-all whitespace-nowrap">
                   Sign up
                 </button>
