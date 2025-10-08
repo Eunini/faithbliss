@@ -21,10 +21,9 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     /**
-     * JWT Callback — runs on every sign-in and session refresh.
+     * Handles JWT token creation and updates
      */
     async jwt({ token, account, profile, trigger, session }) {
-      // Handle first login or sign-up via Google
       if (
         (trigger === "signIn" || trigger === "signUp") &&
         account?.provider === "google" &&
@@ -55,7 +54,7 @@ export const authOptions: NextAuthOptions = {
             token.userId = user.id || user._id || profile.email;
             token.userEmail = profile.email;
             token.onboardingCompleted = !!user.onboardingCompleted;
-            token.isNewUser = !user.onboardingCompleted; // backend determines if first-time
+            token.isNewUser = !user.onboardingCompleted; // backend decides this
           } else {
             token.error = "BackendAuthenticationError";
           }
@@ -65,7 +64,7 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
-      // Handle manual token update (onboarding completion, etc.)
+      // Handle manual token updates (like onboarding completion)
       if (trigger === "update" && session) {
         if (typeof session.onboardingCompleted !== "undefined") {
           token.onboardingCompleted = session.onboardingCompleted;
@@ -77,7 +76,7 @@ export const authOptions: NextAuthOptions = {
     },
 
     /**
-     * Session Callback — merges token data into session.
+     * Merge token info into session
      */
     async session({ session, token }) {
       session.accessToken = token.accessToken as string;
@@ -94,7 +93,7 @@ export const authOptions: NextAuthOptions = {
     },
 
     /**
-     * Sign-in Callback — allows or denies login.
+     * Allow or deny sign-ins
      */
     async signIn({ account, profile, user }) {
       if (account?.provider === "google" && profile?.email) {
@@ -105,24 +104,27 @@ export const authOptions: NextAuthOptions = {
     },
 
     /**
-     * Redirect Callback — determines post-login redirect.
+     * Handle redirects after login
      */
     async redirect({ url, baseUrl }) {
-      // If it's an OAuth callback, go home and let middleware decide next step
-      if (url.includes("/api/auth/callback/")) {
-        return `${baseUrl}/`;
+      // If it's the OAuth callback (login finished), go to dashboard
+      if (url.includes("/api/auth/callback")) {
+        return `${baseUrl}/dashboard`;
       }
 
-      // Keep URLs inside our domain
+      // Allow in-app relative URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+
+      // Keep internal redirects within domain
       if (url.startsWith(baseUrl)) return url;
 
-      // Default redirect
-      return baseUrl;
+      // Default fallback
+      return `${baseUrl}/dashboard`;
     },
   },
 
   /**
-   * Page overrides for login and error
+   * Custom page routes
    */
   pages: {
     signIn: "/login",
@@ -130,7 +132,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   /**
-   * Use JWT sessions for stateless auth
+   * Use stateless JWT sessions
    */
   session: {
     strategy: "jwt",
@@ -139,7 +141,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   /**
-   * Custom cookie settings (good for Vercel)
+   * Vercel-safe cookie settings
    */
   cookies: {
     sessionToken: {
