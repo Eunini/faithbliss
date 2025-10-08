@@ -21,45 +21,38 @@ export default function ProtectedRoute({
   const pathname = usePathname();
 
   useEffect(() => {
-    if (loading) return;
+    if (loading) {
+      return; // Wait for auth state to load
+    }
 
     if (!isAuthenticated) {
-      // Not authenticated - redirect to login
+      // If not authenticated, redirect to the login page
       router.push(redirectTo);
-    } else if (user && requireOnboarding) {
-      // Authenticated but need to check onboarding
-      if (!user.onboardingCompleted && pathname !== '/onboarding') {
-        // Not onboarded and not on onboarding page - redirect to onboarding
-        // Allow access to dashboard even if not onboarded
-        if (pathname !== '/dashboard') {
-          router.push('/onboarding');
-        }
-      } else if (user.onboardingCompleted && pathname === '/onboarding') {
-        // Already onboarded but on onboarding page - redirect to dashboard
+      return;
+    }
+
+    // If authenticated, check onboarding status
+    if (user) {
+      if (requireOnboarding && !user.onboardingCompleted && pathname !== '/onboarding') {
+        // If onboarding is required but not completed, and we are not on the onboarding page, redirect there
+        router.push('/onboarding');
+      } else if (user.onboardingCompleted && (pathname === '/onboarding' || pathname === '/login')) {
+        // If onboarding is completed and the user is on the onboarding or login page, redirect to the dashboard
         router.push('/dashboard');
       }
     }
   }, [isAuthenticated, loading, router, redirectTo, user, requireOnboarding, pathname]);
 
-  // Show loading screen while checking authentication
-  if (loading) {
+  // While loading, show a loader
+  if (loading || !isAuthenticated) {
     return <HeartBeatLoader message="Authenticating..." />;
   }
 
-  // Don't render children if not authenticated
-  if (!isAuthenticated || !user) {
-    return null;
-  }
-
-  // For onboarding page specifically, allow rendering even if not onboarded
-  if (pathname === '/onboarding' && !user.onboardingCompleted) {
+  // If authenticated and onboarding is complete, or if we are on the onboarding page, render the children
+  if (isAuthenticated && (user?.onboardingCompleted || pathname === '/onboarding')) {
     return <>{children}</>;
   }
 
-  // For other pages, check if onboarding is required and completed
-  if (requireOnboarding && !user.onboardingCompleted && pathname !== '/dashboard') {
-    return <HeartBeatLoader message="Redirecting to onboarding..." />;
-  }
-
-  return <>{children}</>;
+  // Fallback loader while redirecting
+  return <HeartBeatLoader message="Redirecting..." />;
 }
