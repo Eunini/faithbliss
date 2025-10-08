@@ -28,28 +28,35 @@ export default function Signup() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    // Only show success modal if redirected from signup flow (not existing session)
+    const fromSignup = sessionStorage.getItem('fromSignup');
+
+    if (status === 'authenticated' && fromSignup) {
       setShowSuccessModal(true);
-      setLoading(false);
-    } else if (status === 'unauthenticated') {
+      sessionStorage.removeItem('fromSignup');
+    }
+
+    if (status === 'unauthenticated') {
       setLoading(false);
     }
   }, [status]);
 
   const handleGoogleSignIn = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      await signIn('google', {
-        callbackUrl: '/onboarding',
-        redirect: true,
-      });
-    } catch (error: any) {
-      console.error('Google sign-up error:', error);
-      setError(error.message || 'Failed to sign up with Google. Please try again.');
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    setError('');
+    sessionStorage.setItem('fromSignup', 'true'); // mark that user is coming from signup
+    await signIn('google', {
+      callbackUrl: '/onboarding',
+      redirect: true,
+    });
+  } catch (error: any) {
+    console.error('Google sign-up error:', error);
+    setError(error.message || 'Failed to sign up with Google. Please try again.');
+    setLoading(false);
+  }
+};
+
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
