@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from "next/link";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
@@ -12,7 +12,8 @@ import { Heart, LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { AuthTokenDebugger } from '@/components/AuthTokenDebugger';
 import { HeartBeatIcon } from '@/components/HeartBeatIcon';
 
-export default function Login() {
+// Create a separate component that uses useSearchParams
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -27,7 +28,7 @@ export default function Login() {
   const { showError } = useToast();
 
   // Derive and sanitize callbackUrl (prevent callbackUrl=/login loops)
-  const rawCallback = typeof window !== 'undefined' ? searchParams.get('callbackUrl') : null;
+  const rawCallback = searchParams.get('callbackUrl');
   const sanitizedCallback = (() => {
     if (!rawCallback) return '/dashboard';
     try {
@@ -39,7 +40,7 @@ export default function Login() {
       // If it's a full URL pointing to our domain, use path part
       try {
         const u = new URL(decoded);
-        if (u.origin === window.location.origin) return u.pathname + u.search + u.hash;
+        if (typeof window !== 'undefined' && u.origin === window.location.origin) return u.pathname + u.search + u.hash;
       } catch {
         // not a full URL
       }
@@ -327,5 +328,26 @@ export default function Login() {
         )}
       </div>
     </div>
+  );
+}
+
+// Loading fallback component
+function LoginLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
+      <div className="text-center">
+        <HeartBeatIcon className="w-16 h-16 text-pink-500 mx-auto mb-4" />
+        <p className="text-white text-lg">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main login page component with Suspense boundary
+export default function Login() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginForm />
+    </Suspense>
   );
 }
