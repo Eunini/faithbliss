@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useSession, signIn } from 'next-auth/react';
 import { useNextAuth } from '@/contexts/NextAuthContext';
 import { useToast } from '@/contexts/ToastContext';
-import { useAuthRedirect, ROUTES } from '@/lib/redirect';
 import { FcGoogle } from 'react-icons/fc';
 import { Heart, LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { AuthTokenDebugger } from '@/components/AuthTokenDebugger';
@@ -22,13 +21,6 @@ export default function Login() {
   const { user } = useNextAuth();
   const { showSuccess, showError } = useToast();
   
-  // Use our auth redirect utility to handle redirects
-  const { isLoading } = useAuthRedirect({
-    ifAuthenticated: ROUTES.DASHBOARD,
-    requireOnboarding: true,
-    debug: true,
-  });
-
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
@@ -64,7 +56,6 @@ export default function Login() {
       await signIn('credentials', {
         email,
         password,
-        callbackUrl: ROUTES.DASHBOARD,
         redirect: true,
       });
       

@@ -8,13 +8,11 @@ import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   redirectTo?: string;
-  requireOnboarding?: boolean; // If true, requires onboarding to be completed
 }
 
-export default function ProtectedRoute({ 
-  children, 
-  redirectTo = '/login',
-  requireOnboarding = true 
+export default function ProtectedRoute({
+  children,
+  redirectTo = '/login'
 }: ProtectedRouteProps) {
   const { user, loading, isAuthenticated } = useNextAuth();
   const router = useRouter();
@@ -22,37 +20,55 @@ export default function ProtectedRoute({
 
   useEffect(() => {
     if (loading) {
-      return; // Wait for auth state to load
+      return; // Wait for the authentication status to resolve
     }
 
+    // If the user is not authenticated, redirect to the login page
     if (!isAuthenticated) {
-      // If not authenticated, redirect to the login page
-      router.push(redirectTo);
+      if (pathname !== redirectTo) {
+        router.push(redirectTo);
+      }
       return;
     }
 
-    // If authenticated, check onboarding status
+    // If the user is authenticated, proceed with onboarding checks
     if (user) {
-      if (requireOnboarding && !user.onboardingCompleted && pathname !== '/onboarding') {
-        // If onboarding is required but not completed, and we are not on the onboarding page, redirect there
+      const onboardingComplete = user.onboardingCompleted;
+      const isOnboardingPage = pathname === '/onboarding';
+
+      // If onboarding is not complete and the user is not on the onboarding page, redirect them there
+      if (!onboardingComplete && !isOnboardingPage) {
         router.push('/onboarding');
-      } else if (user.onboardingCompleted && (pathname === '/onboarding' || pathname === '/login')) {
-        // If onboarding is completed and the user is on the onboarding or login page, redirect to the dashboard
+        return;
+      }
+
+      // If onboarding is complete but the user is on the onboarding or login page, redirect to the dashboard
+      if (onboardingComplete && (isOnboardingPage || pathname === redirectTo)) {
         router.push('/dashboard');
       }
     }
-  }, [isAuthenticated, loading, router, redirectTo, user, requireOnboarding, pathname]);
+  }, [isAuthenticated, loading, user, pathname, router, redirectTo]);
 
-  // While loading, show a loader
-  if (loading || !isAuthenticated) {
+  // --- Render Logic ---
+
+  // While authentication is in progress, show a loader
+  if (loading) {
     return <HeartBeatLoader message="Authenticating..." />;
   }
 
-  // If authenticated and onboarding is complete, or if we are on the onboarding page, render the children
-  if (isAuthenticated && (user?.onboardingCompleted || pathname === '/onboarding')) {
-    return <>{children}</>;
+  // If authenticated and the user's status allows access to the current page, render the content
+  if (isAuthenticated && user) {
+    const onboardingComplete = user.onboardingCompleted;
+    const isOnboardingPage = pathname === '/onboarding';
+
+    // Render children if:
+    // 1. Onboarding is complete and the user is NOT on a restricted page (like onboarding).
+    // 2. Onboarding is NOT complete and the user IS on the onboarding page.
+    if ((onboardingComplete && !isOnboardingPage) || (!onboardingComplete && isOnboardingPage)) {
+      return <>{children}</>;
+    }
   }
 
-  // Fallback loader while redirecting
-  return <HeartBeatLoader message="Redirecting..." />;
+  // If the user is being redirected, show a loader to prevent flashing content
+  return <HeartBeatLoader message="Verifying access..." />;
 }
