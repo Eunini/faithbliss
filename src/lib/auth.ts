@@ -75,9 +75,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    /**
-     * Merge token info into session
-     */
+
     async session({ session, token }) {
       session.accessToken = token.accessToken as string;
       session.userId = token.userId as string;
@@ -107,19 +105,31 @@ export const authOptions: NextAuthOptions = {
      * Handle redirects after login
      */
     async redirect({ url, baseUrl }) {
-      // If it's the OAuth callback (login finished), go to dashboard
-      if (url.includes("/api/auth/callback")) {
+      try {
+        // Extract callbackUrl if present
+        const callbackUrlMatch = url.match(/[?&]callbackUrl=([^&]+)/);
+        const decodedCallbackUrl = callbackUrlMatch ? decodeURIComponent(callbackUrlMatch[1]) : null;
+
+        // If a valid callback URL was provided, respect it
+        if (decodedCallbackUrl) {
+          if (decodedCallbackUrl.startsWith('/')) return `${baseUrl}${decodedCallbackUrl}`;
+          if (decodedCallbackUrl.startsWith(baseUrl)) return decodedCallbackUrl;
+        }
+
+        // Default after Google OAuth success
+        if (url.includes("/api/auth/callback/")) {
+          return `${baseUrl}/dashboard`;
+        }
+
+        // Keep safe internal URLs
+        if (url.startsWith(baseUrl)) return url;
+
+        // Fallback to dashboard
+        return `${baseUrl}/dashboard`;
+      } catch (error) {
+        console.error("Redirect handling failed:", error);
         return `${baseUrl}/dashboard`;
       }
-
-      // Allow in-app relative URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-
-      // Keep internal redirects within domain
-      if (url.startsWith(baseUrl)) return url;
-
-      // Default fallback
-      return `${baseUrl}/dashboard`;
     },
   },
 

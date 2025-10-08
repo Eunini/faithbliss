@@ -27,7 +27,6 @@ export default function Signup() {
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  // Redirect after successful Google sign-up
   useEffect(() => {
     if (status === 'authenticated') {
       setShowSuccessModal(true);
@@ -41,7 +40,6 @@ export default function Signup() {
     try {
       setLoading(true);
       setError('');
-      // Explicitly set redirect destination to avoid callbackUrl loops
       await signIn('google', {
         callbackUrl: '/onboarding',
         redirect: true,

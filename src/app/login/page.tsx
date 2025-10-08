@@ -25,12 +25,13 @@ export default function Login() {
     try {
       setLoading(true);
       setError('');
-      
+
+      // Let NextAuth and your backend determine redirect target
       await signIn('google', {
         redirect: true,
-        callbackUrl: '/',
+        callbackUrl: '/dashboard', // or '/onboarding' if that's your flow
       });
-      
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign in with Google. Please try again.';
       setError(errorMessage);
@@ -39,6 +40,7 @@ export default function Login() {
       setLoading(false);
     }
   };
+
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();

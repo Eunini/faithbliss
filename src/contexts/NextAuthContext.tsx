@@ -164,10 +164,8 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
     try {
       console.log('Initiating Google sign-in from context...');
       
-      // IMPORTANT: explicitly pass callbackUrl to avoid NextAuth defaulting to current page.
-      // Default to "/" so middleware decides final landing page (recommended).
       await signIn('google', {
-        callbackUrl: callbackUrl ?? '/',
+        callbackUrl: callbackUrl ?? '/dashboard',
         redirect: true,
       });
       
