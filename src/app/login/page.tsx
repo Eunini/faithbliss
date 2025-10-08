@@ -26,9 +26,9 @@ export default function Login() {
       setLoading(true);
       setError('');
       
-      // Don't set callbackUrl - let useAuthRedirect handle the redirect based on onboarding status
       await signIn('google', {
         redirect: true,
+        callbackUrl: '/',
       });
       
     } catch (error) {
