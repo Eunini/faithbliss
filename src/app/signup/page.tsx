@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
-import { useNextAuth } from '@/contexts/NextAuthContext';
+import { signIn, useSession } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
 import { Eye, EyeOff, Mail, Lock, User, Heart, Sparkles } from 'lucide-react';
 import { PopupInstruction } from '@/components/auth/PopupInstruction';
@@ -23,83 +23,48 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [showPopupInstruction, setShowPopupInstruction] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  
-  const { signInWithGoogle, user, loading: authLoading } = useNextAuth();
-  const router = useRouter();
 
-  // Handle redirect after successful registration - show success modal first
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Redirect after successful Google sign-up
   useEffect(() => {
-    if (!authLoading && user) {
-      setLoading(false);
+    if (status === 'authenticated') {
       setShowSuccessModal(true);
-    } else if (!authLoading && !user) {
-      // Reset loading if auth is complete but no user (failed auth)
+      setLoading(false);
+    } else if (status === 'unauthenticated') {
       setLoading(false);
     }
-  }, [user, authLoading]);
+  }, [status]);
 
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
       setError('');
-      await signInWithGoogle();
-      // Note: Redirect logic will be handled by useEffect after auth state updates
+      // Explicitly set redirect destination to avoid callbackUrl loops
+      await signIn('google', {
+        callbackUrl: '/onboarding',
+        redirect: true,
+      });
     } catch (error: any) {
-      console.log('Google sign-up error:', error);
-      
-      // Handle specific error cases with user-friendly messages
-      if (error.code === 'auth/popup-blocked') {
-        setError('Popup was blocked by your browser. Please allow popups for this site and try again.');
-        setShowPopupInstruction(true);
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        setError('Sign-up was cancelled. Please try again when ready.');
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        setError('Another sign-up is already in progress. Please wait and try again.');
-      } else if (error.code === 'auth/network-request-failed') {
-        setError('Network error. Please check your internet connection and try again.');
-      } else {
-        setError(error.message || 'Failed to sign up with Google. Please try again.');
-      }
+      console.error('Google sign-up error:', error);
+      setError(error.message || 'Failed to sign up with Google. Please try again.');
       setLoading(false);
     }
   };
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Basic validation
-    if (!formData.name.trim()) {
-      setError('Please enter your full name');
-      return;
-    }
-    
-    if (!formData.email.trim()) {
-      setError('Please enter your email address');
-      return;
-    }
-    
-    if (!formData.password.trim()) {
-      setError('Please enter a password');
-      return;
-    }
-    
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
-    }
-    
-    if (parseInt(formData.age) < 18) {
-      setError('You must be at least 18 years old to join FaithBliss');
-      return;
-    }
-    
+
+    if (!formData.name.trim()) return setError('Please enter your full name');
+    if (!formData.email.trim()) return setError('Please enter your email address');
+    if (!formData.password.trim()) return setError('Please enter a password');
+    if (formData.password.length < 6) return setError('Password must be at least 6 characters long');
+    if (parseInt(formData.age) < 18) return setError('You must be at least 18 years old to join FaithBliss');
+
     try {
       setLoading(true);
-      setError('');
-      console.log('Starting signup process for:', formData.email);
-      // Email signup disabled - using Google OAuth only
       setError('Email signup is currently disabled. Please use Google Sign In.');
-      // Note: Success modal and redirect logic will be handled by useEffect after auth state updates
     } catch (error: any) {
       setError(error.message || 'Failed to create account');
       setLoading(false);
@@ -112,6 +77,7 @@ export default function Signup() {
       [e.target.name]: e.target.value
     });
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center px-4 py-8 no-horizontal-scroll dashboard-main">
       <div className="max-w-md w-full bg-gray-800/50 backdrop-blur-xl rounded-2xl shadow-2xl p-6 sm:p-8 border border-gray-700/50">
@@ -139,7 +105,9 @@ export default function Signup() {
           className="w-full mb-6 flex items-center justify-center gap-3 bg-gray-700/50 border border-gray-600/50 hover:border-gray-500/50 text-white py-3 px-4 sm:px-6 rounded-xl font-medium hover:bg-gray-600/50 transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <FcGoogle size={20} />
-          <span className="text-sm sm:text-base">{loading ? 'Creating account...' : 'Continue with Google'}</span>
+          <span className="text-sm sm:text-base">
+            {loading ? 'Connecting...' : 'Continue with Google'}
+          </span>
         </button>
 
         <div className="relative mb-6">

@@ -26,7 +26,8 @@ interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   hasConnectionError: boolean;
-  signInWithGoogle: () => Promise<void>;
+  // Accept optional callbackUrl so callers can control post-login landing
+  signInWithGoogle: (callbackUrl?: string) => Promise<void>;
   signOutUser: () => Promise<void>;
   uploadProfilePhotos: (photos: File[]) => Promise<string[]>;
   completeOnboarding: (profileData: any) => Promise<void>;
@@ -72,7 +73,7 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
   }
   
   const loading = status === 'loading';
-  const isAuthenticated = !!session?.user && !!session?.accessToken;
+  const isAuthenticated = !!session?.user && !!(session as any)?.accessToken;
 
   // Sync session with user state and fetch from backend
   useEffect(() => {
@@ -104,7 +105,6 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
               'Session Expired'
             );
             // Sign out the user to clear invalid tokens
-            const { signOut } = await import('next-auth/react');
             await signOut({ callbackUrl: '/login' });
             return;
           }
@@ -155,17 +155,23 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
     }
   }, [session, showError, showWarning]);
 
-  const signInWithGoogle = async (): Promise<void> => {
+  /**
+   * Initiate Google sign-in.
+   * - Accepts optional callbackUrl so pages can control where user lands after OAuth.
+   * - Default callbackUrl is '/' (so your middleware can route to /onboarding or /dashboard).
+   */
+  const signInWithGoogle = async (callbackUrl?: string): Promise<void> => {
     try {
       console.log('Initiating Google sign-in from context...');
       
-      // Let NextAuth handle the redirect based on the redirect callback in auth.ts
-      // Don't specify callbackUrl here - the redirect callback will determine it
+      // IMPORTANT: explicitly pass callbackUrl to avoid NextAuth defaulting to current page.
+      // Default to "/" so middleware decides final landing page (recommended).
       await signIn('google', {
-        redirect: true
+        callbackUrl: callbackUrl ?? '/',
+        redirect: true,
       });
       
-      // Code below won't execute if redirect is successful
+      // If redirect succeeds this process will be interrupted (page navigation).
       console.log('Note: Redirect did not occur as expected');
       
     } catch (error) {
@@ -185,7 +191,6 @@ const NextAuthProviderInner = ({ children }: NextAuthProviderProps) => {
         redirect: true 
       });
       
-      // Code below won't execute if redirect is successful
       console.log('Note: Redirect after signout did not occur as expected');
     } catch (error) {
       console.error('Sign-out error:', error);
