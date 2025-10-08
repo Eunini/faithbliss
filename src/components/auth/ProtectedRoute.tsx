@@ -21,14 +21,19 @@ export default function ProtectedRoute({
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    if (loading) return;
+
+    if (!isAuthenticated) {
       // Not authenticated - redirect to login
       router.push(redirectTo);
-    } else if (!loading && isAuthenticated && user && requireOnboarding) {
+    } else if (user && requireOnboarding) {
       // Authenticated but need to check onboarding
       if (!user.onboardingCompleted && pathname !== '/onboarding') {
         // Not onboarded and not on onboarding page - redirect to onboarding
-        router.push('/onboarding');
+        // Allow access to dashboard even if not onboarded
+        if (pathname !== '/dashboard') {
+          router.push('/onboarding');
+        }
       } else if (user.onboardingCompleted && pathname === '/onboarding') {
         // Already onboarded but on onboarding page - redirect to dashboard
         router.push('/dashboard');
@@ -52,7 +57,7 @@ export default function ProtectedRoute({
   }
 
   // For other pages, check if onboarding is required and completed
-  if (requireOnboarding && !user.onboardingCompleted) {
+  if (requireOnboarding && !user.onboardingCompleted && pathname !== '/dashboard') {
     return <HeartBeatLoader message="Redirecting to onboarding..." />;
   }
 

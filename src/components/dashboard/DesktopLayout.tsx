@@ -8,7 +8,6 @@ interface DesktopLayoutProps {
   showSidePanel: boolean;
   onToggleFilters: () => void;
   onToggleSidePanel: () => void;
-  onLogout: () => void;
   children: ReactNode;
 }
 
@@ -18,14 +17,12 @@ export const DesktopLayout = ({
   showSidePanel,
   onToggleFilters,
   onToggleSidePanel,
-  onLogout,
   children
 }: DesktopLayoutProps) => {
   return (
     <div className="hidden lg:flex min-h-screen">
-      {/* Desktop Side Panel */}
       <div className="w-80 flex-shrink-0">
-        <SidePanel userName={userName} onClose={() => {}} onLogout={onLogout} />
+        <SidePanel userName={userName} onClose={() => {}} />
       </div>
       
       {/* Main Content Area */}

@@ -1,69 +1,51 @@
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { getToken } from 'next-auth/jwt';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-// Define public routes that do not require authentication at the middleware's first check
-const publicRoutes = [
-  '/', 
-  '/login',
-  '/signup',
-  '/onboarding', // Treat as public for the initial check, then protect it inside the middleware
-  '/test-cloudinary',
-  '/test-upload'
-];
+export async function middleware(req: NextRequest) {
+  // Get the token from the request
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const { pathname } = req.nextUrl;
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const path = req.nextUrl.pathname;
+  // Define routes that are public and don't require authentication
+  const publicRoutes = ['/', '/login', '/signup'];
 
-    // If the user is authenticated
-    if (token) {
-      const onboardingCompleted = token.onboardingCompleted as boolean;
+  // If a token exists, the user is considered authenticated
+  if (token) {
+    const onboardingCompleted = token.onboardingCompleted as boolean;
 
-      // Rule 1: If user has NOT onboarded and is NOT on the onboarding page,
-      // force them to the onboarding page.
-      if (!onboardingCompleted && path !== '/onboarding') {
+    // If the user has NOT completed onboarding...
+    if (!onboardingCompleted) {
+      // ...and they are not on the onboarding page, redirect them there.
+      if (pathname !== '/onboarding') {
         return NextResponse.redirect(new URL('/onboarding', req.url));
       }
-
-      // Rule 2: If user HAS onboarded and tries to access login, signup, or onboarding,
-      // send them to the dashboard.
-      if (onboardingCompleted && ['/login', '/signup', '/onboarding'].includes(path)) {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
-      }
-    } 
-    // If the user is NOT authenticated
-    else {
-      // Rule 3: If an unauthenticated user tries to access a protected-by-logic route
-      // like onboarding, redirect them to login.
-      if (path === '/onboarding') {
-        return NextResponse.redirect(new URL('/login', req.url));
-      }
+      // ...and they are on the onboarding page, allow them to stay.
+      return NextResponse.next();
     }
 
-    // Otherwise, allow the request to proceed.
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        const path = req.nextUrl.pathname;
-        
-        // If the route is considered public, always run the middleware function.
-        // This allows us to implement custom logic for routes like /onboarding.
-        if (publicRoutes.includes(path)) {
-          return true;
-        }
-
-        // For any other route not in publicRoutes, it is protected and requires a token.
-        // If no token, `withAuth` will automatically redirect to the login page.
-        return !!token;
-      },
-    },
+    // If the user HAS completed onboarding...
+    if (onboardingCompleted) {
+      // ...and they try to access the login, signup, or onboarding pages, redirect them to the dashboard.
+      if (publicRoutes.includes(pathname) || pathname === '/onboarding') {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+      }
+    }
   }
-);
+  // If no token exists, the user is unauthenticated
+  else {
+    // If an unauthenticated user tries to access any page that isn't public,
+    // redirect them to the login page.
+    if (!publicRoutes.includes(pathname)) {
+      return NextResponse.redirect(new URL('/login', req.url));
+    }
+  }
 
-// Specify which routes this middleware should run on
+  // If none of the above conditions are met, allow the request to proceed.
+  return NextResponse.next();
+}
+
+// Config to specify which routes the middleware should run on
 export const config = {
   matcher: [
     /*
@@ -72,7 +54,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - public folder assets
      */
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

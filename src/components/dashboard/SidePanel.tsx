@@ -5,22 +5,20 @@ import {
   X, User, Heart, MessageCircle, Users, Star, Settings, 
   HelpCircle, LogOut, Home, Search, UserX, AlertTriangle
 } from 'lucide-react';
+import { useNextAuth } from '@/contexts/NextAuthContext';
 
 interface SidePanelProps {
   userName: string;
   onClose: () => void;
-  onLogout?: () => void;
 }
 
-export const SidePanel = ({ userName, onClose, onLogout }: SidePanelProps) => {
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-    } else {
-      // Default logout behavior - redirect to login
-      window.location.href = '/login';
-    }
+export const SidePanel = ({ userName, onClose }: SidePanelProps) => {
+  const { signOutUser } = useNextAuth();
+
+  const handleLogout = async () => {
+    await signOutUser();
   };
+  
   return (
     <div className="h-screen flex flex-col bg-gray-900 lg:bg-gray-800/50 lg:backdrop-blur-sm lg:border-r lg:border-gray-700/30">
       {/* Header */}

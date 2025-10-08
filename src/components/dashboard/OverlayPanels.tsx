@@ -7,7 +7,6 @@ interface OverlayPanelsProps {
   userName: string;
   onCloseFilters: () => void;
   onCloseSidePanel: () => void;
-  onLogout: () => void;
 }
 
 export const OverlayPanels = ({
@@ -15,8 +14,7 @@ export const OverlayPanels = ({
   showSidePanel,
   userName,
   onCloseFilters,
-  onCloseSidePanel,
-  onLogout
+  onCloseSidePanel
 }: OverlayPanelsProps) => {
   return (
     <>
@@ -36,7 +34,7 @@ export const OverlayPanels = ({
           />
           
           <div className="fixed inset-y-0 left-0 w-80 bg-gray-900/98 backdrop-blur-xl border-r border-gray-700/50 shadow-2xl z-50 transform transition-transform duration-300 lg:hidden">
-            <SidePanel userName={userName} onClose={onCloseSidePanel} onLogout={onLogout} />
+            <SidePanel userName={userName} onClose={onCloseSidePanel} />
           </div>
         </>
       )}
