@@ -2,9 +2,17 @@ import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+interface ExtendedJWT {
+  accessToken?: string;
+  userId?: string;
+  onboardingCompleted?: boolean;
+  isNewUser?: boolean;
+  [key: string]: unknown;
+}
+
 export async function middleware(req: NextRequest) {
   // Get the token from the request
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET }) as ExtendedJWT | null;
   const { pathname } = req.nextUrl;
 
   // Define routes that are public and don't require authentication
@@ -12,15 +20,15 @@ export async function middleware(req: NextRequest) {
 
   // If a token exists, the user is considered authenticated
   if (token) {
-    const onboardingCompleted = token.onboardingCompleted as boolean;
+    const isNewUser = token.isNewUser || false;
 
-    // If onboarding is not completed, redirect to onboarding (unless already there)
-    if (!onboardingCompleted && pathname !== '/onboarding') {
+    // If this is a new user (signup), redirect to onboarding
+    if (isNewUser && pathname !== '/onboarding') {
       return NextResponse.redirect(new URL('/onboarding', req.url));
     }
 
-    // If onboarding is completed and user tries to access onboarding or public routes, redirect to dashboard
-    if (onboardingCompleted && (pathname === '/onboarding' || publicRoutes.includes(pathname))) {
+    // If this is an existing user (login), redirect to dashboard
+    if (!isNewUser && pathname !== '/dashboard') {
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
   }

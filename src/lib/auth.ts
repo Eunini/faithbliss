@@ -47,6 +47,8 @@ export const authOptions: NextAuthOptions = {
               token.userId = userData.user?.id || userData.user?._id || profile.email;
               token.userEmail = profile.email;
               token.onboardingCompleted = userData.user?.onboardingCompleted || false;
+              // Set flag to determine if this is login vs signup
+              token.isNewUser = !userData.user?.onboardingCompleted;
               return token;
             }
           } else {
@@ -58,6 +60,10 @@ export const authOptions: NextAuthOptions = {
       } else if (trigger === "update" && session) {
         if (session.onboardingCompleted !== undefined) {
           token.onboardingCompleted = session.onboardingCompleted;
+          // Once onboarding is completed, user is no longer "new"
+          if (session.onboardingCompleted) {
+            token.isNewUser = false;
+          }
         }
       }
       
@@ -70,6 +76,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.userId as string;
         session.user.onboardingCompleted = token.onboardingCompleted as boolean || false;
+        (session.user as any).isNewUser = token.isNewUser as boolean || false;
       }
       
       return session;
