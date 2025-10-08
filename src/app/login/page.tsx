@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from "next/link";
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import { useNextAuth } from '@/contexts/NextAuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -11,40 +13,109 @@ import { AuthTokenDebugger } from '@/components/AuthTokenDebugger';
 import { HeartBeatIcon } from '@/components/HeartBeatIcon';
 
 export default function Login() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const { data: session, status } = useSession();
   const { user } = useNextAuth();
   const { showError } = useToast();
-  
+
+  // Derive and sanitize callbackUrl (prevent callbackUrl=/login loops)
+  const rawCallback = typeof window !== 'undefined' ? searchParams.get('callbackUrl') : null;
+  const sanitizedCallback = (() => {
+    if (!rawCallback) return '/dashboard';
+    try {
+      const decoded = decodeURIComponent(rawCallback);
+      // Prevent unsafe or looping callbacks
+      if (decoded.includes('/login') || decoded.includes('/signup')) return '/dashboard';
+      // Allow relative paths
+      if (decoded.startsWith('/')) return decoded;
+      // If it's a full URL pointing to our domain, use path part
+      try {
+        const u = new URL(decoded);
+        if (u.origin === window.location.origin) return u.pathname + u.search + u.hash;
+      } catch {
+        // not a full URL
+      }
+      return '/dashboard';
+    } catch {
+      return '/dashboard';
+    }
+  })();
+
+  // If already authenticated, send them to dashboard immediately (avoid showing login)
+  useEffect(() => {
+    if (status === 'authenticated') {
+      // user is already logged in — go to dashboard (middleware will handle deeper routing)
+      router.replace('/dashboard');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  // Clean up any callbackUrl that points to /login to prevent loops
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('callbackUrl')) {
+      const params = new URLSearchParams(window.location.search);
+      const cb = params.get('callbackUrl');
+      if (cb && (cb.includes('/login') || cb.includes('/signup'))) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, []);
+
+  // Google sign-in: deterministic and robust
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
       setError('');
+      // remove any previous signup flag
+      if (typeof window !== 'undefined') sessionStorage.removeItem('fromSignup');
 
-      // Let NextAuth and your backend determine redirect target
-      await signIn('google', {
-        redirect: true,
-        callbackUrl: '/dashboard', // or '/onboarding' if that's your flow
+      // Ask NextAuth for the URL (redirect:false) so we can navigate deterministically
+      const result = await signIn('google', {
+        callbackUrl: sanitizedCallback,
+        redirect: false,
       });
 
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in with Google. Please try again.';
-      setError(errorMessage);
-      showError(errorMessage, 'Sign In Failed');
+      // If NextAuth returned an error, show it
+      if ((result as any)?.error) {
+        const msg = (result as any).error || 'Google sign-in failed. Please try again.';
+        setError(msg);
+        showError(msg, 'Sign In Failed');
+        setLoading(false);
+        return;
+      }
+
+      // If NextAuth gave us a URL to navigate to, go there (starts the OAuth handoff)
+      if ((result as any)?.url) {
+        // Use a full redirect (required for OAuth)
+        window.location.href = (result as any).url;
+        return;
+      }
+
+      // Some environments return undefined — fallback to API endpoint
+      const fallback = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(sanitizedCallback)}`;
+      window.location.href = fallback;
+    } catch (err: any) {
+      console.error('Google sign-in error:', err);
+      const msg = err?.message || 'Failed to sign in with Google. Please try again.';
+      setError(msg);
+      showError(msg, 'Sign In Failed');
     } finally {
       setLoading(false);
     }
   };
 
-
+  // Email (credentials) sign-in handled with redirect:false so we can control navigation/errors
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim() || !password.trim()) {
       setError('Please fill in all fields.');
       return;
@@ -53,36 +124,41 @@ export default function Login() {
     try {
       setLoading(true);
       setError('');
-      
-      // Use NextAuth credentials provider with redirect
-      await signIn('credentials', {
+
+      const result = await signIn('credentials', {
+        redirect: false,
         email,
         password,
-        redirect: true,
+        callbackUrl: sanitizedCallback,
       });
-      
-      // If execution reaches here, the redirect failed
-      console.log('Credentials sign-in initiated, waiting for redirect...');
-      
-    } catch (error) {
-      console.error('Email sign-in error:', error);
-      setError(error instanceof Error ? error.message : 'Failed to sign in. Please try again.');
-      showError('Authentication failed. Please check your credentials.', 'Sign In Failed');
-    } finally {
+
+      if ((result as any)?.error) {
+        const msg = (result as any).error || 'Authentication failed. Please check your credentials.';
+        setError(msg);
+        showError(msg, 'Sign In Failed');
+        setLoading(false);
+        return;
+      }
+
+      if ((result as any)?.url) {
+        // Client-side navigation is fine for credential logins
+        router.replace((result as any).url);
+        return;
+      }
+
+      // Unexpected fallback
+      setError('Could not sign in. Please try again.');
+      setLoading(false);
+    } catch (err: any) {
+      console.error('Email sign-in error:', err);
+      const msg = err?.message || 'Failed to sign in. Please try again.';
+      setError(msg);
+      showError(msg, 'Sign In Failed');
       setLoading(false);
     }
   };
 
-  // Effect to clean URL params on initial load (to prevent redirect loops)
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.search.includes('callbackUrl=/login')) {
-      // This indicates a potential redirect loop - remove all query params
-      console.warn('Detected potential redirect loop, clearing URL parameters');
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
-
-  // Show loading if NextAuth is still loading
+  // UI loading state while NextAuth determines session
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
@@ -208,20 +284,19 @@ export default function Login() {
         </div>
 
         <div className="mt-6 text-center">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="text-sm text-gray-500 hover:text-gray-400 transition-colors"
           >
             ← Back to Home
           </Link>
         </div>
-        
+
         {/* Auth Token Debugger - only visible in development */}
         {process.env.NODE_ENV !== 'production' && (
           <div className="mt-8 border-t border-gray-700 pt-6">
             <h3 className="text-sm font-medium text-gray-300 mb-3">Debug Authentication</h3>
-            
-            {/* Authentication status */}
+
             <div className="mb-3 text-xs text-gray-400">
               <div>Status: {status}</div>
               <div>Has Session: {session ? '✓' : '✗'}</div>
@@ -234,12 +309,11 @@ export default function Login() {
                 <strong>Current URL:</strong> {typeof window !== 'undefined' ? window.location.href : 'N/A'}
               </div>
             </div>
-            
-            {/* Check for callback URL in the query params */}
+
             {typeof window !== 'undefined' && window.location.search.includes('callbackUrl') && (
               <div className="mb-3 p-2 bg-red-900/30 text-red-300 rounded-md text-xs">
-                <strong>Warning:</strong> Redirect loop detected! 
-                <button 
+                <strong>Warning:</strong> Redirect loop detected!
+                <button
                   onClick={() => window.history.replaceState({}, document.title, window.location.pathname)}
                   className="ml-2 px-2 py-1 bg-red-700 text-white rounded text-xs"
                 >
@@ -247,7 +321,7 @@ export default function Login() {
                 </button>
               </div>
             )}
-            
+
             {session && <AuthTokenDebugger />}
           </div>
         )}

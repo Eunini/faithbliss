@@ -11,12 +11,17 @@ interface ExtendedJWT {
 }
 
 export async function middleware(req: NextRequest) {
-  const token = (await getToken({ req, secret: process.env.NEXTAUTH_SECRET })) as ExtendedJWT | null;
+  const token = (await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  })) as ExtendedJWT | null;
+
   const { pathname, searchParams } = req.nextUrl;
 
-  const publicRoutes = ["/", "/login", "/signup", "/onboarding"];
+  // ✅ Public (no auth required)
+  const publicRoutes = ["/", "/login", "/signup"];
 
-  // ✅ Allow NextAuth callback and static routes
+  // ✅ Always allow NextAuth and static files
   if (
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/_next") ||
@@ -25,27 +30,31 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // ✅ Prevent redirect loops caused by callbackUrl queries
-  if (searchParams.has("callbackUrl")) {
-    return NextResponse.next();
+  // ✅ Prevent infinite loops from callbackUrl=/login
+  const callbackUrl = searchParams.get("callbackUrl");
+  if (callbackUrl && callbackUrl.includes("/login")) {
+    const cleanUrl = new URL("/dashboard", req.url);
+    return NextResponse.redirect(cleanUrl);
   }
 
-  // ✅ No token → redirect to login (if not public)
+  // ✅ Unauthenticated user trying to access protected route → redirect to login
   if (!token && !publicRoutes.includes(pathname)) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  // ✅ Has token (authenticated)
+  // ✅ Authenticated user
   if (token) {
-    const isNewUser = token.isNewUser || false;
+    const isNewUser = !!token.isNewUser;
 
-    // New user → onboarding
+    // New user must finish onboarding
     if (isNewUser && pathname !== "/onboarding") {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
 
-    // Logged-in user visiting login/signup → dashboard
-    if (!isNewUser && ["/login", "/signup", "/"].includes(pathname)) {
+    // Authenticated user shouldn’t be on login/signup/home
+    if (!isNewUser && publicRoutes.includes(pathname)) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }

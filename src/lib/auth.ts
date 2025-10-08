@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// lib/auth.ts - NextAuth configuration
+// lib/auth.ts
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
@@ -20,62 +20,49 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    /**
-     * Handles JWT token creation and updates
-     */
+    // ---- Handle JWT token creation and backend sync ----
     async jwt({ token, account, profile, trigger, session }) {
-      if (
-        (trigger === "signIn" || trigger === "signUp") &&
-        account?.provider === "google" &&
-        profile?.email
-      ) {
+      if (account?.provider === "google" && (trigger === "signIn" || trigger === "signUp")) {
         try {
           const backendUrl =
-            process.env.NEXT_PUBLIC_BACKEND_URL ||
-            "https://faithbliss-backend.fly.dev";
+            process.env.NEXT_PUBLIC_BACKEND_URL || "https://faithbliss-backend.fly.dev";
 
-          const response = await fetch(`${backendUrl}/auth/google`, {
+          const res = await fetch(`${backendUrl}/auth/google`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              email: profile.email,
-              name: profile.name,
+              email: profile?.email,
+              name: profile?.name,
               picture: (profile as GoogleProfile).picture,
               googleId: (profile as GoogleProfile).sub,
               accessToken: account.access_token,
             }),
           });
 
-          if (response.ok) {
-            const data = await response.json();
-            const user = data.user || {};
+          if (!res.ok) throw new Error("Backend authentication failed");
+          const data = await res.json();
 
-            token.accessToken = data.accessToken;
-            token.userId = user.id || user._id || profile.email;
-            token.userEmail = profile.email;
-            token.onboardingCompleted = !!user.onboardingCompleted;
-            token.isNewUser = !user.onboardingCompleted; // backend decides this
-          } else {
-            token.error = "BackendAuthenticationError";
-          }
-        } catch (err) {
-          console.error("JWT callback backend fetch failed:", err);
-          token.error = "BackendFetchError";
+          const user = data.user || {};
+          token.accessToken = data.accessToken;
+          token.userId = user.id || user._id || profile?.email;
+          token.userEmail = profile?.email;
+          token.onboardingCompleted = !!user.onboardingCompleted;
+          token.isNewUser = !user.onboardingCompleted;
+        } catch (error) {
+          console.error("JWT callback backend fetch failed:", error);
+          token.error = "BackendError";
         }
       }
 
-      // Handle manual token updates (like onboarding completion)
       if (trigger === "update" && session) {
-        if (typeof session.onboardingCompleted !== "undefined") {
-          token.onboardingCompleted = session.onboardingCompleted;
-          if (session.onboardingCompleted) token.isNewUser = false;
-        }
+        token.onboardingCompleted = session.onboardingCompleted;
+        token.isNewUser = !session.onboardingCompleted;
       }
 
       return token;
     },
 
-
+    // ---- Handle session data exposure ----
     async session({ session, token }) {
       session.accessToken = token.accessToken as string;
       session.userId = token.userId as string;
@@ -83,79 +70,59 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.userId as string;
         (session.user as any).isNewUser = !!token.isNewUser;
-        (session.user as any).onboardingCompleted =
-          !!token.onboardingCompleted;
+        (session.user as any).onboardingCompleted = !!token.onboardingCompleted;
       }
 
       return session;
     },
 
-    /**
-     * Allow or deny sign-ins
-     */
-    async signIn({ account, profile, user }) {
-      if (account?.provider === "google" && profile?.email) {
-        if ((user as any)?.error) return false;
-        return true;
-      }
+    // ---- Allow sign-ins ----
+    async signIn({ account, profile }) {
+      if (account?.provider === "google" && profile?.email) return true;
       return false;
     },
 
-    /**
-     * Handle redirects after login
-     */
+    // ---- FIXED Redirect Logic ----
     async redirect({ url, baseUrl }) {
       try {
-        // Extract callbackUrl if present
+        // NextAuth sometimes includes ?callbackUrl=...
         const callbackUrlMatch = url.match(/[?&]callbackUrl=([^&]+)/);
-        const decodedCallbackUrl = callbackUrlMatch ? decodeURIComponent(callbackUrlMatch[1]) : null;
-
-        // If a valid callback URL was provided, respect it
-        if (decodedCallbackUrl) {
-          if (decodedCallbackUrl.startsWith('/')) return `${baseUrl}${decodedCallbackUrl}`;
-          if (decodedCallbackUrl.startsWith(baseUrl)) return decodedCallbackUrl;
+        if (callbackUrlMatch) {
+          const decoded = decodeURIComponent(callbackUrlMatch[1]);
+          if (decoded.startsWith(baseUrl)) return decoded;
         }
 
-        // Default after Google OAuth success
-        if (url.includes("/api/auth/callback/")) {
-          return `${baseUrl}/dashboard`;
+        // After successful OAuth callback, go to onboarding if new
+        if (url.includes("/api/auth/callback")) return `${baseUrl}/onboarding`;
+
+        // Prevent loop only for direct login pages
+        if (url === `${baseUrl}/login` || url === `${baseUrl}/signup`) {
+          return `${baseUrl}/onboarding`;
         }
 
-        // Keep safe internal URLs
-        if (url.startsWith(baseUrl)) return url;
-
-        // Fallback to dashboard
-        return `${baseUrl}/dashboard`;
-      } catch (error) {
-        console.error("Redirect handling failed:", error);
-        return `${baseUrl}/dashboard`;
+        // Default fallback
+        return url.startsWith(baseUrl) ? url : `${baseUrl}/onboarding`;
+      } catch (err) {
+        console.error("Redirect handling failed:", err);
+        return `${baseUrl}/onboarding`;
       }
     },
   },
 
-  /**
-   * Custom page routes
-   */
   pages: {
     signIn: "/login",
     error: "/login",
   },
 
-  /**
-   * Use stateless JWT sessions
-   */
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60,   // 24 hours
+    maxAge: 30 * 24 * 60 * 60,
+    updateAge: 24 * 60 * 60,
   },
 
-  /**
-   * Vercel-safe cookie settings
-   */
   cookies: {
     sessionToken: {
-      name: `next-auth.session-token`,
+      name: "next-auth.session-token",
       options: {
         httpOnly: true,
         sameSite: "lax",

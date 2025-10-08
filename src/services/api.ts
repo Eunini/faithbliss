@@ -2,8 +2,8 @@
 import { getSession } from 'next-auth/react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
+//  API Information & Health Check Endpoints
 
-// 🏥 API Information & Health Check Endpoints
 export const SystemAPI = {
   // Get API information
   getApiInfo: async (): Promise<{
