@@ -59,6 +59,16 @@ function LoginForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
+  // Check for specific errors passed via query params from middleware
+  useEffect(() => {
+    if (searchParams.get('sessionExpired') === 'true') {
+      setError('Your session is invalid, possibly due to a server issue. Please sign in again.');
+      // Clean the URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, [searchParams]);
+
   // Clean up any callbackUrl that points to /login to prevent loops
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.search.includes('callbackUrl')) {
