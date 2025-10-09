@@ -3,12 +3,10 @@
 
 import React, { useState } from 'react';
 import { useSession, signOut, signIn } from 'next-auth/react';
-import { useNextAuth } from '@/contexts/NextAuthContext';
 import { CheckCircle, XCircle, AlertCircle, RefreshCw, LogOut, LogIn } from 'lucide-react';
 
 export const AuthTokenDebugger: React.FC = () => {
   const { data: session } = useSession();
-  const { user } = useNextAuth();
   const [testResult, setTestResult] = useState<{
     success: boolean;
     message: string;
@@ -189,8 +187,8 @@ export const AuthTokenDebugger: React.FC = () => {
         
         <div className="flex items-center justify-between">
           <span className="text-gray-400">User Loaded:</span>
-          <span className={`${user ? 'text-green-400' : 'text-red-400'}`}>
-            {user ? 'Yes' : 'No'}
+          <span className={`${session?.user ? 'text-green-400' : 'text-red-400'}`}>
+            {session?.user ? 'Yes' : 'No'}
           </span>
         </div>
       </div>

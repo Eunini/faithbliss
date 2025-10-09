@@ -1,6 +1,6 @@
 'use client';
 
-import { useNextAuth } from '@/contexts/NextAuthContext';
+import { useSession } from 'next-auth/react';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
 interface ProtectedRouteProps {
@@ -10,18 +10,15 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({
   children
 }: ProtectedRouteProps) {
-  const { user, loading, isAuthenticated } = useNextAuth();
+  const { status } = useSession({ required: true });
 
-  // Show loading while checking authentication
-  if (loading) {
+  // Show loading while session is being validated
+  if (status === 'loading') {
     return <HeartBeatLoader message="Authenticating..." />;
   }
 
-  // If not authenticated, don't render (middleware handles redirect)
-  if (!isAuthenticated || !user) {
-    return null;
-  }
-
-  // User is authenticated, render children (middleware handles onboarding redirects)
+  // If authenticated, render the children.
+  // The `required: true` option in useSession handles redirection,
+  // but we keep the loading check for a better UX.
   return <>{children}</>;
 }

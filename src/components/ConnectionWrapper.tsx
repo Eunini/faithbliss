@@ -1,41 +1,18 @@
 'use client';
 
 import React from 'react';
-import { useNextAuth } from '@/contexts/NextAuthContext';
-import CorsErrorFallback from './CorsErrorFallback';
+
+// TODO: The connection error logic was tied to the old NextAuthContext.
+// This wrapper is currently a pass-through and needs to be refactored
+// with a new connection management strategy.
 
 interface ConnectionWrapperProps {
   children: React.ReactNode;
-  showFallbackOnError?: boolean;
-  fallbackComponent?: React.ReactNode;
 }
 
 export const ConnectionWrapper: React.FC<ConnectionWrapperProps> = ({
   children,
-  showFallbackOnError = true,
-  fallbackComponent
 }) => {
-  const { hasConnectionError, retryConnection, loading } = useNextAuth();
-
-  // Don't show error during initial loading
-  if (loading) {
-    return <>{children}</>;
-  }
-
-  // Show CORS error fallback if we have a connection error
-  if (hasConnectionError && showFallbackOnError) {
-    if (fallbackComponent) {
-      return <>{fallbackComponent}</>;
-    }
-    
-    return (
-      <CorsErrorFallback 
-        onRetry={retryConnection}
-        isRetrying={false}
-      />
-    );
-  }
-
   return <>{children}</>;
 };
 

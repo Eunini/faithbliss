@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 import { useRouter } from 'next/navigation';
-import { useNextAuth } from '@/contexts/NextAuthContext';
+import { useSession } from 'next-auth/react';
 import { useToast } from '@/contexts/ToastContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { DesktopLayout } from '@/components/dashboard/DesktopLayout';
@@ -19,7 +19,7 @@ insertScrollbarStyles();
 
 const DashboardPage = () => {
   const router = useRouter();
-  const { user, loading } = useNextAuth();
+  const { data: session, status } = useSession();
   const { showSuccess, showInfo } = useToast();
   const [showFilters, setShowFilters] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
@@ -29,10 +29,10 @@ const DashboardPage = () => {
   const { data: profiles, loading: matchesLoading, error, refetch } = usePotentialMatches();
   const { likeUser, passUser } = useMatching();
 
-  const userName = user?.name || user?.email || "Tester";
+  const userName = session?.user?.name || session?.user?.email || "Tester";
 
   // Show loading while checking authentication or fetching matches
-  if (loading || matchesLoading) {
+  if (status === 'loading' || matchesLoading) {
     return <HeartBeatLoader message="Preparing your matches..." />;
   }
 

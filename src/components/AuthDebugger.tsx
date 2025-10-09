@@ -2,10 +2,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useNextAuth } from '@/contexts/NextAuthContext';
+import { useSession } from 'next-auth/react';
 
 export const AuthDebugger = () => {
-  const { user, isAuthenticated } = useNextAuth();
+  const { data: session, status } = useSession();
   const [showDebug, setShowDebug] = useState(false);
 
   if (!showDebug) {
@@ -28,18 +28,21 @@ export const AuthDebugger = () => {
       
       <div className="space-y-2">
         <div>
-          <strong>User:</strong> {user ? '✓ Logged in' : '✗ Not logged in'}
+          <strong>Status:</strong> {status}
         </div>
-        {user && (
+        <div>
+          <strong>User:</strong> {session?.user ? '✓ Logged in' : '✗ Not logged in'}
+        </div>
+        {session?.user && (
           <div>
-            <strong>Email:</strong> {user.email}
+            <strong>Email:</strong> {session.user.email}
           </div>
         )}
         <div>
-          <strong>Onboarding:</strong> {user?.onboardingCompleted ? '✓ Complete' : '✗ Incomplete'}
+          <strong>Onboarding:</strong> {session?.user?.onboardingCompleted ? '✓ Complete' : '✗ Incomplete'}
         </div>
         <div>
-          <strong>Network:</strong> {navigator.onLine ? '✓ Online' : '✗ Offline'}
+          <strong>Network:</strong> {typeof navigator !== 'undefined' && navigator.onLine ? '✓ Online' : '✗ Offline'}
         </div>
       </div>
     </div>

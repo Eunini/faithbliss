@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { useNextAuth } from '@/contexts/NextAuthContext';
+import { useSession } from 'next-auth/react';
 import { 
   ArrowLeft,
   MapPin, 
@@ -18,9 +18,9 @@ import {
 
 const DiscoverPage = () => {
   const router = useRouter();
-  const { loading } = useNextAuth();
+  const { status } = useSession();
 
-  if (loading) {
+  if (status === 'loading') {
     return <HeartBeatLoader message="Discovering faithful connections..." />;
   }
 
