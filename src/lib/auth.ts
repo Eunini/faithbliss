@@ -101,10 +101,10 @@ export const config: NextAuthConfig = {
       // If the user object exists, it means this is the initial sign-in.
       // Persist the custom data from the user object to the token.
       if (user) {
-        token.accessToken = user.accessToken ?? "";
+        token.accessToken = user.accessToken as string;
         token.userId = user.id;
-        token.onboardingCompleted = user.onboardingCompleted;
-        token.isNewUser = user.isNewUser;
+        token.onboardingCompleted = user.onboardingCompleted as boolean;
+        token.isNewUser = user.isNewUser as boolean;
       }
       return token;
     },
