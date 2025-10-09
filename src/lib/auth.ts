@@ -84,29 +84,28 @@ export const authOptions: NextAuthOptions = {
 
     // ---- FIXED Redirect Logic ----
     async redirect({ url, baseUrl }) {
-      try {
-        // NextAuth sometimes includes ?callbackUrl=...
-        const callbackUrlMatch = url.match(/[?&]callbackUrl=([^&]+)/);
-        if (callbackUrlMatch) {
-          const decoded = decodeURIComponent(callbackUrlMatch[1]);
-          // Allow safe internal redirects
-          if (decoded.startsWith('/') && !decoded.includes('/login') && !decoded.includes('/signup')) {
-            return `${baseUrl}${decoded}`;
-          }
-        }
+      // The `url` is the URL that the user is redirected to after a successful sign-in.
+      // It's usually the page they were on before starting the sign-in process.
+      // We want to make sure that the user is redirected to a safe page.
 
-        // After successful OAuth callback, let middleware handle routing
-        // Don't redirect here - middleware will check isNewUser and route appropriately
-        if (url.includes("/api/auth/callback")) {
-          return `${baseUrl}/`;
-        }
-
-        // Default: keep safe URLs, fallback to home
-        return url.startsWith(baseUrl) ? url : `${baseUrl}/`;
-      } catch (err) {
-        console.error("Redirect handling failed:", err);
-        return `${baseUrl}/`;
+      // If the redirect URL is the base URL, it means the user is coming from the login page.
+      // In this case, we should redirect them to the dashboard.
+      if (url === baseUrl) {
+        return `${baseUrl}/dashboard`;
       }
+
+      // If the URL is a relative path, we need to make it absolute.
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+
+      // If the URL is on a different domain, we should redirect to the dashboard for security.
+      if (new URL(url).origin !== new URL(baseUrl).origin) {
+        return `${baseUrl}/dashboard`;
+      }
+
+      // Otherwise, the URL is safe and we can redirect to it.
+      return url;
     },
   },
 

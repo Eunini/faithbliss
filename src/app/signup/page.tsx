@@ -52,44 +52,14 @@ export default function Signup() {
         sessionStorage.setItem('fromSignup', 'true');
       }
 
-      // Use redirect: false so we can inspect the result and handle errors
-      const callbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/onboarding` : '/onboarding';
-
-      const result = await signIn('google', {
-        callbackUrl,
-        redirect: false,
+      // Let NextAuth handle the redirect flow automatically.
+      // The middleware will route the user to the correct page (/onboarding or /dashboard)
+      // after the sign-in is complete.
+      await signIn('google', {
+        callbackUrl: '/onboarding',
+        redirect: true,
       });
 
-      // result is undefined in some environments — handle defensively
-      if (!result) {
-        // fallback: redirect to auth endpoint directly
-        // This will trigger the normal NextAuth flow
-        if (typeof window !== 'undefined') {
-          window.location.href = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(callbackUrl)}`;
-          return;
-        }
-      }
-
-      // If NextAuth returned an error, show it and clear the fromSignup flag
-      if ((result as any).error) {
-        const errMsg = (result as any).error || 'Google sign-in failed. Please try again.';
-        setError(errMsg);
-        if (typeof window !== 'undefined') sessionStorage.removeItem('fromSignup');
-        setLoading(false);
-        return;
-      }
-
-      // If NextAuth returned a URL, navigate the browser there
-      if ((result as any).url) {
-        // Direct navigation is safest for OAuth handoff
-        window.location.href = (result as any).url;
-        return;
-      }
-
-      // No URL and no explicit error → fallback
-      setError('Could not start Google sign-in. Please try again.');
-      if (typeof window !== 'undefined') sessionStorage.removeItem('fromSignup');
-      setLoading(false);
     } catch (err: any) {
       console.error('Google sign-up error:', err);
       setError(err?.message || 'Failed to sign up with Google. Please try again.');

@@ -46,6 +46,13 @@ export async function middleware(req: NextRequest) {
 
   // ✅ Authenticated user
   if (token) {
+    // If the token exists but is invalid (e.g., backend auth failed), log the user out
+    if (token.error === "BackendError") {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("sessionExpired", "true");
+      return NextResponse.redirect(loginUrl);
+    }
+
     const isNewUser = !!token.isNewUser;
 
     // New user (just signed up) must complete onboarding first
@@ -53,8 +60,8 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
 
-    // Existing user who completed onboarding shouldn't be on auth pages
-    if (!isNewUser && publicRoutes.includes(pathname)) {
+    // Existing user who completed onboarding shouldn't be on auth pages or the root path
+    if (!isNewUser && (publicRoutes.includes(pathname) || pathname === '/')) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }

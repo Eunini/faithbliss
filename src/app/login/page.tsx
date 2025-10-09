@@ -78,37 +78,21 @@ function LoginForm() {
       // remove any previous signup flag
       if (typeof window !== 'undefined') sessionStorage.removeItem('fromSignup');
 
-      // Ask NextAuth for the URL (redirect:false) so we can navigate deterministically
-      const result = await signIn('google', {
+      // Let NextAuth handle the redirect flow automatically.
+      // The middleware will route the user to the correct page (/onboarding or /dashboard)
+      // after the sign-in is complete.
+      await signIn('google', {
         callbackUrl: sanitizedCallback,
-        redirect: false,
+        redirect: true,
       });
 
-      // If NextAuth returned an error, show it
-      if ((result as any)?.error) {
-        const msg = (result as any).error || 'Google sign-in failed. Please try again.';
-        setError(msg);
-        showError(msg, 'Sign In Failed');
-        setLoading(false);
-        return;
-      }
-
-      // If NextAuth gave us a URL to navigate to, go there (starts the OAuth handoff)
-      if ((result as any)?.url) {
-        // Use a full redirect (required for OAuth)
-        window.location.href = (result as any).url;
-        return;
-      }
-
-      // Some environments return undefined — fallback to API endpoint
-      const fallback = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(sanitizedCallback)}`;
-      window.location.href = fallback;
     } catch (err: any) {
       console.error('Google sign-in error:', err);
       const msg = err?.message || 'Failed to sign in with Google. Please try again.';
       setError(msg);
       showError(msg, 'Sign In Failed');
     } finally {
+      // This may not be called if the redirect is successful
       setLoading(false);
     }
   };
