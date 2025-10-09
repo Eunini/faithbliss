@@ -5,14 +5,11 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from "next/link";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
-import { useNextAuth } from '@/contexts/NextAuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { FcGoogle } from 'react-icons/fc';
 import { Heart, LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { AuthTokenDebugger } from '@/components/AuthTokenDebugger';
-import { HeartBeatIcon } from '@/components/HeartBeatIcon';
+import { HeartBeatLoader } from '@/components/HeartBeatLoader'; // Assuming you have this
 
-// Create a separate component that uses useSearchParams
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,168 +20,82 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { data: session, status } = useSession();
-  const { user } = useNextAuth();
+  const { status } = useSession();
   const { showError } = useToast();
 
-  // Derive and sanitize callbackUrl (prevent callbackUrl=/login loops)
-  const rawCallback = searchParams.get('callbackUrl');
-  const sanitizedCallback = (() => {
-    if (!rawCallback) return '/dashboard';
-    try {
-      const decoded = decodeURIComponent(rawCallback);
-      // Prevent unsafe or looping callbacks
-      if (decoded.includes('/login') || decoded.includes('/signup')) return '/dashboard';
-      // Allow relative paths
-      if (decoded.startsWith('/')) return decoded;
-      // If it's a full URL pointing to our domain, use path part
-      try {
-        const u = new URL(decoded);
-        if (typeof window !== 'undefined' && u.origin === window.location.origin) return u.pathname + u.search + u.hash;
-      } catch {
-        // not a full URL
-      }
-      return '/dashboard';
-    } catch {
-      return '/dashboard';
-    }
-  })();
+  // Get callbackUrl from search params, default to dashboard
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
 
-  // If already authenticated, send them to dashboard immediately (avoid showing login)
+  // If already authenticated, redirect away from login page
   useEffect(() => {
     if (status === 'authenticated') {
-      // user is already logged in — go to dashboard (middleware will handle deeper routing)
-      router.replace('/dashboard');
+      router.replace(callbackUrl);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [status, router, callbackUrl]);
 
-  // Check for specific errors passed via query params from middleware or NextAuth
+  // Display errors passed from NextAuth in the URL
   useEffect(() => {
-    const sessionExpired = searchParams.get('sessionExpired');
     const nextAuthError = searchParams.get('error');
-
-    if (sessionExpired === 'true') {
-      setError('Your session is invalid, possibly due to a server issue. Please sign in again.');
-    } else if (nextAuthError) {
+    if (nextAuthError) {
       const errorMessages: { [key: string]: string } = {
-        OAuthSignin: "There was an error during the initial sign-in process.",
-        OAuthCallback: "There was an error during the callback from the authentication provider. Please try again.",
+        OAuthSignin: "Error during the initial sign-in process.",
+        OAuthCallback: "Error during the callback from the authentication provider.",
         OAuthCreateAccount: "Could not create a user account with this provider.",
         EmailCreateAccount: "Could not create a user account with this email.",
-        Callback: "There was an error in the callback handler.",
-        OAuthAccountNotLinked: "This account is not linked. If you have signed in with a different method before, please use that method.",
+        Callback: "Error in the callback handler.",
+        OAuthAccountNotLinked: "This account is not linked. Please use the original sign-in method.",
         CredentialsSignin: "Sign in failed. Please check your credentials.",
-        default: "An unknown authentication error occurred. Please try again."
+        default: "An unknown authentication error occurred.",
       };
       setError(errorMessages[nextAuthError] || errorMessages.default);
-    }
 
-    // Clean the URL if any error params were present
-    if (sessionExpired || nextAuthError) {
+      // Clean the error from the URL without reloading the page
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
     }
   }, [searchParams]);
 
-  // Clean up any callbackUrl that points to /login to prevent loops
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.search.includes('callbackUrl')) {
-      const params = new URLSearchParams(window.location.search);
-      const cb = params.get('callbackUrl');
-      if (cb && (cb.includes('/login') || cb.includes('/signup'))) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-  }, []);
-
-  // Google sign-in: deterministic and robust
+  // Google sign-in: Let NextAuth and the middleware handle the redirect flow.
   const handleGoogleSignIn = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      // remove any previous signup flag
-      if (typeof window !== 'undefined') sessionStorage.removeItem('fromSignup');
-
-      // Let NextAuth handle the redirect flow automatically.
-      // The middleware will route the user to the correct page (/onboarding or /dashboard)
-      // after the sign-in is complete.
-      await signIn('google', {
-        callbackUrl: sanitizedCallback,
-        redirect: true,
-      });
-
-    } catch (err: any) {
-      console.error('Google sign-in error:', err);
-      const msg = err?.message || 'Failed to sign in with Google. Please try again.';
-      setError(msg);
-      showError(msg, 'Sign In Failed');
-    } finally {
-      // This may not be called if the redirect is successful
-      setLoading(false);
-    }
+    setLoading(true);
+    setError('');
+    await signIn('google', { callbackUrl });
   };
 
-  // Email (credentials) sign-in handled with redirect:false so we can control navigation/errors
+  // Email (credentials) sign-in
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!email.trim() || !password.trim()) {
       setError('Please fill in all fields.');
       return;
     }
 
-    try {
-      setLoading(true);
-      setError('');
+    setLoading(true);
+    setError('');
 
-      const result = await signIn('credentials', {
-        redirect: false,
-        email,
-        password,
-        callbackUrl: sanitizedCallback,
-      });
+    const result = await signIn('credentials', {
+      redirect: false, // Handle redirect manually to show errors on this page
+      email,
+      password,
+    });
 
-      if ((result as any)?.error) {
-        const msg = (result as any).error || 'Authentication failed. Please check your credentials.';
-        setError(msg);
-        showError(msg, 'Sign In Failed');
-        setLoading(false);
-        return;
-      }
-
-      if ((result as any)?.url) {
-        // Client-side navigation is fine for credential logins
-        router.replace((result as any).url);
-        return;
-      }
-
-      // Unexpected fallback
-      setError('Could not sign in. Please try again.');
-      setLoading(false);
-    } catch (err: any) {
-      console.error('Email sign-in error:', err);
-      const msg = err?.message || 'Failed to sign in. Please try again.';
-      setError(msg);
-      showError(msg, 'Sign In Failed');
-      setLoading(false);
+    if (result?.error) {
+      setError(result.error);
+      showError(result.error, 'Sign In Failed');
+    } else if (result?.url) {
+      router.replace(callbackUrl);
     }
+
+    setLoading(false);
   };
 
   // UI loading state while NextAuth determines session
   if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-center">
-          <HeartBeatIcon className="w-16 h-16 text-pink-500 mx-auto mb-4" />
-          <p className="text-white text-lg">Loading...</p>
-        </div>
-      </div>
-    );
+    return <HeartBeatLoader />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center px-4 py-8 no-horizontal-scroll dashboard-main">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center px-4 py-8">
       <div className="max-w-md w-full bg-gray-800/50 backdrop-blur-xl rounded-2xl shadow-2xl p-6 sm:p-8 border border-gray-700/50">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
@@ -203,14 +114,13 @@ function LoginForm() {
           </div>
         )}
 
-        {/* Google Sign In Button */}
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
           className="w-full mb-6 flex items-center justify-center gap-3 bg-gray-700/50 border border-gray-600/50 hover:border-gray-500/50 text-white py-3 px-4 sm:px-6 rounded-xl font-medium hover:bg-gray-600/50 transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <FcGoogle size={20} />
-          <span className="text-sm sm:text-base">{loading ? 'Signing in...' : 'Continue with Google'}</span>
+          <span className="text-sm sm:text-base">{loading ? 'Redirecting...' : 'Continue with Google'}</span>
         </button>
 
         <div className="relative mb-6">
@@ -272,17 +182,7 @@ function LoginForm() {
             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <span className="flex items-center justify-center gap-2">
-              {loading ? (
-                <>
-                  <HeartBeatIcon size="md" className="text-white" />
-                  Signing In...
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-5 h-5" />
-                  Sign In
-                </>
-              )}
+              {loading ? 'Signing In...' : <><LogIn className="w-5 h-5" /> Sign In</>}
             </span>
           </button>
         </form>
@@ -295,61 +195,6 @@ function LoginForm() {
             </Link>
           </p>
         </div>
-
-        <div className="mt-6 text-center">
-          <Link
-            href="/"
-            className="text-sm text-gray-500 hover:text-gray-400 transition-colors"
-          >
-            ← Back to Home
-          </Link>
-        </div>
-
-        {/* Auth Token Debugger - only visible in development */}
-        {process.env.NODE_ENV !== 'production' && (
-          <div className="mt-8 border-t border-gray-700 pt-6">
-            <h3 className="text-sm font-medium text-gray-300 mb-3">Debug Authentication</h3>
-
-            <div className="mb-3 text-xs text-gray-400">
-              <div>Status: {status}</div>
-              <div>Has Session: {session ? '✓' : '✗'}</div>
-              <div>Has User: {user ? '✓' : '✗'}</div>
-              <div>Has Token: {session?.accessToken ? '✓' : '✗'}</div>
-              {session?.accessToken && (
-                <div>Token Preview: {session.accessToken.substring(0, 15)}...</div>
-              )}
-              <div className="mt-2">
-                <strong>Current URL:</strong> {typeof window !== 'undefined' ? window.location.href : 'N/A'}
-              </div>
-            </div>
-
-            {typeof window !== 'undefined' && window.location.search.includes('callbackUrl') && (
-              <div className="mb-3 p-2 bg-red-900/30 text-red-300 rounded-md text-xs">
-                <strong>Warning:</strong> Redirect loop detected!
-                <button
-                  onClick={() => window.history.replaceState({}, document.title, window.location.pathname)}
-                  className="ml-2 px-2 py-1 bg-red-700 text-white rounded text-xs"
-                >
-                  Clear URL Params
-                </button>
-              </div>
-            )}
-
-            {session && <AuthTokenDebugger />}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Loading fallback component
-function LoginLoading() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
-      <div className="text-center">
-        <HeartBeatIcon className="w-16 h-16 text-pink-500 mx-auto mb-4" />
-        <p className="text-white text-lg">Loading...</p>
       </div>
     </div>
   );
@@ -358,7 +203,7 @@ function LoginLoading() {
 // Main login page component with Suspense boundary
 export default function Login() {
   return (
-    <Suspense fallback={<LoginLoading />}>
+    <Suspense fallback={<HeartBeatLoader />}>
       <LoginForm />
     </Suspense>
   );

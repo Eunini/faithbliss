@@ -1,8 +1,7 @@
 // app/api/upload/route.ts - Server-side Cloudinary upload
 import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth'; // <-- Import the new auth helper
 
 // Configure Cloudinary
 cloudinary.config({
@@ -14,8 +13,8 @@ cloudinary.config({
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
+    // Check authentication using the new v5 auth() helper
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json(
         { error: 'Unauthorized - Please sign in' },

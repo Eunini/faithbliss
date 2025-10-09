@@ -1,79 +1,54 @@
-import { getToken } from "next-auth/jwt";
+// src/middleware.ts
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import type { NextRequest } from "next/server";
 
-interface ExtendedJWT {
-  accessToken?: string;
-  userId?: string;
-  onboardingCompleted?: boolean;
-  isNewUser?: boolean;
-  [key: string]: unknown;
-}
-
 export async function middleware(req: NextRequest) {
-  const cookieName = process.env.NODE_ENV === 'production'
-    ? '__Secure-next-auth.session-token'
-    : 'next-auth.session-token';
+  const session = await auth();
+  const { pathname } = req.nextUrl;
 
-  const token = (await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET,
-    cookieName, // Explicitly tell getToken which cookie to use
-  })) as ExtendedJWT | null;
+  const isLoggedIn = !!session;
 
-  const { pathname, searchParams } = req.nextUrl;
-
-  // ✅ Public (no auth required)
+  // Define public routes that do not require authentication
   const publicRoutes = ["/", "/login", "/signup"];
 
-  // ✅ Always allow NextAuth and static files
-  if (
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon.ico")
-  ) {
-    return NextResponse.next();
-  }
+  // Define routes that are part of the authentication flow
+  const authRoutes = ["/login", "/signup"];
 
-  // ✅ Prevent infinite loops from callbackUrl=/login
-  const callbackUrl = searchParams.get("callbackUrl");
-  if (callbackUrl && callbackUrl.includes("/login")) {
-    const cleanUrl = new URL("/dashboard", req.url);
-    return NextResponse.redirect(cleanUrl);
-  }
+  // Check if the current route is public
+  const isPublicRoute = publicRoutes.includes(pathname);
 
-  // ✅ Unauthenticated user trying to access protected route → redirect to login
-  if (!token && !publicRoutes.includes(pathname)) {
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
+  // If the user is logged in
+  if (isLoggedIn) {
+    const onboardingCompleted = session.user?.onboardingCompleted ?? false;
 
-  // ✅ Authenticated user
-  if (token) {
-    // If the token exists but is invalid (e.g., backend auth failed), log the user out
-    if (token.error === "BackendError") {
-      const loginUrl = new URL("/login", req.url);
-      loginUrl.searchParams.set("sessionExpired", "true");
-      return NextResponse.redirect(loginUrl);
-    }
-
-    const isNewUser = !!token.isNewUser;
-
-    // New user (just signed up) must complete onboarding first
-    if (isNewUser && pathname !== "/onboarding") {
+    // If the user has not completed onboarding, redirect them to the onboarding page,
+    // unless they are already on it.
+    if (!onboardingCompleted && pathname !== "/onboarding") {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
 
-    // Existing user who completed onboarding shouldn't be on auth pages or the root path
-    if (!isNewUser && (publicRoutes.includes(pathname) || pathname === '/')) {
+    // If the user has completed onboarding and tries to access an auth route (e.g., /login),
+    // redirect them to the dashboard.
+    if (onboardingCompleted && authRoutes.includes(pathname)) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }
+  // If the user is not logged in and is trying to access a protected route
+  else if (!isPublicRoute) {
+    // Redirect them to the login page, but keep the original URL they were trying to access
+    // as a callbackUrl, so they can be redirected back after logging in.
+    return NextResponse.redirect(
+      new URL(`/login?callbackUrl=${encodeURIComponent(pathname)}`, req.url)
+    );
+  }
 
+  // If none of the above conditions are met, allow the request to proceed.
   return NextResponse.next();
 }
 
+// The matcher configures which routes the middleware will run on.
+// This regex excludes API routes, Next.js internal routes, and static files.
 export const config = {
   matcher: [
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",

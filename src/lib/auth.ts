@@ -1,8 +1,19 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// lib/auth.ts
-import { NextAuthOptions } from "next-auth";
+// src/lib/auth.ts
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import type { NextAuthConfig } from "next-auth";
+// import { JWT } from "next-auth/jwt";
 
+// Define a type for the backend response to ensure type safety
+interface BackendAuthResponse {
+  accessToken: string;
+  user: {
+    id: string;
+    onboardingCompleted: boolean;
+  };
+}
+
+// Define a type for the Google profile to ensure type safety
 interface GoogleProfile {
   sub: string;
   email: string;
@@ -10,98 +21,115 @@ interface GoogleProfile {
   picture: string;
 }
 
-export const authOptions: NextAuthOptions = {
+/**
+ * Exchanges the Google profile for a backend token.
+ * This function is called from the `signIn` and `jwt` callbacks.
+ */
+async function syncWithBackend(profile: GoogleProfile): Promise<BackendAuthResponse | null> {
+  try {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    if (!backendUrl) {
+      throw new Error("NEXT_PUBLIC_BACKEND_URL is not defined");
+    }
+
+    const response = await fetch(`${backendUrl}/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: profile.email,
+        name: profile.name,
+        picture: profile.picture,
+        googleId: profile.sub,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error("Backend authentication failed:", response.status, errorBody);
+      return null;
+    }
+
+    return (await response.json()) as BackendAuthResponse;
+  } catch (error) {
+    console.error("Error syncing with backend:", error);
+    return null;
+  }
+}
+
+export const config: NextAuthConfig = {
   secret: process.env.NEXTAUTH_SECRET,
-  trustHost: true, // ✅ Required for Vercel production cookies
+  trustHost: true, // Essential for Vercel deployment
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-
+  pages: {
+    signIn: "/login",
+    error: "/login", // Redirect users to login page on error
+  },
   callbacks: {
-    // ---- Handle JWT token creation and backend sync ----
-    async jwt({ token, account, profile, trigger, session }) {
-      if (account?.provider === "google" && (trigger === "signIn" || trigger === "signUp")) {
-        try {
-          const backendUrl =
-            process.env.NEXT_PUBLIC_BACKEND_URL || "https://faithbliss-backend.fly.dev";
+    /**
+     * The `signIn` callback is triggered on a successful sign-in.
+     * We use this to sync the user with our backend and attach backend data to the user object.
+     */
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google" && profile) {
+        const backendResponse = await syncWithBackend(profile as GoogleProfile);
 
-          const res = await fetch(`${backendUrl}/auth/google`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: profile?.email,
-              name: profile?.name,
-              picture: (profile as GoogleProfile).picture,
-              googleId: (profile as GoogleProfile).sub,
-            }),
-            credentials: "include",
-          });
-
-          if (!res.ok) {
-            const errorBody = await res.text();
-            console.error(`Backend authentication failed:`, res.status, errorBody);
-            throw new Error(`Backend auth failed`);
-          }
-
-          const data = await res.json();
-          const user = data.user || {};
-
-          token.accessToken = data.accessToken;
-          token.userId = user.id;
-          token.onboardingCompleted = !!user.onboardingCompleted;
-          token.isNewUser = !user.onboardingCompleted;
-        } catch (error) {
-          console.error("JWT callback error:", error);
-          token.error = "BackendError";
+        if (!backendResponse) {
+          // Returning false will prevent the sign-in
+          return false;
         }
-      }
 
-      if (trigger === "update" && session) {
-        token.onboardingCompleted = session.onboardingCompleted;
-        token.isNewUser = !session.onboardingCompleted;
+        // Attach backend data to the user object to be used in other callbacks
+        user.accessToken = backendResponse.accessToken;
+        user.id = backendResponse.user.id;
+        user.onboardingCompleted = backendResponse.user.onboardingCompleted;
+        user.isNewUser = !backendResponse.user.onboardingCompleted;
       }
+      // Returning true allows the sign-in to proceed
+      return true;
+    },
 
+    /**
+     * The `jwt` callback is invoked whenever a JWT is created or updated.
+     * It persists the data from the `user` object (from the `signIn` callback) into the token.
+     */
+    async jwt({ token, user }) {
+      // If the user object exists, it means this is the initial sign-in.
+      // Persist the custom data from the user object to the token.
+      if (user) {
+        token.accessToken = user.accessToken ?? "";
+        token.userId = user.id;
+        token.onboardingCompleted = user.onboardingCompleted;
+        token.isNewUser = user.isNewUser;
+      }
       return token;
     },
 
-    // ---- Expose token fields to session ----
+    /**
+     * The `session` callback is invoked whenever a session is accessed.
+     * It uses the data from the `jwt` token to populate the session object.
+     */
     async session({ session, token }) {
+      // Transfer the custom data from the JWT (token) to the session object
       session.accessToken = token.accessToken as string;
       session.userId = token.userId as string;
-
       if (session.user) {
-        session.user.id = token.userId;
-        (session.user as any).onboardingCompleted = token.onboardingCompleted;
-        (session.user as any).isNewUser = token.isNewUser;
+        session.user.id = token.userId as string;
+        session.user.onboardingCompleted = token.onboardingCompleted as boolean;
+        session.user.isNewUser = token.isNewUser as boolean;
       }
-
       return session;
     },
-
-    async signIn({ account, profile }) {
-      return !!(account?.provider === "google" && profile?.email);
-    },
-
-    // ✅ FIXED REDIRECT LOOP
-    async redirect({ url, baseUrl }) {
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      if (new URL(url).origin === baseUrl) return url;
-      return `${baseUrl}/dashboard`; // ✅ Always land here after auth
-    },
   },
-
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
-
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-
   debug: process.env.NODE_ENV === "development",
 };
+
+export const { handlers, auth, signIn, signOut } = NextAuth(config);
