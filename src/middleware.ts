@@ -48,12 +48,12 @@ export async function middleware(req: NextRequest) {
   if (token) {
     const isNewUser = !!token.isNewUser;
 
-    // New user must finish onboarding
+    // New user (just signed up) must complete onboarding first
     if (isNewUser && pathname !== "/onboarding") {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
 
-    // Authenticated user shouldn’t be on login/signup/home
+    // Existing user who completed onboarding shouldn't be on auth pages
     if (!isNewUser && publicRoutes.includes(pathname)) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }

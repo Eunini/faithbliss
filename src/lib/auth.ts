@@ -89,22 +89,23 @@ export const authOptions: NextAuthOptions = {
         const callbackUrlMatch = url.match(/[?&]callbackUrl=([^&]+)/);
         if (callbackUrlMatch) {
           const decoded = decodeURIComponent(callbackUrlMatch[1]);
-          if (decoded.startsWith(baseUrl)) return decoded;
+          // Allow safe internal redirects
+          if (decoded.startsWith('/') && !decoded.includes('/login') && !decoded.includes('/signup')) {
+            return `${baseUrl}${decoded}`;
+          }
         }
 
-        // After successful OAuth callback, go to onboarding if new
-        if (url.includes("/api/auth/callback")) return `${baseUrl}/onboarding`;
-
-        // Prevent loop only for direct login pages
-        if (url === `${baseUrl}/login` || url === `${baseUrl}/signup`) {
-          return `${baseUrl}/onboarding`;
+        // After successful OAuth callback, let middleware handle routing
+        // Don't redirect here - middleware will check isNewUser and route appropriately
+        if (url.includes("/api/auth/callback")) {
+          return `${baseUrl}/`;
         }
 
-        // Default fallback
-        return url.startsWith(baseUrl) ? url : `${baseUrl}/onboarding`;
+        // Default: keep safe URLs, fallback to home
+        return url.startsWith(baseUrl) ? url : `${baseUrl}/`;
       } catch (err) {
         console.error("Redirect handling failed:", err);
-        return `${baseUrl}/onboarding`;
+        return `${baseUrl}/`;
       }
     },
   },
