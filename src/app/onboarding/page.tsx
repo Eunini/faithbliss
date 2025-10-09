@@ -92,27 +92,15 @@ const OnboardingPage = () => {
       try {
         setSubmitting(true);
         
-        // Transform form data to API format
+        // Transform form data for the API call
+        const finalDenomination = (formData.denomination === 'Other' ? formData.customDenomination : formData.denomination) || '';
+        
         const onboardingData = {
           bio: formData.aboutMe,
-          denomination: formData.denomination === 'Other' ? formData.customDenomination : formData.denomination,
+          denomination: finalDenomination.toUpperCase(), // Convert to uppercase for the backend enum
           interests: [...formData.hobbies, ...formData.values],
-          location: {
-            latitude: 0, // These would come from geocoding the currentLocation
-            longitude: 0,
-            address: formData.currentLocation
-          },
-          preferences: {
-            ageRange: [18, 35] as [number, number], // Default age range
-            maxDistance: 50, // Default distance
-            denomination: formData.denomination === 'Other' ? formData.customDenomination : formData.denomination,
-            interests: formData.hobbies
-          },
-          profilePhotos: {
-            photo1: formData.profilePhoto1 || undefined,
-            photo2: formData.profilePhoto2 || undefined,
-            photo3: formData.profilePhoto3 || undefined,
-          }
+          location: formData.currentLocation, // Send only the address string
+          // The 'preferences' and 'profilePhotos' properties are removed as they are not expected by the backend
         };
 
         await completeOnboarding(onboardingData);
