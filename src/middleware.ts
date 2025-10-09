@@ -19,7 +19,7 @@ export async function middleware(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
 
   // ✅ Public (no auth required)
-  const publicRoutes = ["/", "/login", "/signup"];
+  const publicRoutes = ["/", "/login", "/signup", "/auth/debug"];
 
   // ✅ Always allow NextAuth and static files
   if (
