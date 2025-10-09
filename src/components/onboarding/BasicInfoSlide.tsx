@@ -126,54 +126,49 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
         console.log(`User ID:`, session?.userId);
         console.log(`User authenticated:`, !!session);
         
-        const input = document.getElementById(`photo-upload-${photoNumber}`) as HTMLInputElement;
-        if (input) {
-          console.log(`📂 Triggering file picker for photo ${photoNumber}`);
-          
-          // Create a new input to ensure clean state
-          const newInput = document.createElement('input');
-          newInput.type = 'file';
-          newInput.accept = 'image/jpeg,image/jpg,image/png,image/gif,image/webp';
-          if ('capture' in newInput) {
-            newInput.setAttribute('capture', 'environment');
-          }
-          
-          console.log(`✨ Created new file input for photo ${photoNumber}`);
-          
-          // Attach the handler directly
-          newInput.onchange = async (e) => {
-            const target = e.target as HTMLInputElement;
-            console.log('🎯 onChange fired!');
-            console.log('📸 File input changed, files:', target.files?.length);
-            console.log('📁 File details:', target.files?.[0] ? {
-              name: target.files[0].name,
-              size: target.files[0].size,
-              type: target.files[0].type
-            } : 'No file');
-            
-            if (target.files && target.files[0]) {
-              const syntheticEvent = { target } as React.ChangeEvent<HTMLInputElement>;
-              await handlePhotoUpload(photoNumber)(syntheticEvent);
-            } else {
-              console.warn('⚠️ onChange fired but no file found');
-            }
-          };
-          
-          // Add error handler
-          newInput.onerror = (e) => {
-            console.error('❌ File input error:', e);
-          };
-          
-          // Log before click
-          console.log('🎬 About to trigger click on file input...');
-          
-          // Trigger the click
-          newInput.click();
-          
-          console.log('✅ Click triggered on file input');
-        } else {
-          console.error(`❌ Could not find input element for photo ${photoNumber}`);
+        console.log(`📂 Triggering file picker for photo ${photoNumber}`);
+        
+        // Create a new input to ensure clean state
+        const newInput = document.createElement('input');
+        newInput.type = 'file';
+        newInput.accept = 'image/jpeg,image/jpg,image/png,image/gif,image/webp';
+        if ('capture' in newInput) {
+          newInput.setAttribute('capture', 'environment');
         }
+        
+        console.log(`✨ Created new file input for photo ${photoNumber}`);
+        
+        // Attach the handler directly
+        newInput.onchange = async (e) => {
+          const target = e.target as HTMLInputElement;
+          console.log('🎯 onChange fired!');
+          console.log('📸 File input changed, files:', target.files?.length);
+          console.log('📁 File details:', target.files?.[0] ? {
+            name: target.files[0].name,
+            size: target.files[0].size,
+            type: target.files[0].type
+          } : 'No file');
+          
+          if (target.files && target.files[0]) {
+            const syntheticEvent = { target } as React.ChangeEvent<HTMLInputElement>;
+            await handlePhotoUpload(photoNumber)(syntheticEvent);
+          } else {
+            console.warn('⚠️ onChange fired but no file found');
+          }
+        };
+        
+        // Add error handler
+        newInput.onerror = (e) => {
+          console.error('❌ File input error:', e);
+        };
+        
+        // Log before click
+        console.log('🎬 About to trigger click on file input...');
+        
+        // Trigger the click
+        newInput.click();
+        
+        console.log('✅ Click triggered on file input');
       } else {
         console.warn(`⏳ Photo ${photoNumber} is already uploading, ignoring click`);
       }
