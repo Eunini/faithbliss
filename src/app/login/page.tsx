@@ -59,11 +59,29 @@ function LoginForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
-  // Check for specific errors passed via query params from middleware
+  // Check for specific errors passed via query params from middleware or NextAuth
   useEffect(() => {
-    if (searchParams.get('sessionExpired') === 'true') {
+    const sessionExpired = searchParams.get('sessionExpired');
+    const nextAuthError = searchParams.get('error');
+
+    if (sessionExpired === 'true') {
       setError('Your session is invalid, possibly due to a server issue. Please sign in again.');
-      // Clean the URL
+    } else if (nextAuthError) {
+      const errorMessages: { [key: string]: string } = {
+        OAuthSignin: "There was an error during the initial sign-in process.",
+        OAuthCallback: "There was an error during the callback from the authentication provider. Please try again.",
+        OAuthCreateAccount: "Could not create a user account with this provider.",
+        EmailCreateAccount: "Could not create a user account with this email.",
+        Callback: "There was an error in the callback handler.",
+        OAuthAccountNotLinked: "This account is not linked. If you have signed in with a different method before, please use that method.",
+        CredentialsSignin: "Sign in failed. Please check your credentials.",
+        default: "An unknown authentication error occurred. Please try again."
+      };
+      setError(errorMessages[nextAuthError] || errorMessages.default);
+    }
+
+    // Clean the URL if any error params were present
+    if (sessionExpired || nextAuthError) {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
     }

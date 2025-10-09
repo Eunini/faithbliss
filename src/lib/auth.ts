@@ -22,11 +22,14 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     // ---- Handle JWT token creation and backend sync ----
     async jwt({ token, account, profile, trigger, session }) {
+      console.log(`--- JWT Callback Triggered --- Trigger: ${trigger}`);
+
       if (account?.provider === "google" && (trigger === "signIn" || trigger === "signUp")) {
         try {
           const backendUrl =
             process.env.NEXT_PUBLIC_BACKEND_URL || "https://faithbliss-backend.fly.dev";
 
+          console.log("Attempting to authenticate with backend...");
           const res = await fetch(`${backendUrl}/auth/google`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -45,6 +48,7 @@ export const authOptions: NextAuthOptions = {
             throw new Error(`Backend authentication failed. Status: ${res.status}`);
           }
           const data = await res.json();
+          console.log("Backend authentication successful.");
 
           const user = data.user || {};
           token.accessToken = data.accessToken;
@@ -59,10 +63,12 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (trigger === "update" && session) {
+        console.log("Updating session from client...");
         token.onboardingCompleted = session.onboardingCompleted;
         token.isNewUser = !session.onboardingCompleted;
       }
 
+      console.log("--- JWT Callback Finished ---");
       return token;
     },
 
@@ -82,7 +88,12 @@ export const authOptions: NextAuthOptions = {
 
     // ---- Allow sign-ins ----
     async signIn({ account, profile }) {
-      if (account?.provider === "google" && profile?.email) return true;
+      console.log("--- SignIn Callback Triggered ---");
+      if (account?.provider === "google" && profile?.email) {
+        console.log("Google sign-in allowed.");
+        return true;
+      }
+      console.log("Sign-in denied.");
       return false;
     },
 
