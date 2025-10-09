@@ -39,7 +39,11 @@ export const authOptions: NextAuthOptions = {
             }),
           });
 
-          if (!res.ok) throw new Error("Backend authentication failed");
+          if (!res.ok) {
+            const errorBody = await res.text();
+            console.error(`Backend authentication failed with status: ${res.status}`, errorBody);
+            throw new Error(`Backend authentication failed. Status: ${res.status}`);
+          }
           const data = await res.json();
 
           const user = data.user || {};
