@@ -5,7 +5,7 @@ import {
   X, User, Heart, MessageCircle, Users, Star, Settings, 
   HelpCircle, LogOut, Home, Search, UserX, AlertTriangle
 } from 'lucide-react';
-import { useNextAuth } from '@/contexts/NextAuthContext';
+import { signOut } from 'next-auth/react';
 
 interface SidePanelProps {
   userName: string;
@@ -13,10 +13,9 @@ interface SidePanelProps {
 }
 
 export const SidePanel = ({ userName, onClose }: SidePanelProps) => {
-  const { signOutUser } = useNextAuth();
 
   const handleLogout = async () => {
-    await signOutUser();
+    await signOut({ callbackUrl: '/login' });
   };
   
   return (
