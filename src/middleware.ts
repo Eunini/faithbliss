@@ -11,15 +11,20 @@ interface ExtendedJWT {
 }
 
 export async function middleware(req: NextRequest) {
+  const cookieName = process.env.NODE_ENV === 'production'
+    ? '__Secure-next-auth.session-token'
+    : 'next-auth.session-token';
+
   const token = (await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
+    cookieName, // Explicitly tell getToken which cookie to use
   })) as ExtendedJWT | null;
 
   const { pathname, searchParams } = req.nextUrl;
 
   // ✅ Public (no auth required)
-  const publicRoutes = ["/", "/login", "/signup", "/auth/debug"];
+  const publicRoutes = ["/", "/login", "/signup"];
 
   // ✅ Always allow NextAuth and static files
   if (

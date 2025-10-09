@@ -12,6 +12,7 @@ interface GoogleProfile {
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true, // ✅ Required for Vercel production cookies
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -35,25 +36,25 @@ export const authOptions: NextAuthOptions = {
               name: profile?.name,
               picture: (profile as GoogleProfile).picture,
               googleId: (profile as GoogleProfile).sub,
-              accessToken: account.access_token,
             }),
+            credentials: "include",
           });
 
           if (!res.ok) {
             const errorBody = await res.text();
-            console.error(`Backend authentication failed with status: ${res.status}`, errorBody);
-            throw new Error(`Backend authentication failed. Status: ${res.status}`);
+            console.error(`Backend authentication failed:`, res.status, errorBody);
+            throw new Error(`Backend auth failed`);
           }
-          const data = await res.json();
 
+          const data = await res.json();
           const user = data.user || {};
+
           token.accessToken = data.accessToken;
-          token.userId = user.id || user._id || profile?.email;
-          token.userEmail = profile?.email;
+          token.userId = user.id;
           token.onboardingCompleted = !!user.onboardingCompleted;
           token.isNewUser = !user.onboardingCompleted;
         } catch (error) {
-          console.error("JWT callback backend fetch failed:", error);
+          console.error("JWT callback error:", error);
           token.error = "BackendError";
         }
       }
@@ -66,50 +67,29 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    // ---- Handle session data exposure ----
+    // ---- Expose token fields to session ----
     async session({ session, token }) {
       session.accessToken = token.accessToken as string;
       session.userId = token.userId as string;
 
       if (session.user) {
-        session.user.id = token.userId as string;
-        (session.user as any).isNewUser = !!token.isNewUser;
-        (session.user as any).onboardingCompleted = !!token.onboardingCompleted;
+        session.user.id = token.userId;
+        (session.user as any).onboardingCompleted = token.onboardingCompleted;
+        (session.user as any).isNewUser = token.isNewUser;
       }
 
       return session;
     },
 
-    // ---- Allow sign-ins ----
     async signIn({ account, profile }) {
-      if (account?.provider === "google" && profile?.email) return true;
-      return false;
+      return !!(account?.provider === "google" && profile?.email);
     },
 
-    // ---- FIXED Redirect Logic ----
+    // ✅ FIXED REDIRECT LOOP
     async redirect({ url, baseUrl }) {
-      // The `url` is the URL that the user is redirected to after a successful sign-in.
-      // It's usually the page they were on before starting the sign-in process.
-      // We want to make sure that the user is redirected to a safe page.
-
-      // If the redirect URL is the base URL, it means the user is coming from the login page.
-      // In this case, we should redirect them to the dashboard.
-      if (url === baseUrl) {
-        return `${baseUrl}/dashboard`;
-      }
-
-      // If the URL is a relative path, we need to make it absolute.
-      if (url.startsWith('/')) {
-        return `${baseUrl}${url}`;
-      }
-
-      // If the URL is on a different domain, we should redirect to the dashboard for security.
-      if (new URL(url).origin !== new URL(baseUrl).origin) {
-        return `${baseUrl}/dashboard`;
-      }
-
-      // Otherwise, the URL is safe and we can redirect to it.
-      return url;
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return `${baseUrl}/dashboard`; // ✅ Always land here after auth
     },
   },
 
@@ -121,7 +101,6 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60,
-    updateAge: 24 * 60 * 60,
   },
 
   debug: process.env.NODE_ENV === "development",
