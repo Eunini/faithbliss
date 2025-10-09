@@ -102,7 +102,7 @@ export const config: NextAuthConfig = {
       // Persist the custom data from the user object to the token.
       if (user) {
         token.accessToken = user.accessToken as string;
-        token.userId = user.id;
+        token.userId = user.id as string;
         token.onboardingCompleted = user.onboardingCompleted as boolean;
         token.isNewUser = user.isNewUser as boolean;
       }
