@@ -1,10 +1,10 @@
+import { useSession } from 'next-auth/react';
 import { User, Camera, X, Upload } from 'lucide-react';
 import { FormData } from './types';
 import { CountryCodeSelect, defaultCountry, type Country } from '../CountryCodeSelect';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CloudinaryService } from '@/lib/cloudinary';
-import { useNextAuth } from '@/contexts/NextAuthContext';
 import { useToast } from '@/contexts/ToastContext';
 
 interface BasicInfoSlideProps {
@@ -15,7 +15,7 @@ interface BasicInfoSlideProps {
 export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps) => {
   const [selectedCountry, setSelectedCountry] = useState(defaultCountry);
   const [uploadingPhotos, setUploadingPhotos] = useState<{[key: number]: boolean}>({});
-  const { user } = useNextAuth();
+  const { data: session } = useSession(); // <-- Use the standard useSession hook
   const { showSuccess, showError } = useToast();
 
   // Initialize country code if not set
@@ -31,6 +31,11 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
     
     if (!file) {
       console.log('❌ No file selected');
+      return;
+    }
+    
+    if (!session?.userId) {
+      showError('You must be signed in to upload photos.', 'Authentication Error');
       return;
     }
     
@@ -76,7 +81,7 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
       const result = await CloudinaryService.uploadImage(
         file,
         'faithbliss/profile-photos',
-        user?.id || 'anonymous',
+        session.userId, // <-- Use the correct user ID from the session
         photoNumber
       );
 
@@ -118,8 +123,8 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
     const handleClick = () => {
       if (!isUploading) {
         console.log(`Clicked on photo ${photoNumber} upload area`);
-        console.log(`User ID:`, user?.id);
-        console.log(`User authenticated:`, !!user);
+        console.log(`User ID:`, session?.userId);
+        console.log(`User authenticated:`, !!session);
         
         const input = document.getElementById(`photo-upload-${photoNumber}`) as HTMLInputElement;
         if (input) {
