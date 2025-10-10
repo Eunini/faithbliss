@@ -14,10 +14,10 @@ export const FaithSlide = ({ formData, updateFormData }: FaithSlideProps) => {
 
   const churchAttendanceOptions = {
     WEEKLY: 'Weekly',
+    BIWEEKLY: 'Bi-weekly',
     MONTHLY: 'Monthly',
     OCCASIONALLY: 'Occasionally',
-    HOLIDAYS_ONLY: 'Holidays Only',
-    NEVER: 'Never',
+    RARELY: 'Rarely',
   };
 
   const baptismStatusOptions = {
