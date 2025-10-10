@@ -189,6 +189,16 @@ const getAuthToken = async (): Promise<string | null> => {
   try {
     const session = await getSession();
     
+    // If the session has a refresh error, the token is invalid.
+    // Force a sign-out to clear the session and redirect to login.
+    if (session?.error === "RefreshAccessTokenError") {
+      console.error("Refresh token failed. Forcing sign out.");
+      // Use next-auth/react's signOut to clear the session
+      const { signOut } = await import("next-auth/react");
+      await signOut({ callbackUrl: "/login" });
+      return null;
+    }
+    
     if (!session?.accessToken) {
       console.warn('No access token found in session');
       return null;

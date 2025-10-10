@@ -2,11 +2,13 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import type { NextAuthConfig } from "next-auth";
-// import { JWT } from "next-auth/jwt";
+import { JWT } from "next-auth/jwt";
 
 // Define a type for the backend response to ensure type safety
 interface BackendAuthResponse {
   accessToken: string;
+  refreshToken: string; // Added for token refresh
+  accessTokenExpiresIn: number; // Added for token refresh (in seconds)
   user: {
     id: string;
     onboardingCompleted: boolean;
@@ -56,6 +58,53 @@ async function syncWithBackend(profile: GoogleProfile): Promise<BackendAuthRespo
   }
 }
 
+/**
+ * Refreshes the access token using the refresh token.
+ * This function is called from the `jwt` callback when the access token has expired.
+ */
+async function refreshAccessToken(token: JWT): Promise<JWT> {
+  try {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    if (!backendUrl) {
+      throw new Error("NEXT_PUBLIC_BACKEND_URL is not defined");
+    }
+
+    const response = await fetch(`${backendUrl}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken: token.refreshToken }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error("Failed to refresh access token:", response.status, errorBody);
+      return {
+        ...token,
+        error: "RefreshAccessTokenError",
+      };
+    }
+
+    const refreshedTokens = (await response.json()) as Pick<
+      BackendAuthResponse,
+      "accessToken" | "refreshToken" | "accessTokenExpiresIn"
+    >;
+
+    return {
+      ...token,
+      accessToken: refreshedTokens.accessToken,
+      refreshToken: refreshedTokens.refreshToken,
+      accessTokenExpiresAt: Date.now() + refreshedTokens.accessTokenExpiresIn * 1000,
+      error: undefined, // Clear any previous errors
+    };
+  } catch (error) {
+    console.error("Error refreshing access token:", error);
+    return {
+      ...token,
+      error: "RefreshAccessTokenError",
+    };
+  }
+}
+
 export const config: NextAuthConfig = {
   secret: process.env.NEXTAUTH_SECRET,
   trustHost: true, // Essential for Vercel deployment
@@ -85,6 +134,8 @@ export const config: NextAuthConfig = {
 
         // Attach backend data to the user object to be used in other callbacks
         user.accessToken = backendResponse.accessToken;
+        user.refreshToken = backendResponse.refreshToken;
+        user.accessTokenExpiresIn = backendResponse.accessTokenExpiresIn;
         user.id = backendResponse.user.id;
         user.onboardingCompleted = backendResponse.user.onboardingCompleted;
         user.isNewUser = !backendResponse.user.onboardingCompleted;
@@ -102,11 +153,21 @@ export const config: NextAuthConfig = {
       // Persist the custom data from the user object to the token.
       if (user) {
         token.accessToken = user.accessToken as string;
+        token.refreshToken = user.refreshToken as string;
+        token.accessTokenExpiresAt = Date.now() + (user.accessTokenExpiresIn as number) * 1000;
         token.userId = user.id as string;
         token.onboardingCompleted = user.onboardingCompleted as boolean;
         token.isNewUser = user.isNewUser as boolean;
       }
-      return token;
+
+      // If the access token has not expired, return the existing token.
+      if (Date.now() < (token.accessTokenExpiresAt as number)) {
+        return token;
+      }
+
+      // If the access token has expired, try to refresh it.
+      console.log("Access token expired, attempting to refresh...");
+      return refreshAccessToken(token);
     },
 
     /**
@@ -117,6 +178,8 @@ export const config: NextAuthConfig = {
       // Transfer the custom data from the JWT (token) to the session object
       session.accessToken = token.accessToken as string;
       session.userId = token.userId as string;
+      session.error = token.error as "RefreshAccessTokenError" | undefined;
+
       if (session.user) {
         session.user.id = token.userId as string;
         session.user.onboardingCompleted = token.onboardingCompleted as boolean;

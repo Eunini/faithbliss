@@ -11,6 +11,7 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     accessToken: string;
     userId: string;
+    error?: "RefreshAccessTokenError"; // Added to propagate refresh errors
     user: {
       id: string;
       onboardingCompleted: boolean;
@@ -25,6 +26,8 @@ declare module "next-auth" {
    */
   interface User {
     accessToken?: string;
+    refreshToken?: string; // Added for token refresh
+    accessTokenExpiresIn?: number; // Added for token refresh
     onboardingCompleted?: boolean;
     isNewUser?: boolean;
   }
@@ -37,10 +40,12 @@ declare module "next-auth/jwt" {
    */
   interface JWT extends NextAuthJWT {
     accessToken: string;
+    refreshToken: string; // Added for token refresh
+    accessTokenExpiresAt: number; // Added for token refresh
     userId: string;
     onboardingCompleted: boolean;
     isNewUser: boolean;
-    // This error field is useful for passing backend errors to the middleware
-    error?: "BackendSyncFailed";
+    // This error field is useful for passing backend errors to the client
+    error?: "RefreshAccessTokenError" | "BackendSyncFailed";
   }
 }
