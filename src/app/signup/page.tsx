@@ -77,11 +77,42 @@ export default function Signup() {
     if (formData.password.length < 6) return setError('Password must be at least 6 characters long');
     if (parseInt(formData.age) < 18) return setError('You must be at least 18 years old to join FaithBliss');
 
+    setLoading(true);
+    setError('');
+
     try {
-      setLoading(true);
-      setError('Email signup is currently disabled. Please use Google Sign In.');
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          age: parseInt(formData.age),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create account');
+      }
+
+      // Automatically sign in the user after successful registration
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        router.push('/onboarding');
+      }
     } catch (error: any) {
       setError(error.message || 'Failed to create account');
+    } finally {
       setLoading(false);
     }
   };

@@ -1,6 +1,7 @@
 // src/lib/auth.ts
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthConfig } from "next-auth";
 import { JWT } from "next-auth/jwt";
 
@@ -113,6 +114,50 @@ export const config: NextAuthConfig = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials.password) {
+          return null;
+        }
+
+        try {
+          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+          const response = await fetch(`${backendUrl}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            }),
+          });
+
+          if (!response.ok) {
+            return null;
+          }
+
+          const backendResponse = await response.json();
+          
+          return {
+            id: backendResponse.user.id,
+            email: backendResponse.user.email,
+            name: backendResponse.user.name,
+            accessToken: backendResponse.accessToken,
+            refreshToken: backendResponse.refreshToken,
+            accessTokenExpiresIn: backendResponse.accessTokenExpiresIn,
+            onboardingCompleted: backendResponse.user.onboardingCompleted,
+            isNewUser: !backendResponse.user.onboardingCompleted,
+          };
+        } catch (error) {
+          console.error("Credentials auth error:", error);
+          return null;
+        }
+      },
+    }),
   ],
   pages: {
     signIn: "/login",
@@ -161,7 +206,10 @@ export const config: NextAuthConfig = {
       }
 
       // If the access token has not expired, return the existing token.
-      if (Date.now() < (token.accessTokenExpiresAt as number)) {
+      const isTokenValid = Date.now() < (token.accessTokenExpiresAt as number);
+      console.log(`JWT Check: Token is ${isTokenValid ? 'valid' : 'expired'}.`);
+
+      if (isTokenValid) {
         return token;
       }
 

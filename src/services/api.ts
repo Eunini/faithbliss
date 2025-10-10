@@ -1,5 +1,5 @@
 // services/api.ts - Comprehensive API service for all backend endpoints
-import { getSession } from 'next-auth/react';
+import { getSession, getCsrfToken } from 'next-auth/react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
 //  API Information & Health Check Endpoints
@@ -187,6 +187,9 @@ interface Comment {
 // Helper function to get auth token
 const getAuthToken = async (): Promise<string | null> => {
   try {
+    // Workaround to force a session refetch by calling getCsrfToken
+    // This ensures we have the latest session data, including a refreshed token.
+    await getCsrfToken();
     const session = await getSession();
     
     // If the session has a refresh error, the token is invalid.
