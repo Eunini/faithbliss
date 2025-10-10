@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/lib/auth.ts
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
@@ -138,7 +139,8 @@ export const config: NextAuthConfig = {
           });
 
           if (!response.ok) {
-            return null;
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Invalid email or password");
           }
 
           const backendResponse = await response.json();
@@ -148,14 +150,13 @@ export const config: NextAuthConfig = {
             email: backendResponse.user.email,
             name: backendResponse.user.name,
             accessToken: backendResponse.accessToken,
-            refreshToken: backendResponse.refreshToken,
             accessTokenExpiresIn: backendResponse.accessTokenExpiresIn,
             onboardingCompleted: backendResponse.user.onboardingCompleted,
             isNewUser: !backendResponse.user.onboardingCompleted,
           };
-        } catch (error) {
-          console.error("Credentials auth error:", error);
-          return null;
+        } catch (error: any) {
+          // The error thrown here will be displayed on the login page
+          throw new Error(error.message || "An error occurred during sign-in.");
         }
       },
     }),
