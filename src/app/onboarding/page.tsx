@@ -38,40 +38,41 @@ const OnboardingPage = () => {
   //   }
   // }, [userProfile, authLoading, user, router]);
   const [formData, setFormData] = useState<FormData>({
+    // Basic Info
     fullName: '',
     phoneNumber: '',
-    countryCode: '+234', // Default to Nigeria
+    countryCode: '+234',
     gender: '',
     birthday: '',
     showAge: false,
     profilePhoto1: null,
     profilePhoto2: null,
     profilePhoto3: null,
-    fieldOfStudy: '',
-    customFieldOfStudy: '',
-    degree: '',
-    profession: '',
-    grewUp: '',
-    hometown: '',
-    currentLocation: '',
+    
+    // Education & Career
+    education: '',
+    occupation: '',
+
+    // Location
+    location: '',
+    latitude: null,
+    longitude: null,
+
+    // Faith
     denomination: '',
     customDenomination: '',
-    isWorker: false,
-    churchDepartment: '',
-    completedClasses: '',
-    churchDuration: '',
-    faithJourney: '',
-    faithInRelationships: '',
-    favoriteVerse: '',
-    lookingFor: '',
-    hobbies: [],
-    values: [],
-    sundayActivity: '',
-    personality: '',
-    aboutMe: ''
+    churchAttendance: '',
+    baptismStatus: '',
+
+    // Personal
+    spiritualGifts: [],
+    interests: [],
+    relationshipGoals: '',
+    lifestyle: '',
+    bio: '',
   });
 
-  const updateFormData = (field: string, value: string | string[] | boolean | null) => {
+  const updateFormData = (field: string, value: string | string[] | boolean | null | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -92,15 +93,21 @@ const OnboardingPage = () => {
       try {
         setSubmitting(true);
         
-        // Transform form data for the API call
-        const finalDenomination = (formData.denomination === 'Other' ? formData.customDenomination : formData.denomination) || '';
-        
+        // Construct the final payload according to Swagger docs
         const onboardingData = {
-          bio: formData.aboutMe,
-          denomination: finalDenomination.toUpperCase(), // Convert to uppercase for the backend enum
-          interests: [...formData.hobbies, ...formData.values],
-          location: formData.currentLocation, // Send only the address string
-          // The 'preferences' and 'profilePhotos' properties are removed as they are not expected by the backend
+          education: formData.education,
+          occupation: formData.occupation,
+          location: formData.location,
+          latitude: formData.latitude || 0, // Default to 0 if null
+          longitude: formData.longitude || 0, // Default to 0 if null
+          denomination: formData.denomination === 'OTHER' ? formData.customDenomination.toUpperCase() : formData.denomination,
+          churchAttendance: formData.churchAttendance,
+          baptismStatus: formData.baptismStatus,
+          spiritualGifts: formData.spiritualGifts,
+          interests: formData.interests,
+          relationshipGoals: formData.relationshipGoals,
+          lifestyle: formData.lifestyle,
+          bio: formData.bio,
         };
 
         await completeOnboarding(onboardingData);

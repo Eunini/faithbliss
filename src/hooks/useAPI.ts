@@ -314,20 +314,19 @@ export function useOnboarding() {
   const { showSuccess, showError } = useToast();
 
   const completeOnboarding = useCallback(async (onboardingData: {
-    bio?: string;
-    denomination?: string;
-    interests?: string[];
-    location?: {
-      latitude: number;
-      longitude: number;
-      address: string;
-    };
-    preferences?: {
-      ageRange: [number, number];
-      maxDistance: number;
-      denomination?: string;
-      interests?: string[];
-    };
+    education: string;
+    occupation: string;
+    location: string;
+    latitude: number;
+    longitude: number;
+    denomination: string;
+    churchAttendance: string;
+    baptismStatus: string;
+    spiritualGifts: string[];
+    interests: string[];
+    relationshipGoals: string;
+    lifestyle: string;
+    bio: string;
   }) => {
     try {
       const result = await API.Auth.completeOnboarding(onboardingData);

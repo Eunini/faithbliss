@@ -12,7 +12,7 @@ import {
 interface OnboardingSlideRendererProps {
   currentSlide: number;
   formData: FormData;
-  updateFormData: (field: string, value: string | string[] | boolean | null) => void;
+  updateFormData: (field: string, value: string | string[] | boolean | null | number) => void;
 }
 
 export const OnboardingSlideRenderer = ({ 

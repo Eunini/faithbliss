@@ -356,20 +356,19 @@ export const AuthAPI = {
 
   // Complete user onboarding
   completeOnboarding: async (onboardingData: {
-    bio?: string;
-    denomination?: string;
-    interests?: string[];
-    location?: {
-      latitude: number;
-      longitude: number;
-      address: string;
-    };
-    preferences?: UserPreferences;
-    profilePhotos?: {
-      photo1?: string;
-      photo2?: string;
-      photo3?: string;
-    };
+    education: string;
+    occupation: string;
+    location: string;
+    latitude: number;
+    longitude: number;
+    denomination: string;
+    churchAttendance: string;
+    baptismStatus: string;
+    spiritualGifts: string[];
+    interests: string[];
+    relationshipGoals: string;
+    lifestyle: string;
+    bio: string;
   }): Promise<User> => {
     return apiRequest('/auth/complete-onboarding', {
       method: 'PUT',

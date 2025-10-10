@@ -25,7 +25,7 @@ export default function Signup() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   // Only show success modal if redirected from an actual signup action
   useEffect(() => {
