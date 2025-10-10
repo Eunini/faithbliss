@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { MapPin } from 'lucide-react';
 import { FormData } from './types';
 import { OpenCageAutocomplete } from '../OpenCageAutocomplete';
 
 interface LocationSlideProps {
   formData: FormData;
-  updateFormData: (field: string, value: string) => void;
+  updateFormData: (field: string, value: any) => void;
 }
 
 export const LocationSlide = ({ formData, updateFormData }: LocationSlideProps) => {
@@ -19,7 +20,13 @@ export const LocationSlide = ({ formData, updateFormData }: LocationSlideProps) 
       <div className="max-w-xl mx-auto">
         <OpenCageAutocomplete
           value={formData.location || ''}
-          onChange={(value) => updateFormData('location', value)}
+          onChange={(value, details) => {
+            if (details) {
+              updateFormData('location', details);
+            } else {
+              updateFormData('location', value);
+            }
+          }}
           placeholder="Enter your city and country"
           label="Your Location"
           icon={<MapPin className="w-5 h-5 text-gray-500" />}

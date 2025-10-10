@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -72,8 +73,17 @@ const OnboardingPage = () => {
     bio: '',
   });
 
-  const updateFormData = (field: string, value: string | string[] | boolean | null | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const updateFormData = (field: string, value: any) => {
+    if (field === 'location' && typeof value === 'object' && value !== null) {
+      setFormData(prev => ({
+        ...prev,
+        location: value.formatted,
+        latitude: value.geometry.lat,
+        longitude: value.geometry.lng,
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
 
@@ -98,9 +108,9 @@ const OnboardingPage = () => {
           education: formData.education,
           occupation: formData.occupation,
           location: formData.location,
-          latitude: formData.latitude || 0, // Default to 0 if null
-          longitude: formData.longitude || 0, // Default to 0 if null
-          denomination: formData.denomination === 'OTHER' ? formData.customDenomination.toUpperCase() : formData.denomination,
+          latitude: formData.latitude || 0,
+          longitude: formData.longitude || 0,
+          denomination: (formData.denomination === 'OTHER' ? formData.customDenomination : formData.denomination).toUpperCase(),
           churchAttendance: formData.churchAttendance,
           baptismStatus: formData.baptismStatus,
           spiritualGifts: formData.spiritualGifts,
@@ -110,10 +120,7 @@ const OnboardingPage = () => {
           bio: formData.bio,
         };
 
-        await completeOnboarding(onboardingData);
-        
-        // Update the session to reflect onboarding completion
-        await update({ onboardingCompleted: true });
+        await completeOnboarding(onboardingData, update);
         
         setShowSuccessModal(true);
         

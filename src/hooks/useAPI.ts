@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Custom hooks for API integration - CLEANED VERSION
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
@@ -313,27 +314,37 @@ export function useCommunityActions() {
 export function useOnboarding() {
   const { showSuccess, showError } = useToast();
 
-  const completeOnboarding = useCallback(async (onboardingData: {
-    education: string;
-    occupation: string;
-    location: string;
-    latitude: number;
-    longitude: number;
-    denomination: string;
-    churchAttendance: string;
-    baptismStatus: string;
-    spiritualGifts: string[];
-    interests: string[];
-    relationshipGoals: string;
-    lifestyle: string;
-    bio: string;
-  }) => {
+  const completeOnboarding = useCallback(async (
+    onboardingData: {
+      education: string;
+      occupation: string;
+      location: string;
+      latitude: number;
+      longitude: number;
+      denomination: string;
+      churchAttendance: string;
+      baptismStatus: string;
+      spiritualGifts: string[];
+      interests: string[];
+      relationshipGoals: string;
+      lifestyle: string;
+      bio: string;
+    },
+    updateSession: (data?: any) => Promise<any>
+  ) => {
     try {
+      // Optimistically update the session
+      await updateSession({ onboardingCompleted: true });
+
       const result = await API.Auth.completeOnboarding(onboardingData);
       showSuccess('Profile setup complete! Welcome to FaithBliss! 🎉', 'Ready to Find Love');
       return result;
     } catch (error) {
       showError('Failed to complete profile setup. Please try again.', 'Setup Error');
+      
+      // Revert the session update on error
+      await updateSession({ onboardingCompleted: false });
+      
       throw error;
     }
   }, [showSuccess, showError]);

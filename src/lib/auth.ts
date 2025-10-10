@@ -60,8 +60,7 @@ async function syncWithBackend(profile: GoogleProfile): Promise<BackendAuthRespo
 }
 
 /**
- * Refreshes the access token using the refresh token.
- * This function is called from the `jwt` callback when the access token has expired.
+ * Refreshes the access token using the httpOnly refresh token cookie.
  */
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
@@ -70,10 +69,12 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
       throw new Error("NEXT_PUBLIC_BACKEND_URL is not defined");
     }
 
+    // The backend expects a POST request to /auth/refresh.
+    // It will use the httpOnly cookie to identify the user and issue a new token.
+    // We don't need to send the refresh token in the body.
     const response = await fetch(`${backendUrl}/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken: token.refreshToken }),
     });
 
     if (!response.ok) {
@@ -85,16 +86,16 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
       };
     }
 
-    const refreshedTokens = (await response.json()) as Pick<
+    // The backend should return a new access token and its expiry.
+    const refreshedData = await response.json() as Pick<
       BackendAuthResponse,
-      "accessToken" | "refreshToken" | "accessTokenExpiresIn"
+      "accessToken" | "accessTokenExpiresIn"
     >;
 
     return {
       ...token,
-      accessToken: refreshedTokens.accessToken,
-      refreshToken: refreshedTokens.refreshToken,
-      accessTokenExpiresAt: Date.now() + refreshedTokens.accessTokenExpiresIn * 1000,
+      accessToken: refreshedData.accessToken,
+      accessTokenExpiresAt: Date.now() + refreshedData.accessTokenExpiresIn * 1000,
       error: undefined, // Clear any previous errors
     };
   } catch (error) {
@@ -164,57 +165,41 @@ export const config: NextAuthConfig = {
     error: "/login", // Redirect users to login page on error
   },
   callbacks: {
-    /**
-     * The `signIn` callback is triggered on a successful sign-in.
-     * We use this to sync the user with our backend and attach backend data to the user object.
-     */
     async signIn({ user, account, profile }) {
       if (account?.provider === "google" && profile) {
         const backendResponse = await syncWithBackend(profile as GoogleProfile);
 
         if (!backendResponse) {
-          // Returning false will prevent the sign-in
           return false;
         }
 
-        // Attach backend data to the user object to be used in other callbacks
+        // We only need to attach the data the frontend can access.
+        // The refresh token is handled by the httpOnly cookie.
         user.accessToken = backendResponse.accessToken;
-        user.refreshToken = backendResponse.refreshToken;
         user.accessTokenExpiresIn = backendResponse.accessTokenExpiresIn;
         user.id = backendResponse.user.id;
         user.onboardingCompleted = backendResponse.user.onboardingCompleted;
         user.isNewUser = !backendResponse.user.onboardingCompleted;
       }
-      // Returning true allows the sign-in to proceed
       return true;
     },
 
-    /**
-     * The `jwt` callback is invoked whenever a JWT is created or updated.
-     * It persists the data from the `user` object (from the `signIn` callback) into the token.
-     */
     async jwt({ token, user }) {
-      // If the user object exists, it means this is the initial sign-in.
-      // Persist the custom data from the user object to the token.
       if (user) {
         token.accessToken = user.accessToken as string;
-        token.refreshToken = user.refreshToken as string;
+        // No need to store refreshToken here anymore
         token.accessTokenExpiresAt = Date.now() + (user.accessTokenExpiresIn as number) * 1000;
         token.userId = user.id as string;
         token.onboardingCompleted = user.onboardingCompleted as boolean;
         token.isNewUser = user.isNewUser as boolean;
       }
 
-      // If the access token has not expired, return the existing token.
       const isTokenValid = Date.now() < (token.accessTokenExpiresAt as number);
-      console.log(`JWT Check: Token is ${isTokenValid ? 'valid' : 'expired'}.`);
-
       if (isTokenValid) {
         return token;
       }
 
-      // If the access token has expired, try to refresh it.
-      console.log("Access token expired, attempting to refresh...");
+      console.log("Access token expired, attempting to refresh via httpOnly cookie...");
       return refreshAccessToken(token);
     },
 
