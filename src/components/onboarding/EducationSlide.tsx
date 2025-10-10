@@ -8,11 +8,10 @@ interface EducationSlideProps {
 
 const educationLevels = {
   HIGH_SCHOOL: 'High School',
-  DIPLOMA: 'Diploma',
   BACHELORS: 'Bachelor\'s Degree',
   MASTERS: 'Master\'s Degree',
   PHD: 'PhD / Doctorate',
-  STUDENT: 'Currently a Student',
+  VOCATIONAL: 'Vocational School',
   OTHER: 'Other',
 };
 
