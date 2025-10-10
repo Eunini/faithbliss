@@ -7,12 +7,12 @@ interface PersonalSlideProps {
 }
 
 export const PersonalSlide = ({ formData, updateFormData }: PersonalSlideProps) => {
-  const relationshipGoalOptions = [
-    'Marriage',
-    'Long-term Relationship',
-    'Friendship',
-    'Not Sure Yet',
-  ];
+  const relationshipGoalOptions: { [key: string]: string } = {
+    MARRIAGE: 'Marriage',
+    LONG_TERM_RELATIONSHIP: 'Long-term Relationship',
+    FRIENDSHIP: 'Friendship',
+    NOT_SURE_YET: 'Not Sure Yet',
+  };
 
   const interestOptions = [
     'Reading', 'Music', 'Singing', 'Sports', 'Fitness', 'Cooking', 'Baking', 'Traveling', 
@@ -21,14 +21,14 @@ export const PersonalSlide = ({ formData, updateFormData }: PersonalSlideProps) 
     'Fashion', 'Learning', 'Prayer', 'Meditation', 'Bible Study'
   ];
 
-  const lifestyleOptions = [
-    'Active & Outdoorsy',
-    'Cozy & Homebody',
-    'Social & Outgoing',
-    'Creative & Artsy',
-    'Academic & Intellectual',
-    'Spontaneous & Adventurous',
-  ];
+  const lifestyleOptions: { [key: string]: string } = {
+    ACTIVE_OUTDOORSY: 'Active & Outdoorsy',
+    COZY_HOMEBODY: 'Cozy & Homebody',
+    SOCIAL_OUTGOING: 'Social & Outgoing',
+    CREATIVE_ARTSY: 'Creative & Artsy',
+    ACADEMIC_INTELLECTUAL: 'Academic & Intellectual',
+    SPONTANEOUS_ADVENTUROUS: 'Spontaneous & Adventurous',
+  };
 
   const toggleInterest = (interest: string) => {
     const currentInterests = formData.interests || [];
@@ -60,9 +60,9 @@ export const PersonalSlide = ({ formData, updateFormData }: PersonalSlideProps) 
               className="w-full p-3 pl-12 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-white transition-all appearance-none text-sm md:text-base"
             >
               <option value="">Select your goal</option>
-              {relationshipGoalOptions.map((option) => (
-                <option key={option} value={option} className="bg-gray-800">
-                  {option}
+              {Object.entries(relationshipGoalOptions).map(([key, value]) => (
+                <option key={key} value={key} className="bg-gray-800">
+                  {value}
                 </option>
               ))}
             </select>
@@ -98,18 +98,18 @@ export const PersonalSlide = ({ formData, updateFormData }: PersonalSlideProps) 
             Which best describes your lifestyle? <span className="text-pink-500">*</span>
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {lifestyleOptions.map((lifestyle) => (
+            {Object.entries(lifestyleOptions).map(([key, value]) => (
               <button
-                key={lifestyle}
+                key={key}
                 type="button"
-                onClick={() => updateFormData('lifestyle', lifestyle)}
+                onClick={() => updateFormData('lifestyle', key)}
                 className={`p-3 rounded-xl text-sm transition-all text-left ${
-                  formData.lifestyle === lifestyle
+                  formData.lifestyle === key
                     ? 'bg-blue-500 text-white shadow-lg'
                     : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
                 }`}
               >
-                {lifestyle}
+                {value}
               </button>
             ))}
           </div>
