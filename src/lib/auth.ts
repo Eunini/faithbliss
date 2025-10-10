@@ -187,20 +187,22 @@ export const config: NextAuthConfig = {
 
     async jwt({ token, user }) {
       if (user) {
+        const expiresIn = user.accessTokenExpiresIn;
+        // Ensure expiresIn is a valid number, default to 1 hour.
+        const expiresInMs = (parseInt(String(expiresIn), 10) || 3600) * 1000;
+
         token.accessToken = user.accessToken as string;
-        // No need to store refreshToken here anymore
-        token.accessTokenExpiresAt = Date.now() + (user.accessTokenExpiresIn as number) * 1000;
+        token.accessTokenExpiresAt = Date.now() + expiresInMs;
         token.userId = user.id as string;
         token.onboardingCompleted = user.onboardingCompleted as boolean;
         token.isNewUser = user.isNewUser as boolean;
       }
 
-      const isTokenValid = Date.now() < (token.accessTokenExpiresAt as number);
-      if (isTokenValid) {
+      if (Date.now() < (token.accessTokenExpiresAt as number)) {
         return token;
       }
 
-      console.log("Access token expired, attempting to refresh via httpOnly cookie...");
+      // If the token is expired, attempt to refresh it.
       return refreshAccessToken(token);
     },
 
