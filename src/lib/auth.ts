@@ -186,7 +186,13 @@ export const config: NextAuthConfig = {
       return true;
     },
 
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      // Handle session updates
+      if (trigger === "update" && session) {
+        token.onboardingCompleted = session.onboardingCompleted;
+        return token;
+      }
+      
       if (user) {
         const expiresIn = user.accessTokenExpiresIn;
         // Ensure expiresIn is a valid number, default to 1 hour.
