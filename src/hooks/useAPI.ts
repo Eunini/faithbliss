@@ -333,18 +333,15 @@ export function useOnboarding() {
     updateSession: (data?: any) => Promise<any>
   ) => {
     try {
-      // Optimistically update the session
+      const result = await API.Auth.completeOnboarding(onboardingData);
+      
+      // Update the session after the API call is successful
       await updateSession({ onboardingCompleted: true });
 
-      const result = await API.Auth.completeOnboarding(onboardingData);
       showSuccess('Profile setup complete! Welcome to FaithBliss! 🎉', 'Ready to Find Love');
       return result;
     } catch (error) {
       showError('Failed to complete profile setup. Please try again.', 'Setup Error');
-      
-      // Revert the session update on error
-      await updateSession({ onboardingCompleted: false });
-      
       throw error;
     }
   }, [showSuccess, showError]);

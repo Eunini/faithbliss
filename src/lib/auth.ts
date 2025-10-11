@@ -76,6 +76,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     const response = await fetch(`${backendUrl}/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include", // Send cookies with the request
     });
 
     if (!response.ok) {
