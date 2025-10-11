@@ -189,8 +189,7 @@ export const config: NextAuthConfig = {
     async jwt({ token, user, trigger, session }) {
       // Handle session updates
       if (trigger === "update" && session) {
-        token.onboardingCompleted = session.onboardingCompleted;
-        return token;
+        return { ...token, ...session };
       }
       
       if (user) {
