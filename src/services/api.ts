@@ -248,6 +248,7 @@ const apiRequest = async <T = unknown>(
     const response = await fetch(url, {
       ...options,
       headers,
+      credentials: 'include', // Send cookies with the request
     });
 
     if (!response.ok) {

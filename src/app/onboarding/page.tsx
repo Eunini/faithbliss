@@ -110,7 +110,7 @@ const OnboardingPage = () => {
           location: formData.location,
           latitude: formData.latitude || 0,
           longitude: formData.longitude || 0,
-          denomination: (formData.denomination === 'OTHER' ? formData.customDenomination : formData.denomination).toUpperCase(),
+          denomination: formData.denomination.toUpperCase(),
           churchAttendance: formData.churchAttendance,
           baptismStatus: formData.baptismStatus,
           spiritualGifts: formData.spiritualGifts,
