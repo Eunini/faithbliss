@@ -335,8 +335,11 @@ export function useOnboarding() {
     try {
       const result = await API.Auth.completeOnboarding(onboardingData);
       
-      // Update the session after the API call is successful
+      // Update the session and wait for it to complete
       await updateSession({ onboardingCompleted: true });
+
+      // Add a small delay to allow session to propagate
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       showSuccess('Profile setup complete! Welcome to FaithBliss! 🎉', 'Ready to Find Love');
       return result;
