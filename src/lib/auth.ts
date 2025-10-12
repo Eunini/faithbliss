@@ -193,14 +193,15 @@ export const config: NextAuthConfig = {
     },
 
     async jwt({ token, user, trigger, session }) {
-      // Handle session updates
+      // Handle session updates from the client
       if (trigger === "update" && session) {
-        return { ...token, ...session };
+        token.onboardingCompleted = session.onboardingCompleted;
+        return token;
       }
       
+      // Initial sign-in
       if (user) {
         const expiresIn = user.accessTokenExpiresIn;
-        // Ensure expiresIn is a valid number, default to 1 hour.
         const expiresInMs = (parseInt(String(expiresIn), 10) || 3600) * 1000;
 
         token.accessToken = user.accessToken as string;
@@ -210,27 +211,13 @@ export const config: NextAuthConfig = {
         token.isNewUser = user.isNewUser as boolean;
       }
 
+      // Return previous token if the access token has not expired yet
       if (Date.now() < (token.accessTokenExpiresAt as number)) {
         return token;
       }
 
-      // If the token is expired, attempt to refresh it.
+      // Access token has expired, try to update it
       return refreshAccessToken(token);
-    },
-
-    /**
-     * The `session` callback is invoked whenever a session is accessed.
-     * It uses the data from the `jwt` token to populate the session object.
-     */
-    async session({ session, token }) {
-      if (token) {
-        session.user.id = token.userId as string;
-        session.user.onboardingCompleted = token.onboardingCompleted as boolean;
-        session.user.isNewUser = token.isNewUser as boolean;
-        session.accessToken = token.accessToken as string;
-        session.error = token.error as "RefreshAccessTokenError" | undefined;
-      }
-      return session;
     },
   },
   session: {

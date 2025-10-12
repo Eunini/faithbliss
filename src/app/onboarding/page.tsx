@@ -15,11 +15,8 @@ import {
   FormData
 } from '@/components/onboarding';
 
-import { useSession } from 'next-auth/react';
-
 const OnboardingPage = () => {
   const router = useRouter();
-  const { update } = useSession();
   const { completeOnboarding } = useOnboarding();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -120,7 +117,7 @@ const OnboardingPage = () => {
           bio: formData.bio,
         };
 
-        await completeOnboarding(onboardingData, update);
+        await completeOnboarding(onboardingData);
         
         setShowSuccessModal(true);
         

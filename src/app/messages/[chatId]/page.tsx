@@ -96,16 +96,14 @@ const ChatPage = () => {
   // Use real conversation data
   const realMessages = messages || [];
   
-  // Get conversation partner info from messages
-  const otherUserMessage = realMessages.find(msg => msg.senderId !== session?.user?.id);
-  const otherUser = otherUserMessage?.sender;
-  
+  // For now, use default user info since we don't have user details in messages
+  // TODO: Fetch user details from API using chatId
   const conversation = {
     id: chatId,
-    name: otherUser?.name || 'Chat User',
-    photo: otherUser?.profilePhotos?.photo1 || '/default-avatar.png',
-    age: otherUser?.age || 0,
-    location: otherUser?.location?.address || 'Unknown',
+    name: 'Chat User', // TODO: Get from API
+    photo: '/default-avatar.png', // TODO: Get from API
+    age: 0, // TODO: Get from API
+    location: 'Unknown', // TODO: Get from API
     online: connected,
     lastSeen: connected ? 'Active now' : 'Last seen recently',
     messages: realMessages

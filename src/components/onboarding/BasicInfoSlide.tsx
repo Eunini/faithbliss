@@ -81,7 +81,7 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
       const result = await CloudinaryService.uploadImage(
         file,
         'faithbliss/profile-photos',
-        session.userId, // <-- Use the correct user ID from the session
+        session.userId, 
         photoNumber
       );
 

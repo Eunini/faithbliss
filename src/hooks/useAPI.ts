@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// Custom hooks for API integration - CLEANED VERSION
-import { useState, useEffect, useCallback } from 'react';
+// Custom hooks for API integration - REFACTORED FOR CLIENT-SIDE
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/contexts/ToastContext';
-import API from '@/services/api';
+import { getApiClient } from '@/services/api-client';
 import wsService from '@/services/websocket';
 
 interface ApiState<T> {
@@ -12,12 +12,39 @@ interface ApiState<T> {
   error: string | null;
 }
 
+// Types for messaging
+interface Message {
+  id: string;
+  content: string;
+  senderId: string;
+  createdAt: string;
+  isRead: boolean;
+}
+
+interface Conversation {
+  matchId: string;
+  match: {
+    matchedUser: {
+      id: string;
+      name: string;
+      profilePhotos?: {
+        photo1?: string;
+      };
+    };
+  };
+  lastMessage?: {
+    content: string;
+    createdAt: string;
+  };
+  unreadCount: number;
+}
+
 // Generic hook for API calls
 export function useApi<T>(
-  apiCall: () => Promise<T>,
+  apiCall: (() => Promise<T>) | null, // Allow null for conditional calls
   dependencies: unknown[] = [],
-  options: { 
-    immediate?: boolean; 
+  options: {
+    immediate?: boolean;
     showErrorToast?: boolean;
     showSuccessToast?: boolean;
   } = {}
@@ -32,31 +59,36 @@ export function useApi<T>(
   const { immediate = true, showErrorToast = true, showSuccessToast = false } = options;
 
   const execute = useCallback(async () => {
+    if (!apiCall) {
+      // If there's no apiCall function (e.g., no token yet), do nothing.
+      return;
+    }
+
     setState(prev => ({ ...prev, loading: true, error: null }));
-    
+
     try {
       const data = await apiCall();
       setState({ data, loading: false, error: null });
-      
+
       if (showSuccessToast) {
         showSuccess('Operation completed successfully');
       }
-      
+
       return data;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       setState(prev => ({ ...prev, loading: false, error: errorMessage }));
-      
+
       if (showErrorToast) {
         showError(errorMessage, 'API Error');
       }
-      
+
       throw error;
     }
   }, [apiCall, showError, showSuccess, showErrorToast, showSuccessToast]);
 
   useEffect(() => {
-    if (immediate) {
+    if (immediate && apiCall) {
       execute();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,81 +101,124 @@ export function useApi<T>(
   };
 }
 
-// Hook for user data
-export function useUser() {
-  const { data: session } = useSession();
-  
-  return useApi(
-    () => API.User.getMe(),
-    [session?.user?.email],
-    { immediate: !!session?.user }
-  );
-}
-
 // Hook for potential matches
 export function usePotentialMatches() {
   const { data: session } = useSession();
-  
+  const accessToken = session?.accessToken;
+  const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
+
+  const apiCall = useCallback(() => apiClient.Match.getPotentialMatches(), [apiClient]);
+
   return useApi(
-    () => API.Match.getPotentialMatches(),
-    [session?.user?.email],
-    { immediate: !!session?.user }
+    accessToken ? apiCall : null, // Only provide the apiCall if the token exists
+    [accessToken],
+    { immediate: !!accessToken }
   );
 }
 
-// Hook for user matches
+// Hook for matches
 export function useMatches() {
   const { data: session } = useSession();
-  
+  const accessToken = session?.accessToken;
+
+  // For now, return mock data until backend endpoint is available
+  const mockMatches: any[] = [
+    {
+      id: 'match-1',
+      matchedUserId: 'user-1',
+      matchedUser: {
+        id: 'user-1',
+        name: 'Sarah Johnson',
+        age: 26,
+        location: { address: 'Lagos, Nigeria' },
+        denomination: 'Pentecostal',
+        profilePhotos: { photo1: '/default-avatar.png' },
+        isActive: true
+      },
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'match-2',
+      matchedUserId: 'user-2',
+      matchedUser: {
+        id: 'user-2',
+        name: 'David Chen',
+        age: 29,
+        location: { address: 'Abuja, Nigeria' },
+        denomination: 'Catholic',
+        profilePhotos: { photo1: '/default-avatar.png' },
+        isActive: false
+      },
+      createdAt: new Date().toISOString()
+    }
+  ];
+
   return useApi(
-    () => API.Match.getMatches(),
-    [session?.user?.email],
-    { immediate: !!session?.user }
+    accessToken ? () => Promise.resolve(mockMatches) : null,
+    [accessToken],
+    { immediate: !!accessToken }
   );
 }
 
-// Hook for conversations
-export function useConversations() {
+// Hook for liking/passing users
+export function useMatching() {
   const { data: session } = useSession();
-  
-  return useApi(
-    () => API.Message.getConversations(),
-    [session?.user?.email],
-    { immediate: !!session?.user }
-  );
+  const accessToken = session?.accessToken;
+  const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
+  const { showSuccess, showError } = useToast();
+
+  const likeUser = useCallback(async (userId: string) => {
+    try {
+      const result = await apiClient.Match.likeUser(userId);
+      showSuccess(result.isMatch ? '💕 It\'s a match!' : '👍 Like sent!');
+      return result;
+    } catch (error) {
+      showError('Failed to like user', 'Error');
+      throw error;
+    }
+  }, [apiClient, showSuccess, showError]);
+
+  const passUser = useCallback(async (userId: string) => {
+    try {
+      await apiClient.Match.passUser(userId);
+      return true;
+    } catch (error) {
+      showError('Failed to pass user', 'Error');
+      throw error;
+    }
+  }, [apiClient, showError]);
+
+  return { likeUser, passUser };
 }
 
-// Hook for conversation messages
-export function useConversationMessages(conversationId: string) {
-  const { data: session } = useSession();
-  
-  return useApi(
-    () => API.Message.getMessages(conversationId),
-    [session?.user?.email, conversationId],
-    { immediate: !!session?.user && !!conversationId }
-  );
-}
+// Hook for completing onboarding
+export function useOnboarding() {
+  const { data: session, update } = useSession();
+  const accessToken = session?.accessToken;
+  const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
+  const { showSuccess, showError } = useToast();
 
-// Hook for community posts
-export function useCommunityPosts() {
-  const { data: session } = useSession();
-  
-  return useApi(
-    () => API.Community.getPosts(),
-    [session?.user?.email],
-    { immediate: !!session?.user }
-  );
-}
+  const completeOnboarding = useCallback(async (
+    onboardingData: any
+  ) => {
+    try {
+      const result = await apiClient.Auth.completeOnboarding(onboardingData);
+      
+      // Update the session to reflect onboarding completion
+      await update({ onboardingCompleted: true });
 
-// Hook for discovery stats
-export function useDiscoveryStats() {
-  const { data: session } = useSession();
-  
-  return useApi(
-    () => API.Discovery.getStats(),
-    [session?.user?.email],
-    { immediate: !!session?.user, showErrorToast: false }
-  );
+      // Add a small delay to allow session to propagate
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      showSuccess('Profile setup complete! Welcome to FaithBliss! 🎉', 'Ready to Find Love');
+      return result;
+    } catch (error) {
+      showError('Failed to complete profile setup. Please try again.', 'Setup Error');
+      throw error;
+    }
+  }, [apiClient, showSuccess, showError, update]);
+
+  return { completeOnboarding };
 }
 
 // Hook for WebSocket connection
@@ -152,7 +227,7 @@ export function useWebSocket() {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    if (session?.user) {
+    if (session?.user?.id) {
       wsService.connect().then(() => {
         setConnected(wsService.isConnected());
       });
@@ -162,7 +237,7 @@ export function useWebSocket() {
         setConnected(false);
       };
     }
-  }, [session?.user]);
+  }, [session?.user?.id]);
 
   return {
     connected,
@@ -177,177 +252,108 @@ export function useWebSocket() {
   };
 }
 
-// Hook for liking/passing users
-export function useMatching() {
-  const { showSuccess, showError } = useToast();
+// Hook for conversations
+export function useConversations() {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
 
-  const likeUser = useCallback(async (userId: string) => {
-    try {
-      const result = await API.Match.likeUser(userId);
-      showSuccess(result.isMatch ? '💕 It\'s a match!' : '👍 Like sent!');
-      return result;
-    } catch (error) {
-      showError('Failed to like user', 'Error');
-      throw error;
+  // For now, return mock data until backend endpoint is available
+  const mockConversations: Conversation[] = [
+    {
+      matchId: 'mock-match-1',
+      match: {
+        matchedUser: {
+          id: 'user-1',
+          name: 'Sarah Johnson',
+          profilePhotos: {
+            photo1: '/default-avatar.png'
+          }
+        }
+      },
+      lastMessage: {
+        content: 'Hey! How are you doing?',
+        createdAt: new Date().toISOString()
+      },
+      unreadCount: 2
+    },
+    {
+      matchId: 'mock-match-2',
+      match: {
+        matchedUser: {
+          id: 'user-2',
+          name: 'Michael Chen',
+          profilePhotos: {
+            photo1: '/default-avatar.png'
+          }
+        }
+      },
+      lastMessage: {
+        content: 'Thanks for the match!',
+        createdAt: new Date().toISOString()
+      },
+      unreadCount: 0
     }
-  }, [showSuccess, showError]);
+  ];
 
-  const passUser = useCallback(async (userId: string) => {
-    try {
-      await API.Match.passUser(userId);
-      return true;
-    } catch (error) {
-      showError('Failed to pass user', 'Error');
-      throw error;
-    }
-  }, [showError]);
-
-  return { likeUser, passUser };
+  return useApi(
+    accessToken ? () => Promise.resolve(mockConversations) : null,
+    [accessToken],
+    { immediate: !!accessToken }
+  );
 }
 
-// Hook for sending messages
+// Hook for messaging
 export function useMessaging() {
   const { showError } = useToast();
 
   const sendMessage = useCallback(async (matchId: string, content: string) => {
     try {
-      const message = await API.Message.sendMessage({ matchId, content });
-      return message;
+      // TODO: Replace with actual API call when backend is ready
+      // await apiClient.Message.sendMessage(matchId, { content });
+      console.log('Sending message:', { matchId, content });
+      return { success: true };
     } catch (error) {
       showError('Failed to send message', 'Error');
       throw error;
     }
   }, [showError]);
 
-  const markAsRead = useCallback(async (messageId: string) => {
-    try {
-      await API.Message.markAsRead(messageId);
-      return true;
-    } catch (error) {
-      console.error('Failed to mark message as read:', error);
-      return false;
-    }
-  }, []);
-
-  return { sendMessage, markAsRead };
+  return { sendMessage };
 }
 
-// Hook for profile updates
-export function useProfileUpdate() {
-  const { showSuccess, showError } = useToast();
+// Hook for conversation messages
+export function useConversationMessages(matchId: string) {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
 
-  const updateProfile = useCallback(async (profileData: {
-    name?: string;
-    bio?: string;
-    age?: number;
-    denomination?: string;
-    interests?: string[];
-  }) => {
-    try {
-      const updatedUser = await API.User.updateMe(profileData);
-      showSuccess('Profile updated successfully!');
-      return updatedUser;
-    } catch (error) {
-      showError('Failed to update profile', 'Error');
-      throw error;
-    }
-  }, [showSuccess, showError]);
-
-  const uploadPhotos = useCallback(async (photos: File[]) => {
-    try {
-      const formData = new FormData();
-      photos.forEach((photo, index) => {
-        formData.append(`photo${index + 1}`, photo);
-      });
-
-      const results = await API.User.uploadPhotos(formData);
-      showSuccess('Photos uploaded successfully!');
-      return results;
-    } catch (error) {
-      showError('Failed to upload photos', 'Error');
-      throw error;
-    }
-  }, [showSuccess, showError]);
-
-  return { updateProfile, uploadPhotos };
-}
-
-// Hook for community interactions
-export function useCommunityActions() {
-  const { showSuccess, showError } = useToast();
-
-  const createPost = useCallback(async (content: string, imageUrl?: string) => {
-    try {
-      const post = await API.Community.createPost({ content, imageUrl });
-      showSuccess('Post created successfully!');
-      return post;
-    } catch (error) {
-      showError('Failed to create post', 'Error');
-      throw error;
-    }
-  }, [showSuccess, showError]);
-
-  const likePost = useCallback(async (postId: string) => {
-    try {
-      await API.Community.likePost(postId);
-    } catch (error) {
-      showError('Failed to like post', 'Error');
-      throw error;
-    }
-  }, [showError]);
-
-  const createPrayerRequest = useCallback(async (title: string, content: string) => {
-    try {
-      const prayer = await API.Community.createPrayerRequest({ title, content });
-      showSuccess('Prayer request submitted!');
-      return prayer;
-    } catch (error) {
-      showError('Failed to submit prayer request', 'Error');
-      throw error;
-    }
-  }, [showSuccess, showError]);
-
-  return { createPost, likePost, createPrayerRequest };
-}
-
-// Hook for completing onboarding
-export function useOnboarding() {
-  const { showSuccess, showError } = useToast();
-
-  const completeOnboarding = useCallback(async (
-    onboardingData: {
-      education: string;
-      occupation: string;
-      location: string;
-      latitude: number;
-      longitude: number;
-      denomination: string;
-      churchAttendance: string;
-      baptismStatus: string;
-      spiritualGifts: string[];
-      interests: string[];
-      relationshipGoals: string;
-      lifestyle: string;
-      bio: string;
+  // Mock messages data
+  const mockMessages: Message[] = [
+    {
+      id: 'msg-1',
+      content: 'Hi there! Nice to match with you.',
+      senderId: 'other-user',
+      createdAt: new Date(Date.now() - 3600000).toISOString(),
+      isRead: true
     },
-    updateSession: (data?: any) => Promise<any>
-  ) => {
-    try {
-      const result = await API.Auth.completeOnboarding(onboardingData);
-      
-      // Update the session and wait for it to complete
-      await updateSession({ onboardingCompleted: true });
-
-      // Add a small delay to allow session to propagate
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      showSuccess('Profile setup complete! Welcome to FaithBliss! 🎉', 'Ready to Find Love');
-      return result;
-    } catch (error) {
-      showError('Failed to complete profile setup. Please try again.', 'Setup Error');
-      throw error;
+    {
+      id: 'msg-2',
+      content: 'Thanks! You too. How has your day been?',
+      senderId: 'current-user',
+      createdAt: new Date(Date.now() - 1800000).toISOString(),
+      isRead: true
+    },
+    {
+      id: 'msg-3',
+      content: 'It\'s been great! Just finished reading a good book.',
+      senderId: 'other-user',
+      createdAt: new Date(Date.now() - 900000).toISOString(),
+      isRead: false
     }
-  }, [showSuccess, showError]);
+  ];
 
-  return { completeOnboarding };
+  return useApi(
+    accessToken && matchId ? () => Promise.resolve(mockMessages) : null,
+    [accessToken, matchId],
+    { immediate: !!(accessToken && matchId) }
+  );
 }

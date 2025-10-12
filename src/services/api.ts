@@ -1,5 +1,5 @@
 // services/api.ts - Comprehensive API service for all backend endpoints
-import { getSession, getCsrfToken } from 'next-auth/react';
+import { auth } from "@/lib/auth";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
 //  API Information & Health Check Endpoints
@@ -184,36 +184,7 @@ interface Comment {
   user: User;
 }
 
-// Helper function to get auth token
-const getAuthToken = async (): Promise<string | null> => {
-  try {
-    // Workaround to force a session refetch by calling getCsrfToken
-    // This ensures we have the latest session data, including a refreshed token.
-    await getCsrfToken();
-    const session = await getSession();
-    
-    // If the session has a refresh error, the token is invalid.
-    // Force a sign-out to clear the session and redirect to login.
-    if (session?.error === "RefreshAccessTokenError") {
-      console.error("Refresh token failed. Forcing sign out.");
-      // Use next-auth/react's signOut to clear the session
-      const { signOut } = await import("next-auth/react");
-      await signOut({ callbackUrl: "/login" });
-      return null;
-    }
-    
-    if (!session?.accessToken) {
-      console.warn('No access token found in session');
-      return null;
-    }
-    
-    return session.accessToken as string;
-  } catch (error) {
-    console.error('Error getting auth token:', error);
-    return null;
-  }
-};
-
+ 
 // Generic API request function
 const apiRequest = async <T = unknown>(
   endpoint: string, 
@@ -229,10 +200,12 @@ const apiRequest = async <T = unknown>(
 
   // Add auth token if required
   if (requireAuth) {
-    const token = await getAuthToken();
+    const session = await auth();
+    const token = session?.accessToken;
+
     if (token) {
       headers.Authorization = `Bearer ${token}`;
-    } else if (requireAuth) {
+    } else {
       console.error('Auth token required but not available');
       const authError = new Error('Authentication required') as Error & {
         statusCode: number;
@@ -243,14 +216,12 @@ const apiRequest = async <T = unknown>(
       throw authError;
     }
   }
-
   try {
     const response = await fetch(url, {
       ...options,
       headers,
       credentials: 'include', // Send cookies with the request
     });
-
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
       const errorMessage = errorData?.message || `HTTP ${response.status}: ${response.statusText}`;
@@ -270,7 +241,6 @@ const apiRequest = async <T = unknown>(
       
       throw apiError;
     }
-
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       return await response.json() as T;

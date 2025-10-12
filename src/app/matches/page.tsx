@@ -10,6 +10,25 @@ import { TopBar } from '@/components/dashboard/TopBar';
 import { useMatches } from '@/hooks/useAPI';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
+interface Match {
+  id: string;
+  matchedUserId: string;
+  matchedUser: {
+    id: string;
+    name: string;
+    age: number;
+    location?: {
+      address: string;
+    };
+    denomination?: string;
+    profilePhotos?: {
+      photo1: string;
+    };
+    isActive: boolean;
+  };
+  createdAt: string;
+}
+
 const MatchesPage = () => {
   const [activeTab, setActiveTab] = useState('mutual');
   const router = useRouter();
@@ -44,7 +63,7 @@ const MatchesPage = () => {
 
   // Use real matches data or empty arrays
   const mutualMatches = matchesData || [];
-  const sentRequests: typeof mutualMatches = []; // This would come from a different API endpoint
+  const sentRequests: Match[] = []; // This would come from a different API endpoint
 
   const receivedRequests = [
     {
@@ -140,7 +159,7 @@ const MatchesPage = () => {
             {activeTab === 'mutual' && (
               <div className="space-y-4">
                 {mutualMatches.length > 0 ? (
-                  mutualMatches.map((match) => (
+                  mutualMatches.map((match: Match) => (
                     <div key={match.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300 group">
                       <div className="flex items-center gap-4 mb-4">
                         <div className="relative">
@@ -208,7 +227,7 @@ const MatchesPage = () => {
 
             {activeTab === 'sent' && (
               <div className="space-y-4">
-                {sentRequests.map((request) => {
+                {sentRequests.map((request: Match) => {
                   const matchedUser = request.matchedUser;
                   return (
                     <div key={request.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300">
