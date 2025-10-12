@@ -10,7 +10,7 @@ export async function middleware(req: NextRequest) {
   const isLoggedIn = !!session;
 
   // Define public routes that do not require authentication
-  const publicRoutes = ["/", "/login", "/signup"];
+  const publicRoutes = ["/", "/login", "/signup", "/onboarding"];
 
   // Define routes that are part of the authentication flow
   const authRoutes = ["/login", "/signup"];
