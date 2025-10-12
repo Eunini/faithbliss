@@ -25,6 +25,8 @@ const DashboardPage = () => {
   const [showSidePanel, setShowSidePanel] = useState(false);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   
+  const [retryCount, setRetryCount] = useState(0);
+
   // Fetch real potential matches from backend
   const { data: profiles, loading: matchesLoading, error, refetch } = usePotentialMatches();
   const { likeUser, passUser } = useMatching();
@@ -37,6 +39,14 @@ const DashboardPage = () => {
   }
 
   // Handle errors or no profiles
+  if (error && retryCount < 3) {
+    setTimeout(() => {
+      refetch();
+      setRetryCount(retryCount + 1);
+    }, 3000);
+    return <HeartBeatLoader message="Setting up your account... Please wait." />;
+  }
+
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">

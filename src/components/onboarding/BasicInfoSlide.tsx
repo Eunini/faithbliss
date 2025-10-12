@@ -132,9 +132,6 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
         const newInput = document.createElement('input');
         newInput.type = 'file';
         newInput.accept = 'image/jpeg,image/jpg,image/png,image/gif,image/webp';
-        if ('capture' in newInput) {
-          newInput.setAttribute('capture', 'environment');
-        }
         
         console.log(`✨ Created new file input for photo ${photoNumber}`);
         

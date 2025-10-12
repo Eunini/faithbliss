@@ -145,15 +145,20 @@ export const config: NextAuthConfig = {
           }
 
           const backendResponse = await response.json();
+
+          // Handle a flat response structure from the backend
+          if (!backendResponse.id) {
+            throw new Error("Malformed API response: user ID missing.");
+          }
           
           return {
-            id: backendResponse.user.id,
-            email: backendResponse.user.email,
-            name: backendResponse.user.name,
+            id: backendResponse.id,
+            email: backendResponse.email,
+            name: backendResponse.name,
             accessToken: backendResponse.accessToken,
             accessTokenExpiresIn: backendResponse.accessTokenExpiresIn,
-            onboardingCompleted: backendResponse.user.onboardingCompleted,
-            isNewUser: !backendResponse.user.onboardingCompleted,
+            onboardingCompleted: backendResponse.onboardingCompleted,
+            isNewUser: !backendResponse.onboardingCompleted,
           };
         } catch (error: any) {
           // The error thrown here will be displayed on the login page
@@ -171,7 +176,8 @@ export const config: NextAuthConfig = {
       if (account?.provider === "google" && profile) {
         const backendResponse = await syncWithBackend(profile as GoogleProfile);
 
-        if (!backendResponse) {
+        if (!backendResponse || !backendResponse.id) {
+          console.error("Google sign-in failed: Malformed response from backend, user ID is missing.");
           return false;
         }
 
@@ -179,9 +185,9 @@ export const config: NextAuthConfig = {
         // The refresh token is handled by the httpOnly cookie.
         user.accessToken = backendResponse.accessToken;
         user.accessTokenExpiresIn = backendResponse.accessTokenExpiresIn;
-        user.id = backendResponse.user.id;
-        user.onboardingCompleted = backendResponse.user.onboardingCompleted;
-        user.isNewUser = !backendResponse.user.onboardingCompleted;
+        user.id = backendResponse.id;
+        user.onboardingCompleted = backendResponse.onboardingCompleted;
+        user.isNewUser = !backendResponse.onboardingCompleted;
       }
       return true;
     },
