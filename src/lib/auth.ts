@@ -176,7 +176,7 @@ export const config: NextAuthConfig = {
       if (account?.provider === "google" && profile) {
         const backendResponse = await syncWithBackend(profile as GoogleProfile);
 
-        if (!backendResponse || !backendResponse.id) {
+        if (!backendResponse || !backendResponse.user?.id) {
           console.error("Google sign-in failed: Malformed response from backend, user ID is missing.");
           return false;
         }
@@ -185,9 +185,9 @@ export const config: NextAuthConfig = {
         // The refresh token is handled by the httpOnly cookie.
         user.accessToken = backendResponse.accessToken;
         user.accessTokenExpiresIn = backendResponse.accessTokenExpiresIn;
-        user.id = backendResponse.id;
-        user.onboardingCompleted = backendResponse.onboardingCompleted;
-        user.isNewUser = !backendResponse.onboardingCompleted;
+        user.id = backendResponse.user.id;
+        user.onboardingCompleted = backendResponse.user.onboardingCompleted;
+        user.isNewUser = !backendResponse.user.onboardingCompleted;
       }
       return true;
     },
