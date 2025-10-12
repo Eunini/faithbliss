@@ -223,15 +223,12 @@ export const config: NextAuthConfig = {
      * It uses the data from the `jwt` token to populate the session object.
      */
     async session({ session, token }) {
-      // Transfer the custom data from the JWT (token) to the session object
-      session.accessToken = token.accessToken as string;
-      session.userId = token.userId as string;
-      session.error = token.error as "RefreshAccessTokenError" | undefined;
-
-      if (session.user) {
+      if (token) {
         session.user.id = token.userId as string;
         session.user.onboardingCompleted = token.onboardingCompleted as boolean;
         session.user.isNewUser = token.isNewUser as boolean;
+        session.accessToken = token.accessToken as string;
+        session.error = token.error as "RefreshAccessTokenError" | undefined;
       }
       return session;
     },
