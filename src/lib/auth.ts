@@ -3,6 +3,7 @@
 import NextAuth, { type Session, type User } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+import type { NextAuthOptions } from "next-auth"
 import { JWT } from "next-auth/jwt";
 
 // Define a type for the backend response to ensure type safety
@@ -109,9 +110,8 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
   }
 }
 
-export const config = {
+export const config: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  trustHost: true, // Essential for Vercel deployment
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -230,11 +230,7 @@ export const config = {
     },
   },
   session: {
-    strategy: "jwt" as const,
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // Update session every 24 hours
-  },
-  jwt: {
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   debug: process.env.NODE_ENV === "development",
