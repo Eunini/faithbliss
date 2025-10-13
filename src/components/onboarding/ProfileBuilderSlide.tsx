@@ -45,7 +45,7 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
       className="space-y-12"
     >
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-white">Let's build your profile! ✨</h2>
+        <h2 className="text-3xl font-bold text-white">Let&apos;s build your profile! ✨</h2>
         <p className="text-gray-400">Help others get to know the real you.</p>
       </div>
 
