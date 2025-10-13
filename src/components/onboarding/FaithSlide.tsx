@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// src/components/onboarding/FaithSlide.tsx
-'use client';
-
+import { countryCodes } from '@/lib/countryCodes';
 import React from 'react';
 import { OnboardingData } from './types';
 import { motion } from 'framer-motion';
@@ -141,11 +138,11 @@ export const FaithSlide: React.FC<FaithSlideProps> = ({
             onChange={(e) => setOnboardingData(prev => ({ ...prev, countryCode: e.target.value }))}
             className="inline-flex items-center px-4 rounded-l-lg border border-r-0 border-gray-600 bg-gray-800 text-gray-300 text-md"
           >
-            <option value="+1">+1 (US)</option>
-            <option value="+44">+44 (UK)</option>
-            <option value="+234">+234 (NG)</option>
-            <option value="+91">+91 (IN)</option>
-            <option value="+86">+86 (CN)</option>
+            {countryCodes.map((country) => (
+              <option key={country.name} value={country.code}>
+                {country.name} ({country.code})
+              </option>
+            ))}
           </select>
           <input
             type="tel"
