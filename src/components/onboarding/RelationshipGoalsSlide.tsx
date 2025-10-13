@@ -33,7 +33,7 @@ const RelationshipGoalsSlide = ({ onboardingData, setOnboardingData, isVisible }
       <div className="space-y-4">
         <div>
           <label htmlFor="relationshipGoals" className="block text-sm font-medium text-gray-300">
-            I'm looking for...
+            I&apos;m looking for...
           </label>
           <select
             id="relationshipGoals"

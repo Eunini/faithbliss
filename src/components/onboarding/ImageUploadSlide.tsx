@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { UploadCloud, X, AlertCircle } from 'lucide-react';
 import { OnboardingData } from './types';
@@ -89,11 +90,17 @@ const ImageUploadSlide = ({ onboardingData, setOnboardingData, isVisible }: Imag
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {photoPreviews.map((previewUrl, index) => (
-          <div key={index} className="relative group">
-            <img src={previewUrl} alt={`photo-${index}`} className="w-full h-40 object-cover rounded-lg" />
+          <div key={index} className="relative group w-full h-40">
+            <Image 
+              src={previewUrl} 
+              alt={`photo-${index}`} 
+              layout="fill"
+              objectFit="cover"
+              className="rounded-lg" 
+            />
             <button
               onClick={() => removePhoto(index)}
-              className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
             >
               <X size={16} />
             </button>

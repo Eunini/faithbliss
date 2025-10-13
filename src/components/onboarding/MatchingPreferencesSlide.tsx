@@ -112,7 +112,7 @@ const MatchingPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible
 
         <div>
           <label htmlFor="preferredGender" className="block text-sm font-medium text-gray-300">
-            I'm interested in...
+            I&apos;m interested in...
           </label>
           <select
             id="preferredGender"
