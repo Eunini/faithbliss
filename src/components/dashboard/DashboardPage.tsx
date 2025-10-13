@@ -23,33 +23,27 @@ export const DashboardPage = ({ session }: { session: Session }) => {
   const [showSidePanel, setShowSidePanel] = useState(false);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   
-  const [retryCount, setRetryCount] = useState(0);
-
   // Fetch real potential matches from backend
+  // The useApi hook now handles token refresh and redirection automatically.
   const { data: profiles, loading: matchesLoading, error, refetch } = usePotentialMatches();
   const { likeUser, passUser } = useMatching();
 
   const userName = session?.user?.name || session?.user?.email || "Tester";
 
-  // Show loading while checking authentication or fetching matches
+  // Show loading state while fetching matches or refreshing the token.
+  // The useApi hook will redirect to /login if the refresh fails, so we don't need
+  // to handle a persistent error state here.
   if (matchesLoading) {
     return <HeartBeatLoader message="Preparing your matches..." />;
   }
 
-  // Handle errors or no profiles
-  if (error && retryCount < 3) {
-    setTimeout(() => {
-      refetch();
-      setRetryCount(retryCount + 1);
-    }, 3000);
-    return <HeartBeatLoader message="Setting up your account... Please wait." />;
-  }
-
-  if (error) {
+  // This error state will only be briefly visible during a refresh attempt.
+  // If the error is persistent (e.g., refresh token is invalid), the hook will redirect.
+  if (error && !profiles) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
         <div className="text-center p-8">
-          <p className="text-red-600 mb-4">Failed to load matches: {error}</p>
+          <p className="text-red-600 mb-4">Could not load matches. Retrying...</p>
           <button 
             onClick={() => refetch()}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
@@ -160,7 +154,7 @@ export const DashboardPage = ({ session }: { session: Session }) => {
         showFilters={showFilters}
         showSidePanel={showSidePanel}
         onToggleFilters={() => setShowFilters(!showFilters)}
-        onToggleSidePanel={() => setShowSidePanel(!showSidePanel)}
+        onToggleSidePanel={() => setShowSide-Panel(!showSidePanel)}
       >
         <ProfileDisplay
           currentProfile={currentProfile}

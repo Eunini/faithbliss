@@ -1,18 +1,29 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 export function useAuth(requireAuth: boolean = true) {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
+
+  const handleSignOut = useCallback(async () => {
+    await signOut({ redirect: false });
+    router.push('/login');
+  }, [router]);
 
   useEffect(() => {
     if (requireAuth && status === 'unauthenticated') {
       router.push('/login');
     }
-  }, [status, requireAuth, router]);
+
+    // This is a failsafe. If the session has an error (e.g., RefreshAccessTokenError),
+    // it indicates the refresh token is invalid. In this case, we should force a sign-out.
+    if (session?.error === "RefreshAccessTokenError") {
+      handleSignOut();
+    }
+  }, [status, requireAuth, router, session, handleSignOut]);
 
   return {
     session,
@@ -21,6 +32,8 @@ export function useAuth(requireAuth: boolean = true) {
     isAuthenticated: status === 'authenticated',
     user: session?.user,
     accessToken: session?.accessToken,
+    update, // Expose the update function
+    signOut: handleSignOut, // Expose a safe sign-out function
   };
 }
 

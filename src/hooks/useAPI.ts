@@ -6,6 +6,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { getApiClient } from '@/services/api-client';
 import wsService from '@/services/websocket';
 import { useRequireAuth } from './useAuth';
+import { useRouter } from 'next/navigation';
 
 interface ApiState<T> {
   data: T | null;
@@ -57,6 +58,7 @@ export function useApi<T>(
   });
 
   const { showError, showSuccess } = useToast();
+  const router = useRouter();
   const { immediate = true, showErrorToast = true, showSuccessToast = false } = options;
 
   const execute = useCallback(async () => {
@@ -76,7 +78,14 @@ export function useApi<T>(
       }
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
+      // Check for auth error and redirect
+      if (error.statusCode === 401) {
+        showError('Your session has expired. Please log in again.', 'Authentication Error');
+        router.push('/login');
+        return; // Stop further execution
+      }
+
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       setState(prev => ({ ...prev, loading: false, error: errorMessage }));
 
@@ -86,7 +95,7 @@ export function useApi<T>(
 
       throw error;
     }
-  }, [apiCall, showError, showSuccess, showErrorToast, showSuccessToast]);
+  }, [apiCall, showError, showSuccess, showErrorToast, showSuccessToast, router]);
 
   useEffect(() => {
     if (immediate && apiCall) {

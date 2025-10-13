@@ -2,14 +2,33 @@
 // src/services/api-client.ts
 // This file contains a version of the API service designed to be used exclusively on the client-side.
 // It is initialized with an access token obtained from the client's session.
+import { getSession } from 'next-auth/react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
+
+// A function to refresh the session by making a request to the NextAuth backend
+async function refreshSession() {
+  try {
+    // getSession forces a session update, which will trigger the JWT refresh logic
+    const newSession = await getSession();
+    if (!newSession?.accessToken) {
+      throw new Error('Failed to refresh token.');
+    }
+    return newSession.accessToken;
+  } catch (error) {
+    console.error('Session refresh failed:', error);
+    // Potentially redirect to login or show a global error message
+    window.location.href = '/login'; // Force logout
+    return null;
+  }
+}
 
 // Generic API request function for the client
 const apiClientRequest = async <T = unknown>(
   endpoint: string,
   options: RequestInit = {},
-  accessToken: string | null
+  accessToken: string | null,
+  isRetry = false
 ): Promise<T> => {
   const url = `${API_BASE_URL}${endpoint}`;
 
@@ -22,8 +41,6 @@ const apiClientRequest = async <T = unknown>(
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
   }
-  // Note: We don't throw an error here for missing tokens
-  // Let the backend handle authentication requirements
 
   try {
     const response = await fetch(url, {
@@ -33,6 +50,16 @@ const apiClientRequest = async <T = unknown>(
     });
 
     if (!response.ok) {
+      // Handle token expiration
+      if (response.status === 401 && !isRetry) {
+        console.log('Access token expired. Attempting to refresh...');
+        const newAccessToken = await refreshSession();
+        if (newAccessToken) {
+          // Retry the request with the new token
+          return apiClientRequest(endpoint, options, newAccessToken, true);
+        }
+      }
+
       const errorData = await response.json().catch(() => null);
       const errorMessage = errorData?.message || `HTTP ${response.status}: ${response.statusText}`;
       const apiError = new Error(errorMessage) as Error & { statusCode: number };

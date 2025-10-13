@@ -1,11 +1,21 @@
-export { BasicInfoSlide } from './BasicInfoSlide';
-export { EducationSlide } from './EducationSlide';
-export { LocationSlide } from './LocationSlide';
+// src/components/onboarding/index.ts
+
+// Main Slides/Views
 export { FaithSlide } from './FaithSlide';
-export { PersonalSlide } from './PersonalSlide';
+// Note: Other slides like BasicInfo, Education, etc., are now deprecated 
+// in favor of the consolidated FaithSlide and the new PreferenceSlide.
+
+// Core UI Components
 export { OnboardingHeader } from './OnboardingHeader';
 export { OnboardingNavigation } from './OnboardingNavigation';
 export { OnboardingSuccessModal } from './OnboardingSuccessModal';
-export { OnboardingSlideRenderer } from './OnboardingSlideRenderer';
-export { validateSlide } from './validation';
-export type { FormData } from './types';
+
+// Validation and Types
+export { validateOnboardingStep } from './validation';
+export type { OnboardingData } from './types';
+export { 
+  FaithJourney, 
+  ChurchAttendance, 
+  RelationshipGoals, 
+  Gender 
+} from './types';

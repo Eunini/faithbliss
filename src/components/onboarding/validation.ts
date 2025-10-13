@@ -1,43 +1,36 @@
-import { FormData } from './types';
+// src/components/onboarding/validation.ts
+import { OnboardingData } from './types';
 
-export const validateSlide = (currentSlide: number, formData: FormData): boolean => {
-  switch (currentSlide) {
-    // Basic Info Slide
-    case 0:
-      const photosUploaded = [formData.profilePhoto1, formData.profilePhoto2, formData.profilePhoto3].filter(Boolean).length;
-      return !!(formData.fullName && 
-                formData.phoneNumber && 
-                formData.countryCode && 
-                formData.gender && 
-                formData.birthday && 
-                photosUploaded >= 2);
-    
-    // Education & Career Slide
-    case 1:
-      return !!(formData.education && formData.occupation);
-    
-    // Location Slide (assuming this is where 'location' is set)
-    case 2:
-      // The old fields grewUp, hometown, currentLocation are now just 'location'
-      // We will assume the location slide sets formData.location
-      return !!(formData.location);
-    
-    // Faith Slide
-    case 3:
-      const denominationValid = formData.denomination && 
-        (formData.denomination !== 'OTHER' || formData.customDenomination);
-      return !!(denominationValid && 
-                formData.churchAttendance &&
-                formData.baptismStatus);
-    
-    // Personal Slide (assuming this is where the bio and other details are set)
-    case 4:
-      // The old fields are replaced by bio, relationshipGoals, etc.
-      // We will validate the main 'bio' field for now.
-      // More complex validation can be added as the UI for this slide is built out.
-      return !!(formData.bio && formData.bio.length > 10);
-    
-    default:
-      return true;
+export const validateStep1 = (data: OnboardingData): boolean => {
+  return !!(
+    data.faithJourney &&
+    data.churchAttendance &&
+    data.relationshipGoals &&
+    data.age >= 18 &&
+    data.location &&
+    data.denomination
+  );
+};
+
+export const validateStep2 = (data: OnboardingData): boolean => {
+  return !!(
+    data.preferredFaithJourney?.length > 0 &&
+    data.preferredChurchAttendance?.length > 0 &&
+    data.preferredRelationshipGoals?.length > 0 &&
+    data.preferredGender &&
+    data.minAge >= 18 &&
+    data.maxAge > data.minAge &&
+    data.maxDistance > 0
+  );
+};
+
+// A wrapper function to call the correct validation based on the step
+export const validateOnboardingStep = (step: number, data: OnboardingData): boolean => {
+  if (step === 0) {
+    return validateStep1(data);
   }
+  if (step === 1) {
+    return validateStep2(data);
+  }
+  return false;
 };

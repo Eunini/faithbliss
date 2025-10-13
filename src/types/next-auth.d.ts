@@ -19,7 +19,7 @@ declare module 'next-auth' {
    */
   interface Session {
     accessToken?: string;
-    error?: 'RefreshAccessTokenError';
+    error?: string; // Allow any string for flexibility
     user: {
       id: string;
       onboardingCompleted?: boolean;
@@ -37,6 +37,6 @@ declare module 'next-auth/jwt' {
     userId?: string;
     onboardingCompleted?: boolean;
     isNewUser?: boolean;
-    error?: 'RefreshAccessTokenError';
+    error?: string; // Allow any string for flexibility
   }
 }

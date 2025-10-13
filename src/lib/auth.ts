@@ -83,6 +83,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     if (!response.ok) {
       const errorBody = await response.text();
       console.error("Failed to refresh access token:", response.status, errorBody);
+      // This error will be caught by the session callback and can be used to force a sign-out
       return {
         ...token,
         error: "RefreshAccessTokenError",
@@ -218,6 +219,7 @@ export const config: NextAuthConfig = {
       }
 
       // Access token has expired, try to update it
+      console.log("Access token expired. Refreshing...");
       return refreshAccessToken(token);
     },
     async session({ session, token }: { session: Session; token: JWT }) {
@@ -225,6 +227,10 @@ export const config: NextAuthConfig = {
         session.user.id = token.userId as string;
         session.user.onboardingCompleted = token.onboardingCompleted as boolean;
         session.accessToken = token.accessToken as string;
+        // Pass the error to the client-side session
+        if (token.error) {
+          session.error = token.error as string;
+        }
       }
       return session;
     },

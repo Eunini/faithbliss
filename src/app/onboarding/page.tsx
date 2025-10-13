@@ -10,107 +10,69 @@ import {
   OnboardingHeader,
   OnboardingNavigation,
   OnboardingSuccessModal,
-  OnboardingSlideRenderer,
-  validateSlide,
-  FormData
+  FaithSlide,
+  OnboardingData,
 } from '@/components/onboarding';
+import PreferenceSlide from '@/components/onboarding/PreferenceSlide';
 
 const OnboardingPage = () => {
   const router = useRouter();
   const { completeOnboarding } = useOnboarding();
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showValidationError, setShowValidationError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Authentication is handled by ProtectedRoute wrapper
-  const [formData, setFormData] = useState<FormData>({
-    // Basic Info
-    fullName: '',
-    phoneNumber: '',
-    countryCode: '+234',
-    gender: '',
-    birthday: '',
-    showAge: false,
-    profilePhoto1: null,
-    profilePhoto2: null,
-    profilePhoto3: null,
-    
-    // Education & Career
-    education: '',
-    occupation: '',
-
-    // Location
+  const [onboardingData, setOnboardingData] = useState<OnboardingData>({
+    // Step 1: About You
+    faithJourney: '',
+    churchAttendance: '',
+    relationshipGoals: '',
+    age: 18,
     location: '',
     latitude: null,
     longitude: null,
-
-    // Faith
     denomination: '',
-    customDenomination: '',
-    churchAttendance: '',
+    
+    // Optional fields from previous setup
+    education: '',
+    occupation: '',
     baptismStatus: '',
-
-    // Personal
     spiritualGifts: [],
     interests: [],
-    relationshipGoals: '',
-    lifestyle: '',
     bio: '',
+
+    // Step 2: Preferences
+    preferredFaithJourney: [],
+    preferredChurchAttendance: [],
+    preferredRelationshipGoals: [],
+    preferredGender: '',
+    minAge: 18,
+    maxAge: 99,
+    maxDistance: 50,
   });
 
-  const updateFormData = (field: string, value: any) => {
-    if (field === 'location' && typeof value === 'object' && value !== null) {
-      setFormData(prev => ({
-        ...prev,
-        location: value.formatted,
-        latitude: value.geometry.lat,
-        longitude: value.geometry.lng,
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }));
-    }
-  };
-
-
-
-  const nextSlide = async () => {
-    if (!validateSlide(currentSlide, formData)) {
-      setShowValidationError(true);
-      setTimeout(() => setShowValidationError(false), 3000);
-      return;
-    }
+  const nextStep = async () => {
+    // TODO: Implement validation for Step 1
+    // if (!validateStep1(onboardingData)) {
+    //   setShowValidationError(true);
+    //   setTimeout(() => setShowValidationError(false), 3000);
+    //   return;
+    // }
     
     setShowValidationError(false);
-    if (currentSlide < 4) {
-      setCurrentSlide(currentSlide + 1);
+    if (currentStep < 1) {
+      setCurrentStep(currentStep + 1);
     } else {
-      // Complete onboarding with real backend API
+      // Submit the form
       try {
         setSubmitting(true);
         
-        // Construct the final payload according to Swagger docs
-        const onboardingData = {
-          education: formData.education,
-          occupation: formData.occupation,
-          location: formData.location,
-          latitude: formData.latitude || 0,
-          longitude: formData.longitude || 0,
-          denomination: formData.denomination.toUpperCase(),
-          churchAttendance: formData.churchAttendance,
-          baptismStatus: formData.baptismStatus,
-          spiritualGifts: formData.spiritualGifts,
-          interests: formData.interests,
-          relationshipGoals: formData.relationshipGoals,
-          lifestyle: formData.lifestyle,
-          bio: formData.bio,
-        };
-
+        // The payload should match the API expectations
         await completeOnboarding(onboardingData);
         
         setShowSuccessModal(true);
         
-        // Redirect to dashboard after success modal
         setTimeout(() => {
           router.push('/dashboard');
         }, 3000);
@@ -121,43 +83,54 @@ const OnboardingPage = () => {
     }
   };
 
-  const prevSlide = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
-  // Success Modal
   if (showSuccessModal) {
     return <OnboardingSuccessModal />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 no-horizontal-scroll dashboard-main">
+    <div className="min-h-screen bg-gray-100">
       <OnboardingHeader
-        currentSlide={currentSlide}
-        totalSlides={5}
-        onPrevious={prevSlide}
-        canGoBack={currentSlide > 0}
+        currentSlide={currentStep}
+        totalSlides={2}
+        onPrevious={prevStep}
+        canGoBack={currentStep > 0}
       />
 
-      <div className="px-4 sm:px-6 py-8 pb-24">
-        <OnboardingSlideRenderer
-          currentSlide={currentSlide}
-          formData={formData}
-          updateFormData={updateFormData}
-        />
+      <main className="container mx-auto px-4 sm:px-6 py-8 pb-24 max-w-2xl">
+        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
+          <p className="text-sm font-semibold text-pink-500 mb-2">
+            Step {currentStep + 1} of 2
+          </p>
+          
+          <FaithSlide 
+            isVisible={currentStep === 0}
+            onboardingData={onboardingData}
+            setOnboardingData={setOnboardingData}
+          />
 
-        <OnboardingNavigation
-          currentSlide={currentSlide}
-          totalSlides={5}
-          canGoBack={currentSlide > 0}
-          submitting={submitting}
-          showValidationError={showValidationError}
-          onPrevious={prevSlide}
-          onNext={nextSlide}
-        />
-      </div>
+          <PreferenceSlide
+            isVisible={currentStep === 1}
+            onboardingData={onboardingData}
+            setOnboardingData={setOnboardingData}
+          />
+        </div>
+      </main>
+
+      <OnboardingNavigation
+        currentSlide={currentStep}
+        totalSlides={2}
+        canGoBack={currentStep > 0}
+        submitting={submitting}
+        showValidationError={showValidationError}
+        onPrevious={prevStep}
+        onNext={nextStep}
+      />
     </div>
   );
 };

@@ -1,52 +1,57 @@
-export interface FormData {
-  // Basic Info (from slide 1)
-  fullName: string;
-  phoneNumber: string;
-  countryCode: string;
-  gender: string;
-  birthday: string;
-  showAge: boolean;
-  profilePhoto1: string | null;
-  profilePhoto2: string | null;
-  profilePhoto3: string | null;
-  
-  // New fields from Swagger (will be added to slides)
-  education: string; // e.g., 'HIGH_SCHOOL', 'BACHELORS'
-  occupation: string;
-  location: string; // The address string
+// src/components/onboarding/types.ts
+
+export enum FaithJourney {
+  GROWING = 'GROWING',
+  ROOTED = 'ROOTED',
+  EXPLORING = 'EXPLORING',
+  PASSIONATE = 'PASSIONATE',
+}
+
+export enum ChurchAttendance {
+  WEEKLY = 'WEEKLY',
+  BIWEEKLY = 'BIWEEKLY',
+  MONTHLY = 'MONTHLY',
+  OCCASIONALLY = 'OCCASIONALLY',
+  RARELY = 'RARELY',
+}
+
+export enum RelationshipGoals {
+  FRIENDSHIP = 'FRIENDSHIP',
+  DATING = 'DATING',
+  MARRIAGE_MINDED = 'MARRIAGE_MINDED',
+}
+
+export enum Gender {
+  MAN = 'MAN',
+  WOMAN = 'WOMAN',
+  OTHER = 'OTHER',
+}
+
+export interface OnboardingData {
+  // Step 1: User Profile Data
+  faithJourney: FaithJourney | '';
+  churchAttendance: ChurchAttendance | '';
+  relationshipGoals: RelationshipGoals | '';
+  age: number;
+  location: string;
   latitude: number | null;
   longitude: number | null;
-  denomination: string; // e.g., 'BAPTIST'
-  customDenomination: string;
-  churchAttendance: string; // e.g., 'WEEKLY'
-  baptismStatus: string; // e.g., 'YES'
-  spiritualGifts: string[];
-  interests: string[];
-  relationshipGoals: string;
-  lifestyle: string;
-  bio: string;
+  denomination: string; // Assuming this comes from an enum/list as well
 
-  // Deprecated fields (to be removed or mapped from)
-  // These will be kept temporarily to prevent breaking the UI immediately
-  // and will be cleaned up as we refactor the slides.
-  fieldOfStudy?: string;
-  customFieldOfStudy?: string;
-  degree?: string;
-  profession?: string;
-  grewUp?: string;
-  hometown?: string;
-  currentLocation?: string;
-  isWorker?: boolean;
-  churchDepartment?: string;
-  completedClasses?: string;
-  churchDuration?: string;
-  faithJourney?: string;
-  faithInRelationships?: string;
-  favoriteVerse?: string;
-  lookingFor?: string;
-  hobbies?: string[];
-  values?: string[];
-  sundayActivity?: string;
-  personality?: string;
-  aboutMe?: string;
+  // Optional fields for Step 1
+  education?: string;
+  occupation?: string;
+  baptismStatus?: string;
+  spiritualGifts?: string[];
+  interests?: string[];
+  bio?: string;
+
+  // Step 2: Matching Preferences
+  preferredFaithJourney: FaithJourney[];
+  preferredChurchAttendance: ChurchAttendance[];
+  preferredRelationshipGoals: RelationshipGoals[];
+  preferredGender: Gender | '';
+  minAge: number;
+  maxAge: number;
+  maxDistance: number;
 }
