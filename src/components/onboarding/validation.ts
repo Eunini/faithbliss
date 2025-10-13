@@ -24,7 +24,7 @@ export const validateStep1 = (data: OnboardingData): boolean => {
     data.faithJourney &&
     data.churchAttendance &&
     data.relationshipGoals &&
-    data.age >= 18 &&
+
     data.location &&
     data.denomination &&
     data.countryCode &&
