@@ -27,7 +27,7 @@ const OnboardingPage = () => {
     faithJourney: '',
     churchAttendance: '',
     relationshipGoals: '',
-    age: 18,
+
     location: '',
     latitude: null,
     longitude: null,
@@ -36,7 +36,6 @@ const OnboardingPage = () => {
     countryCode: '+1',
     birthday: '',
     
-    // Optional fields from previous setup
     education: '',
     occupation: '',
     baptismStatus: '',
@@ -98,7 +97,7 @@ const OnboardingPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-900 text-white">
       <OnboardingHeader
         currentSlide={currentStep}
         totalSlides={2}
@@ -107,11 +106,7 @@ const OnboardingPage = () => {
       />
 
       <main className="container mx-auto px-4 sm:px-6 py-8 pb-24 max-w-2xl">
-        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
-          <p className="text-sm font-semibold text-pink-500 mb-2">
-            Step {currentStep + 1} of 2
-          </p>
-          
+        <div className="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-2xl">
           <FaithSlide 
             isVisible={currentStep === 0}
             onboardingData={onboardingData}

@@ -32,7 +32,6 @@ export interface OnboardingData {
   faithJourney: string;
   churchAttendance: string;
   relationshipGoals: string;
-  age: number;
   location: string;
   latitude: number | null;
   longitude: number | null;
