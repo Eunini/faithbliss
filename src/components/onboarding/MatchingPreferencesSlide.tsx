@@ -1,7 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { OnboardingData, FaithJourney, ChurchAttendance, RelationshipGoals, Gender } from './types';
+import { OnboardingData, Gender } from './types';
+import SelectableCard from './SelectableCard';
 
 interface MatchingPreferencesSlideProps {
   onboardingData: OnboardingData;
@@ -9,17 +10,21 @@ interface MatchingPreferencesSlideProps {
   isVisible: boolean;
 }
 
+const genderOptions = [
+  { value: Gender.MAN, label: 'Men', emoji: '👨' },
+  { value: Gender.WOMAN, label: 'Women', emoji: '👩' },
+  { value: Gender.OTHER, label: 'Everyone', emoji: '🧑‍🤝‍🧑' },
+];
+
 const MatchingPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible }: MatchingPreferencesSlideProps) => {
   if (!isVisible) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setOnboardingData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleMultiSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, options } = e.target;
-    const value = Array.from(options).filter(option => option.selected).map(option => option.value);
+  const handleCardSelect = (name: keyof OnboardingData, value: string) => {
     setOnboardingData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -29,133 +34,59 @@ const MatchingPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -100 }}
       transition={{ duration: 0.5 }}
-      className="space-y-8"
+      className="space-y-12"
     >
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-white">Matching Preferences</h2>
-        <p className="text-gray-400">Who are you looking for?</p>
+        <h2 className="text-3xl font-bold text-white">Who are you looking for? 🤔</h2>
+        <p className="text-gray-400">Set your preferences to find the right match.</p>
       </div>
 
+      {/* Preferred Gender */}
       <div className="space-y-4">
-        <div>
-          <label htmlFor="preferredFaithJourney" className="block text-sm font-medium text-gray-300">
-            Preferred Faith Journey (select multiple)
-          </label>
-          <select
-            multiple
-            id="preferredFaithJourney"
-            name="preferredFaithJourney"
-            value={onboardingData.preferredFaithJourney}
-            onChange={handleMultiSelectChange}
-            className="mt-1 block w-full h-32 bg-gray-700 border-gray-600 rounded-md shadow-sm text-white focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
-          >
-            {Object.values(FaithJourney).map(value => (
-              <option key={value} value={value}>{value}</option>
-            ))}
-          </select>
+        <h3 className="text-xl font-semibold text-white">I&apos;m interested in...</h3>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {genderOptions.map(option => (
+            <SelectableCard
+              key={option.value}
+              label={option.label}
+              emoji={option.emoji}
+              isSelected={onboardingData.preferredGender === option.value}
+              onClick={() => handleCardSelect('preferredGender', option.value)}
+            />
+          ))}
         </div>
+      </div>
 
-        <div>
-          <label htmlFor="preferredChurchAttendance" className="block text-sm font-medium text-gray-300">
-            Preferred Church Attendance (select multiple)
-          </label>
-          <select
-            multiple
-            id="preferredChurchAttendance"
-            name="preferredChurchAttendance"
-            value={onboardingData.preferredChurchAttendance}
-            onChange={handleMultiSelectChange}
-            className="mt-1 block w-full h-32 bg-gray-700 border-gray-600 rounded-md shadow-sm text-white focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
-          >
-            {Object.values(ChurchAttendance).map(value => (
-              <option key={value} value={value}>{value}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="preferredRelationshipGoals" className="block text-sm font-medium text-gray-300">
-            Preferred Relationship Goals (select multiple)
-          </label>
-          <select
-            multiple
-            id="preferredRelationshipGoals"
-            name="preferredRelationshipGoals"
-            value={onboardingData.preferredRelationshipGoals}
-            onChange={handleMultiSelectChange}
-            className="mt-1 block w-full h-32 bg-gray-700 border-gray-600 rounded-md shadow-sm text-white focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
-          >
-            {Object.values(RelationshipGoals).map(value => (
-              <option key={value} value={value}>{value}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="preferredDenominations" className="block text-sm font-medium text-gray-300">
-            Preferred Denominations (select multiple)
-          </label>
-          <select
-            multiple
-            id="preferredDenominations"
-            name="preferredDenominations"
-            value={onboardingData.preferredDenominations}
-            onChange={handleMultiSelectChange}
-            className="mt-1 block w-full h-32 bg-gray-700 border-gray-600 rounded-md shadow-sm text-white focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
-          >
-            {/* Add denomination options here */}
-            <option>Pentecostal</option>
-            <option>Catholic</option>
-            <option>Baptist</option>
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="preferredGender" className="block text-sm font-medium text-gray-300">
-            I&apos;m interested in...
-          </label>
-          <select
-            id="preferredGender"
-            name="preferredGender"
-            value={onboardingData.preferredGender}
+      {/* Age Range */}
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-white">Age Range</h3>
+        <div className="flex items-center justify-center space-x-4">
+          <input
+            type="number"
+            name="minAge"
+            value={onboardingData.minAge}
             onChange={handleChange}
-            className="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md shadow-sm text-white focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
-          >
-            {Object.values(Gender).map(value => (
-              <option key={value} value={value}>{value}</option>
-            ))}
-          </select>
+            className="input-style w-24 text-center"
+            min="18"
+            max="99"
+          />
+          <span className="text-gray-400 text-lg">to</span>
+          <input
+            type="number"
+            name="maxAge"
+            value={onboardingData.maxAge}
+            onChange={handleChange}
+            className="input-style w-24 text-center"
+            min="18"
+            max="99"
+          />
         </div>
+      </div>
 
-        <div>
-          <label htmlFor="minAge" className="block text-sm font-medium text-gray-300">
-            Age Range
-          </label>
-          <div className="mt-1 flex items-center">
-            <input
-              type="number"
-              id="minAge"
-              name="minAge"
-              value={onboardingData.minAge}
-              onChange={handleChange}
-              className="w-20 bg-gray-700 border-gray-600 rounded-md shadow-sm text-white focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
-            />
-            <span className="mx-2 text-gray-400">to</span>
-            <input
-              type="number"
-              id="maxAge"
-              name="maxAge"
-              value={onboardingData.maxAge}
-              onChange={handleChange}
-              className="w-20 bg-gray-700 border-gray-600 rounded-md shadow-sm text-white focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="maxDistance" className="block text-sm font-medium text-gray-300">
-            Maximum Distance (in miles)
-          </label>
+      {/* Max Distance */}
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-white">Maximum Distance</h3>
+        <div className="relative">
           <input
             type="range"
             id="maxDistance"
@@ -164,13 +95,40 @@ const MatchingPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible
             max="100"
             value={onboardingData.maxDistance}
             onChange={handleChange}
-            className="mt-1 w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
           />
-          <div className="text-center text-gray-400">{onboardingData.maxDistance} miles</div>
+          <div className="text-center text-lg font-semibold text-pink-400 mt-2">
+            {onboardingData.maxDistance} miles
+          </div>
         </div>
       </div>
     </motion.div>
   );
 };
+
+// Basic styles for inputs - should be moved to a global stylesheet
+const styles = `
+  .input-style {
+    background-color: #374151;
+    border: 1px solid #4B5563;
+    color: white;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-style:focus {
+    outline: none;
+    border-color: #EC4899;
+    box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.5);
+  }
+`;
+
+if (typeof window !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = styles;
+  document.head.appendChild(styleSheet);
+}
 
 export default MatchingPreferencesSlide;

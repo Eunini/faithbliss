@@ -11,12 +11,10 @@ import {
   OnboardingSuccessModal,
   OnboardingData,
 } from '@/components/onboarding';
-import CoreInfoSlide from '@/components/onboarding/CoreInfoSlide';
-import FaithValuesSlide from '@/components/onboarding/FaithValuesSlide';
-import LifestyleInterestsSlide from '@/components/onboarding/LifestyleInterestsSlide';
-import RelationshipGoalsSlide from '@/components/onboarding/RelationshipGoalsSlide';
-import MatchingPreferencesSlide from '@/components/onboarding/MatchingPreferencesSlide';
 import ImageUploadSlide from '@/components/onboarding/ImageUploadSlide';
+import ProfileBuilderSlide from '@/components/onboarding/ProfileBuilderSlide';
+import MatchingPreferencesSlide from '@/components/onboarding/MatchingPreferencesSlide';
+import RelationshipGoalsSlide from '@/components/onboarding/RelationshipGoalsSlide';
 
 const OnboardingPage = () => {
   const router = useRouter();
@@ -25,89 +23,86 @@ const OnboardingPage = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const totalSteps = 6;
+  const totalSteps = 4; // Photos -> Profile -> Goals -> Preferences
 
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
-    // Step 1: Core Info
+    // Photos
+    photos: [],
+    // Profile
     birthday: '',
-    phoneNumber: '',
-    countryCode: '+1',
     location: '',
     latitude: null,
     longitude: null,
-
-    // Step 2: Faith & Values
     faithJourney: '',
     churchAttendance: '',
     denomination: '',
+    occupation: '',
+    bio: '',
+    // Goals
+    relationshipGoals: '',
+    // Preferences
+    preferredGender: '',
+    minAge: 18,
+    maxAge: 35,
+    maxDistance: 50,
+    
+    // Fields not in the new UI but required by the type (setting defaults)
+    phoneNumber: '',
+    countryCode: '+1',
+    education: '',
     baptismStatus: '',
     spiritualGifts: [],
-
-    // Step 3: Lifestyle & Interests
-    education: '',
-    occupation: '',
     interests: [],
     lifestyle: '',
-    bio: '',
-
-    // Step 4: Relationship Goals
-    relationshipGoals: '',
-
-    // Step 5: Preferences
     preferredFaithJourney: [],
     preferredChurchAttendance: [],
     preferredRelationshipGoals: [],
     preferredDenominations: [],
-    preferredGender: '',
-    minAge: 18,
-    maxAge: 99,
-    maxDistance: 50,
-
-    // Step 6: Photos
-    photos: [],
   });
 
   const nextStep = async () => {
-    // TODO: Implement validation for each step
-    if (currentStep === totalSteps - 1) {
-      if (onboardingData.photos.length < 2) {
-        setValidationError('You must upload at least 2 photos to continue.');
-        return;
-      }
-    }
-    
     setValidationError(null);
+
+    // --- Validation ---
+    if (currentStep === 0 && onboardingData.photos.length < 2) {
+      setValidationError('Please upload at least 2 photos to continue.');
+      return;
+    }
+    if (currentStep === 1 && (!onboardingData.birthday || !onboardingData.location || !onboardingData.faithJourney)) {
+      setValidationError('Please fill out the basics: birthday, location, and faith journey.');
+      return;
+    }
+     if (currentStep === 2 && !onboardingData.relationshipGoals) {
+      setValidationError('Please select your relationship goal.');
+      return;
+    }
+
+
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Submit the form
+      // --- Final Submission ---
       try {
         setSubmitting(true);
-        
         const formData = new FormData();
 
-        // Append all fields from onboardingData to formData
         Object.entries(onboardingData).forEach(([key, value]) => {
           if (key === 'photos') {
-            (value as File[]).forEach((photo: File) => {
-              formData.append(`photos`, photo);
-            });
+            (value as File[]).forEach((photo: File) => formData.append('photos', photo));
           } else if (Array.isArray(value)) {
-            value.forEach(item => formData.append(`${key}[]`, item));
+            value.forEach(item => formData.append(`${key}[]`, item as string));
           } else if (value !== null && value !== undefined) {
             formData.append(key, String(value));
           }
         });
 
         await completeOnboarding(formData);
-        
         setShowSuccessModal(true);
-        
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 3000);
+        setTimeout(() => router.push('/dashboard'), 3000);
+
       } catch (error) {
         console.error('Error completing onboarding:', error);
+        setValidationError('Something went wrong. Please try again.');
         setSubmitting(false);
       }
     }
@@ -124,7 +119,7 @@ const OnboardingPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg--gray-900 text-white">
+    <div className="min-h-screen bg-gray-900 text-white">
       <OnboardingHeader
         currentSlide={currentStep}
         totalSlides={totalSteps}
@@ -134,33 +129,23 @@ const OnboardingPage = () => {
 
       <main className="container mx-auto px-4 sm:px-6 py-8 pb-24 max-w-2xl">
         <div className="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-2xl">
-          <CoreInfoSlide
+          <ImageUploadSlide
             isVisible={currentStep === 0}
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
-          <FaithValuesSlide
+          <ProfileBuilderSlide
             isVisible={currentStep === 1}
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
-          <LifestyleInterestsSlide
+          <RelationshipGoalsSlide
             isVisible={currentStep === 2}
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
-          <RelationshipGoalsSlide
-            isVisible={currentStep === 3}
-            onboardingData={onboardingData}
-            setOnboardingData={setOnboardingData}
-          />
           <MatchingPreferencesSlide
-            isVisible={currentStep === 4}
-            onboardingData={onboardingData}
-            setOnboardingData={setOnboardingData}
-          />
-          <ImageUploadSlide
-            isVisible={currentStep === 5}
+            isVisible={currentStep === 3}
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />

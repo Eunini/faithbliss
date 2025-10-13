@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { OnboardingData, RelationshipGoals } from './types';
+import SelectableCard from './SelectableCard';
 
 interface RelationshipGoalsSlideProps {
   onboardingData: OnboardingData;
@@ -9,12 +10,17 @@ interface RelationshipGoalsSlideProps {
   isVisible: boolean;
 }
 
+const goalsOptions = [
+  { value: RelationshipGoals.MARRIAGE_MINDED, label: 'Marriage Minded', emoji: '💍' },
+  { value: RelationshipGoals.DATING, label: 'Dating', emoji: '❤️' },
+  { value: RelationshipGoals.FRIENDSHIP, label: 'Friendship', emoji: '🤝' },
+];
+
 const RelationshipGoalsSlide = ({ onboardingData, setOnboardingData, isVisible }: RelationshipGoalsSlideProps) => {
   if (!isVisible) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setOnboardingData(prev => ({ ...prev, [name]: value }));
+  const handleSelect = (value: string) => {
+    setOnboardingData(prev => ({ ...prev, relationshipGoals: value }));
   };
 
   return (
@@ -26,27 +32,20 @@ const RelationshipGoalsSlide = ({ onboardingData, setOnboardingData, isVisible }
       className="space-y-8"
     >
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-white">Relationship Goals</h2>
-        <p className="text-gray-400">What are you looking for?</p>
+        <h2 className="text-3xl font-bold text-white">What are your intentions? 💖</h2>
+        <p className="text-gray-400">It&apos;s great to be on the same page.</p>
       </div>
 
-      <div className="space-y-4">
-        <div>
-          <label htmlFor="relationshipGoals" className="block text-sm font-medium text-gray-300">
-            I&apos;m looking for...
-          </label>
-          <select
-            id="relationshipGoals"
-            name="relationshipGoals"
-            value={onboardingData.relationshipGoals}
-            onChange={handleChange}
-            className="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md shadow-sm text-white focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
-          >
-            {Object.values(RelationshipGoals).map(value => (
-              <option key={value} value={value}>{value}</option>
-            ))}
-          </select>
-        </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {goalsOptions.map(option => (
+          <SelectableCard
+            key={option.value}
+            label={option.label}
+            emoji={option.emoji}
+            isSelected={onboardingData.relationshipGoals === option.value}
+            onClick={() => handleSelect(option.value)}
+          />
+        ))}
       </div>
     </motion.div>
   );
