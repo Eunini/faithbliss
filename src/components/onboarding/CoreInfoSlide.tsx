@@ -27,7 +27,7 @@ const CoreInfoSlide = ({ onboardingData, setOnboardingData, isVisible }: CoreInf
     >
       <div className="text-center">
         <h2 className="text-3xl font-bold text-white">Tell us about yourself</h2>
-        <p className="text-gray-400">Let's start with the basics.</p>
+        <p className="text-gray-400">Let&apos;s start with the basics.</p>
       </div>
 
       <div className="space-y-4">
