@@ -42,6 +42,11 @@ const apiClientRequest = async <T = unknown>(
     headers.Authorization = `Bearer ${accessToken}`;
   }
 
+  // If body is FormData, let the browser set the Content-Type
+  if (options.body instanceof FormData) {
+    delete headers['Content-Type'];
+  }
+
   try {
     const response = await fetch(url, {
       ...options,
@@ -96,10 +101,10 @@ export const getApiClient = (accessToken: string | null) => ({
       apiClientRequest<any>('/users/me', { method: 'GET' }, accessToken),
   },
   Auth: {
-    completeOnboarding: (onboardingData: any) =>
+    completeOnboarding: (onboardingData: FormData) =>
       apiClientRequest<any>('/auth/complete-onboarding', {
         method: 'PUT',
-        body: JSON.stringify(onboardingData),
+        body: onboardingData,
       }, accessToken),
   },
 });

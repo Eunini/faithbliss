@@ -13,6 +13,7 @@ import {
   OnboardingData,
 } from '@/components/onboarding';
 import PreferenceSlide from '@/components/onboarding/PreferenceSlide';
+import ImageUploadSlide from '@/components/onboarding/ImageUploadSlide';
 
 const OnboardingPage = () => {
   const router = useRouter();
@@ -53,26 +54,46 @@ const OnboardingPage = () => {
     minAge: 18,
     maxAge: 99,
     maxDistance: 50,
+
+    // Step 3: Photos
+    photos: [],
   });
 
   const nextStep = async () => {
-    // TODO: Implement validation for Step 1
-    // if (!validateStep1(onboardingData)) {
-    //   setShowValidationError(true);
-    //   setTimeout(() => setShowValidationError(false), 3000);
-    //   return;
-    // }
+    // TODO: Implement validation for each step
+    if (currentStep === 2) {
+      if (onboardingData.photos.length < 2) {
+        setShowValidationError(true);
+        return;
+      }
+    }
     
     setShowValidationError(false);
-    if (currentStep < 1) {
+    if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
     } else {
       // Submit the form
       try {
         setSubmitting(true);
         
-        // The payload should match the API expectations
-        await completeOnboarding(onboardingData);
+        const formData = new FormData();
+
+        // Append all fields from onboardingData to formData
+        Object.entries(onboardingData).forEach(([key, value]) => {
+          if (key === 'photos') {
+            // Append each photo file
+            value.forEach((photo, index) => {
+              formData.append(`photos`, photo);
+            });
+          } else if (Array.isArray(value)) {
+            // Append each item in an array
+            value.forEach(item => formData.append(`${key}[]`, item));
+          } else if (value !== null && value !== undefined) {
+            formData.append(key, String(value));
+          }
+        });
+
+        await completeOnboarding(formData);
         
         setShowSuccessModal(true);
         
@@ -100,7 +121,7 @@ const OnboardingPage = () => {
     <div className="min-h-screen bg-gray-900 text-white">
       <OnboardingHeader
         currentSlide={currentStep}
-        totalSlides={2}
+        totalSlides={3}
         onPrevious={prevStep}
         canGoBack={currentStep > 0}
       />
@@ -118,12 +139,18 @@ const OnboardingPage = () => {
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
+
+          <ImageUploadSlide
+            isVisible={currentStep === 2}
+            onboardingData={onboardingData}
+            setOnboardingData={setOnboardingData}
+          />
         </div>
       </main>
 
       <OnboardingNavigation
         currentSlide={currentStep}
-        totalSlides={2}
+        totalSlides={3}
         canGoBack={currentStep > 0}
         submitting={submitting}
         showValidationError={showValidationError}

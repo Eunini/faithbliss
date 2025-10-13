@@ -217,7 +217,7 @@ export function useOnboarding() {
   const { showSuccess, showError } = useToast();
 
   const completeOnboarding = useCallback(async (
-    onboardingData: any
+    onboardingData: FormData
   ) => {
     if (!accessToken) {
       throw new Error('Authentication required. Please log in.');

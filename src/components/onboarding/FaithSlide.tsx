@@ -1,3 +1,4 @@
+import OpenCageAutocomplete from '../OpenCageAutocomplete';
 import { countryCodes } from '@/lib/countryCodes';
 import React from 'react';
 import { OnboardingData } from './types';
@@ -16,8 +17,19 @@ const denominations = [
   'BAPTIST', 'METHODIST', 'PRESBYTERIAN', 'PENTECOSTAL', 'CATHOLIC', 'ORTHODOX', 
   'ANGLICAN', 'LUTHERAN', 'ASSEMBLIES_OF_GOD', 'SEVENTH_DAY_ADVENTIST', 'OTHER'
 ];
-const educationOptions = ['High School', 'Some College', 'Bachelor\'s Degree', 'Master\'s Degree', 'Doctorate', 'Other'];
-const baptismStatusOptions = ['Baptized', 'Not Baptized', 'Planning to be Baptized'];
+const educationOptions = [
+  { label: 'High School', value: 'HIGH_SCHOOL' },
+  { label: 'Bachelors', value: 'BACHELORS' },
+  { label: 'Masters', value: 'MASTERS' },
+  { label: 'PhD', value: 'PHD' },
+  { label: 'Vocational', value: 'VOCATIONAL' },
+  { label: 'Other', value: 'OTHER' },
+];
+const baptismStatusOptions = [
+  { label: 'Baptized', value: 'YES' },
+  { label: 'Not Baptized', value: 'NO' },
+  { label: 'Planning to be Baptized', value: 'PLANNING' },
+];
 const spiritualGiftsOptions = ['Teaching', 'Encouragement', 'Leadership', 'Service', 'Giving', 'Mercy', 'Wisdom', 'Knowledge', 'Faith', 'Healing', 'Miracles', 'Prophecy', 'Discernment', 'Tongues', 'Interpretation'];
 const interestsOptions = ['Reading', 'Sports', 'Music', 'Art', 'Cooking', 'Travel', 'Volunteering', 'Prayer Groups', 'Bible Study', 'Worship', 'Community Service', 'Fitness', 'Hiking', 'Photography', 'Writing'];
 const lifestyleOptions = ['Active', 'Calm', 'Adventurous', 'Homebody', 'Social', 'Introverted', 'Traditional', 'Modern'];
@@ -28,6 +40,15 @@ export const FaithSlide: React.FC<FaithSlideProps> = ({
   isVisible,
 }) => {
   if (!isVisible) return null;
+
+  const handleLocationSelect = (address: string, lat: number, lng: number) => {
+    setOnboardingData(prev => ({
+      ...prev,
+      location: address,
+      latitude: lat,
+      longitude: lng,
+    }));
+  };
 
   return (
     <motion.div
@@ -160,13 +181,10 @@ export const FaithSlide: React.FC<FaithSlideProps> = ({
         <label htmlFor="location" className="block text-lg font-medium text-gray-300">
           📍 My Location
         </label>
-        <input
-          type="text"
-          id="location"
-          value={onboardingData.location || ''}
-          onChange={(e) => setOnboardingData(prev => ({ ...prev, location: e.target.value }))}
-          className="mt-2 block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-md"
-          placeholder="e.g., Lagos, Nigeria"
+        <OpenCageAutocomplete
+          apiKey="YOUR_OPENCAGE_API_KEY"
+          value={onboardingData.location}
+          onSelect={handleLocationSelect}
         />
       </div>
 
@@ -203,8 +221,8 @@ export const FaithSlide: React.FC<FaithSlideProps> = ({
         >
           <option value="">Select education level</option>
           {educationOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
@@ -218,16 +236,16 @@ export const FaithSlide: React.FC<FaithSlideProps> = ({
         <div className="flex flex-wrap gap-3">
           {baptismStatusOptions.map((option) => (
             <button
-              key={option}
+              key={option.value}
               type="button"
-              onClick={() => setOnboardingData(prev => ({ ...prev, baptismStatus: option.toUpperCase().replace(' ', '_') }))}
+              onClick={() => setOnboardingData(prev => ({ ...prev, baptismStatus: option.value }))}
               className={`px-5 py-3 rounded-full text-md font-semibold transition-all duration-300 ease-in-out transform hover:scale-105 ${ 
-                onboardingData.baptismStatus === option.toUpperCase().replace(' ', '_')
+                onboardingData.baptismStatus === option.value
                   ? 'bg-pink-600 text-white shadow-lg'
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
             >
-              {option}
+              {option.label}
             </button>
           ))}
         </div>

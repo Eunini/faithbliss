@@ -56,4 +56,7 @@ export interface OnboardingData {
   minAge: number;
   maxAge: number;
   maxDistance: number;
+
+  // Step 3: Photos
+  photos: File[];
 }
