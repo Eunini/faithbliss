@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -33,6 +32,9 @@ const OnboardingPage = () => {
     latitude: null,
     longitude: null,
     denomination: '',
+    phoneNumber: '',
+    countryCode: '+1',
+    birthday: '',
     
     // Optional fields from previous setup
     education: '',
@@ -40,12 +42,14 @@ const OnboardingPage = () => {
     baptismStatus: '',
     spiritualGifts: [],
     interests: [],
+    lifestyle: '',
     bio: '',
 
     // Step 2: Preferences
     preferredFaithJourney: [],
     preferredChurchAttendance: [],
     preferredRelationshipGoals: [],
+    preferredDenominations: [],
     preferredGender: '',
     minAge: 18,
     maxAge: 99,

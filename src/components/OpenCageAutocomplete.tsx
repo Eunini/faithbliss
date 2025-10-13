@@ -34,18 +34,12 @@ export const OpenCageAutocomplete = ({
   required = false,
   className = ""
 }: OpenCageAutocompleteProps) => {
-  const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<OpenCageResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  // Sync input value with prop
-  useEffect(() => {
-    setInputValue(value);
-  }, [value]);
 
   // Check if API key is configured
   useEffect(() => {
@@ -118,8 +112,7 @@ export const OpenCageAutocomplete = ({
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    setInputValue(newValue);
-    onChange(newValue);
+    onChange(newValue); // Directly call parent's onChange
 
     if (hasApiKey && newValue.length > 2) {
       debouncedSearch(newValue);
@@ -131,8 +124,7 @@ export const OpenCageAutocomplete = ({
 
   // Handle suggestion selection
   const handleSuggestionSelect = (suggestion: OpenCageResult) => {
-    setInputValue(suggestion.formatted);
-    onChange(suggestion.formatted, suggestion);
+    onChange(suggestion.formatted, suggestion); // Update parent state
     setSuggestions([]);
     setShowSuggestions(false);
   };
@@ -147,7 +139,7 @@ export const OpenCageAutocomplete = ({
 
   // Handle input focus
   const handleFocus = () => {
-    if (hasApiKey && inputValue.length > 2 && suggestions.length > 0) {
+    if (hasApiKey && value.length > 2 && suggestions.length > 0) {
       setShowSuggestions(true);
     }
   };
@@ -175,7 +167,7 @@ export const OpenCageAutocomplete = ({
         </div>
         <input
           type="text"
-          value={inputValue}
+          value={value} // Use the prop directly
           onChange={handleInputChange}
           onBlur={handleBlur}
           onFocus={handleFocus}

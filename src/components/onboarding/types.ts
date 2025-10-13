@@ -29,28 +29,31 @@ export enum Gender {
 
 export interface OnboardingData {
   // Step 1: User Profile Data
-  faithJourney: FaithJourney | '';
-  churchAttendance: ChurchAttendance | '';
-  relationshipGoals: RelationshipGoals | '';
+  faithJourney: string;
+  churchAttendance: string;
+  relationshipGoals: string;
   age: number;
   location: string;
   latitude: number | null;
   longitude: number | null;
-  denomination: string; // Assuming this comes from an enum/list as well
-
-  // Optional fields for Step 1
-  education?: string;
-  occupation?: string;
-  baptismStatus?: string;
-  spiritualGifts?: string[];
-  interests?: string[];
-  bio?: string;
+  denomination: string;
+  phoneNumber: string;
+  countryCode: string;
+  birthday: string;
+  education: string;
+  occupation: string;
+  baptismStatus: string;
+  spiritualGifts: string[];
+  interests: string[];
+  lifestyle: string;
+  bio: string;
 
   // Step 2: Matching Preferences
-  preferredFaithJourney: FaithJourney[];
-  preferredChurchAttendance: ChurchAttendance[];
-  preferredRelationshipGoals: RelationshipGoals[];
-  preferredGender: Gender | '';
+  preferredFaithJourney: string[];
+  preferredChurchAttendance: string[];
+  preferredRelationshipGoals: string[];
+  preferredDenominations: string[];
+  preferredGender: string;
   minAge: number;
   maxAge: number;
   maxDistance: number;

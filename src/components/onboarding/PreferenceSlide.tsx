@@ -14,7 +14,7 @@ interface PreferenceSlideProps {
 const faithJourneyOptions = ['Growing', 'Rooted', 'Exploring', 'Passionate'];
 const churchInvolvementOptions = ['Weekly', 'Biweekly', 'Monthly', 'Occasionally', 'Rarely'];
 const relationshipGoalsOptions = ['Friendship', 'Dating', 'Marriage-minded'];
-const genderOptions = ['Man', 'Woman', 'Other'];
+const genderOptions = ['Male', 'Female', 'Other'];
 
 const PreferenceSlide: React.FC<PreferenceSlideProps> = ({
   onboardingData,
@@ -108,6 +108,29 @@ const PreferenceSlide: React.FC<PreferenceSlideProps> = ({
               }`}
             >
               {option}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Preferred Denominations */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Preferred Denominations
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {['BAPTIST', 'METHODIST', 'PENTECOSTAL', 'CATHOLIC', 'OTHER'].map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => handleMultiSelectChange('preferredDenominations', option)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                onboardingData.preferredDenominations?.includes(option)
+                  ? 'bg-pink-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {option.replace('_', ' ')}
             </button>
           ))}
         </div>

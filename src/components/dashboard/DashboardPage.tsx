@@ -154,7 +154,7 @@ export const DashboardPage = ({ session }: { session: Session }) => {
         showFilters={showFilters}
         showSidePanel={showSidePanel}
         onToggleFilters={() => setShowFilters(!showFilters)}
-        onToggleSidePanel={() => setShowSide-Panel(!showSidePanel)}
+        onToggleSidePanel={() => setShowSidePanel(!showSidePanel)}
       >
         <ProfileDisplay
           currentProfile={currentProfile}
