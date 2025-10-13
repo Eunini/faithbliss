@@ -111,6 +111,35 @@ export const FaithSlide: React.FC<FaithSlideProps> = ({
         </div>
       </div>
 
+      {/* Denomination */}
+      <div>
+        <label htmlFor="denomination" className="block text-lg font-medium text-gray-300 mb-3">
+          ⛪ My Denomination
+        </label>
+        <select
+          id="denomination"
+          value={onboardingData.denomination || ''}
+          onChange={(e) => setOnboardingData(prev => ({ ...prev, denomination: e.target.value }))}
+          className="mt-2 block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg shadow-sm text-white focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-md"
+        >
+          <option value="">Select denomination</option>
+          {denominations.map((denom) => (
+            <option key={denom} value={denom}>
+              {denom.replace(/_/g, ' ')}
+            </option>
+          ))}
+        </select>
+        {onboardingData.denomination === 'OTHER' && (
+          <input
+            type="text"
+            placeholder="Please specify your denomination"
+            value={onboardingData.customDenomination || ''}
+            onChange={(e) => setOnboardingData(prev => ({ ...prev, customDenomination: e.target.value }))}
+            className="mt-2 block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-md"
+          />
+        )}
+      </div>
+
       {/* Relationship Goals */}
       <div>
         <label className="block text-lg font-medium text-gray-300 mb-3">
@@ -140,10 +169,11 @@ export const FaithSlide: React.FC<FaithSlideProps> = ({
           🎂 My Birthday
         </label>
         <input
-          type="date"
+          type="text"
           id="birthday"
           value={onboardingData.birthday || ''}
           onChange={(e) => setOnboardingData(prev => ({ ...prev, birthday: e.target.value }))}
+          placeholder="MM/DD/YYYY"
           className="mt-2 block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-md"
         />
       </div>
@@ -182,7 +212,7 @@ export const FaithSlide: React.FC<FaithSlideProps> = ({
           📍 My Location
         </label>
         <OpenCageAutocomplete
-          apiKey="YOUR_OPENCAGE_API_KEY"
+          apiKey={process.env.NEXT_PUBLIC_OPENCAGE_API_KEY || ''}
           value={onboardingData.location}
           onSelect={handleLocationSelect}
         />
@@ -359,6 +389,94 @@ export const FaithSlide: React.FC<FaithSlideProps> = ({
           rows={4}
           className="mt-2 block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-md"
           placeholder="Tell us a little about yourself and your faith..."
+        />
+      </div>
+
+      {/* Personality */}
+      <div>
+        <label htmlFor="personality" className="block text-lg font-medium text-gray-300">
+          🌟 Personality
+        </label>
+        <input
+          type="text"
+          id="personality"
+          value={onboardingData.personality || ''}
+          onChange={(e) => setOnboardingData(prev => ({ ...prev, personality: e.target.value }))}
+          className="mt-2 block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-md"
+          placeholder="e.g., Adventurous and outgoing"
+        />
+      </div>
+
+      {/* Hobbies */}
+      <div>
+        <label className="block text-lg font-medium text-gray-300 mb-3">
+          🎨 Hobbies <span className="text-gray-500">(Select all that apply)</span>
+        </label>
+        <div className="flex flex-wrap gap-3">
+          {['Reading', 'Hiking', 'Photography', 'Music', 'Sports', 'Cooking', 'Travel', 'Art', 'Writing', 'Gaming'].map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => {
+                const currentHobbies = onboardingData.hobbies || [];
+                const newHobbies = currentHobbies.includes(option)
+                  ? currentHobbies.filter(hobby => hobby !== option)
+                  : [...currentHobbies, option];
+                setOnboardingData(prev => ({ ...prev, hobbies: newHobbies }));
+              }}
+              className={`px-5 py-3 rounded-full text-md font-semibold transition-all duration-300 ease-in-out transform hover:scale-105 ${
+                onboardingData.hobbies?.includes(option)
+                  ? 'bg-pink-600 text-white shadow-lg'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Values */}
+      <div>
+        <label className="block text-lg font-medium text-gray-300 mb-3">
+          💝 Values <span className="text-gray-500">(Select all that apply)</span>
+        </label>
+        <div className="flex flex-wrap gap-3">
+          {['Love', 'Faith', 'Hope', 'Kindness', 'Honesty', 'Compassion', 'Wisdom', 'Courage', 'Patience', 'Forgiveness'].map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => {
+                const currentValues = onboardingData.values || [];
+                const newValues = currentValues.includes(option)
+                  ? currentValues.filter(value => value !== option)
+                  : [...currentValues, option];
+                setOnboardingData(prev => ({ ...prev, values: newValues }));
+              }}
+              className={`px-5 py-3 rounded-full text-md font-semibold transition-all duration-300 ease-in-out transform hover:scale-105 ${
+                onboardingData.values?.includes(option)
+                  ? 'bg-pink-600 text-white shadow-lg'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Favorite Verse */}
+      <div>
+        <label htmlFor="favoriteVerse" className="block text-lg font-medium text-gray-300">
+          📖 Favorite Bible Verse
+        </label>
+        <input
+          type="text"
+          id="favoriteVerse"
+          value={onboardingData.favoriteVerse || ''}
+          onChange={(e) => setOnboardingData(prev => ({ ...prev, favoriteVerse: e.target.value }))}
+          className="mt-2 block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg shadow-sm text-white placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-md"
+          placeholder="e.g., Jeremiah 29:11"
         />
       </div>
     </motion.div>

@@ -36,6 +36,7 @@ export interface OnboardingData {
   latitude: number | null;
   longitude: number | null;
   denomination: string;
+  customDenomination?: string;
   phoneNumber: string;
   countryCode: string;
   birthday: string;
@@ -46,6 +47,10 @@ export interface OnboardingData {
   interests: string[];
   lifestyle: string;
   bio: string;
+  personality: string;
+  hobbies: string[];
+  values: string[];
+  favoriteVerse: string;
 
   // Step 2: Matching Preferences
   preferredFaithJourney: string[];

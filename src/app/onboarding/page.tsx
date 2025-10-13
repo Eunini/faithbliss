@@ -36,8 +36,13 @@ const OnboardingPage = () => {
     faithJourney: '',
     churchAttendance: '',
     denomination: '',
+    customDenomination: '',
     occupation: '',
     bio: '',
+    personality: '',
+    hobbies: [],
+    values: [],
+    favoriteVerse: '',
     // Goals
     relationshipGoals: '',
     // Preferences
@@ -89,9 +94,11 @@ const OnboardingPage = () => {
         Object.entries(onboardingData).forEach(([key, value]) => {
           if (key === 'photos') {
             (value as File[]).forEach((photo: File) => formData.append('photos', photo));
+          } else if (key === 'denomination' && value === 'OTHER' && onboardingData.customDenomination) {
+            formData.append(key, onboardingData.customDenomination);
           } else if (Array.isArray(value)) {
             value.forEach(item => formData.append(`${key}[]`, item as string));
-          } else if (value !== null && value !== undefined) {
+          } else if (value !== null && value !== undefined && key !== 'customDenomination') {
             formData.append(key, String(value));
           }
         });
