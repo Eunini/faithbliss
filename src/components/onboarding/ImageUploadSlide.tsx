@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { UploadCloud, X } from 'lucide-react';
+import { UploadCloud, X, AlertCircle } from 'lucide-react';
 import { OnboardingData } from './types';
 
 interface ImageUploadSlideProps {
@@ -11,33 +11,50 @@ interface ImageUploadSlideProps {
   isVisible: boolean;
 }
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 const ImageUploadSlide = ({ onboardingData, setOnboardingData, isVisible }: ImageUploadSlideProps) => {
   const [uploading, setUploading] = useState(false);
-  // Store File objects instead of URLs
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Create object URLs for previews
     const newPreviews = photos.map(file => URL.createObjectURL(file));
     setPhotoPreviews(newPreviews);
-
-    // Cleanup object URLs on component unmount or when photos change
     return () => {
       newPreviews.forEach(url => URL.revokeObjectURL(url));
     };
   }, [photos]);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
     const files = event.target.files;
-    if (files && files.length > 0) {
-      setUploading(true);
-      const newFiles = Array.from(files);
-      const combinedPhotos = [...photos, ...newFiles].slice(0, 6); // Limit to 6 photos
-      setPhotos(combinedPhotos);
-      setOnboardingData(prev => ({ ...prev, photos: combinedPhotos }));
-      setUploading(false);
+    if (!files) return;
+
+    setUploading(true);
+    const newFiles = Array.from(files);
+    const validFiles: File[] = [];
+    
+    for (const file of newFiles) {
+      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        setError(`Invalid file type: ${file.name}. Please use JPEG, PNG, or WebP.`);
+        setUploading(false);
+        return;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        setError(`File is too large: ${file.name}. Maximum size is 5MB.`);
+        setUploading(false);
+        return;
+      }
+      validFiles.push(file);
     }
+
+    const combinedPhotos = [...photos, ...validFiles].slice(0, 6);
+    setPhotos(combinedPhotos);
+    setOnboardingData(prev => ({ ...prev, photos: combinedPhotos }));
+    setUploading(false);
   };
 
   const removePhoto = (indexToRemove: number) => {
@@ -59,9 +76,16 @@ const ImageUploadSlide = ({ onboardingData, setOnboardingData, isVisible }: Imag
       <div className="text-center">
         <h2 className="text-3xl font-bold text-white">Upload Your Photos 📸</h2>
         <p className="text-gray-400">
-          Add at least 2 photos to complete your profile. The first two are required.
+          Add 2-6 photos. The first two are required. Max 5MB each.
         </p>
       </div>
+
+      {error && (
+        <div className="bg-red-900/50 border border-red-500 text-red-300 px-4 py-3 rounded-lg relative flex items-center">
+          <AlertCircle className="mr-2" />
+          <span>{error}</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {photoPreviews.map((previewUrl, index) => (
@@ -81,7 +105,7 @@ const ImageUploadSlide = ({ onboardingData, setOnboardingData, isVisible }: Imag
             <input
               type="file"
               multiple
-              accept="image/jpeg,image/png,image/webp"
+              accept={ALLOWED_FILE_TYPES.join(',')}
               onChange={handleFileUpload}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               disabled={uploading || photos.length >= 6}
@@ -98,8 +122,8 @@ const ImageUploadSlide = ({ onboardingData, setOnboardingData, isVisible }: Imag
         )}
       </div>
        {onboardingData.photos.length < 2 && (
-        <p className="text-red-500 text-center">
-          You must upload at least 2 photos.
+        <p className="text-red-500 text-center font-semibold">
+          You must upload at least 2 photos to continue.
         </p>
       )}
     </motion.div>

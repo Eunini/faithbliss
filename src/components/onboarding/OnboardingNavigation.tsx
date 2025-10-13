@@ -7,7 +7,7 @@ interface OnboardingNavigationProps {
   totalSlides: number;
   canGoBack: boolean;
   submitting: boolean;
-  showValidationError: boolean;
+  validationError: string | null;
   onPrevious: () => void;
   onNext: () => void;
 }
@@ -17,7 +17,7 @@ export const OnboardingNavigation = ({
   totalSlides,
   canGoBack,
   submitting,
-  showValidationError,
+  validationError,
   onPrevious,
   onNext
 }: OnboardingNavigationProps) => {
@@ -55,10 +55,10 @@ export const OnboardingNavigation = ({
             )}
           </button>
         </div>
-        {showValidationError && (
+        {validationError && (
           <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
             <p className="text-red-400 text-sm text-center">
-              Please fill in all required fields to continue.
+              {validationError}
             </p>
           </div>
         )}

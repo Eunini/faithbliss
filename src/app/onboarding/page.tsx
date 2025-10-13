@@ -9,10 +9,13 @@ import {
   OnboardingHeader,
   OnboardingNavigation,
   OnboardingSuccessModal,
-  FaithSlide,
   OnboardingData,
 } from '@/components/onboarding';
-import PreferenceSlide from '@/components/onboarding/PreferenceSlide';
+import CoreInfoSlide from '@/components/onboarding/CoreInfoSlide';
+import FaithValuesSlide from '@/components/onboarding/FaithValuesSlide';
+import LifestyleInterestsSlide from '@/components/onboarding/LifestyleInterestsSlide';
+import RelationshipGoalsSlide from '@/components/onboarding/RelationshipGoalsSlide';
+import MatchingPreferencesSlide from '@/components/onboarding/MatchingPreferencesSlide';
 import ImageUploadSlide from '@/components/onboarding/ImageUploadSlide';
 
 const OnboardingPage = () => {
@@ -20,32 +23,37 @@ const OnboardingPage = () => {
   const { completeOnboarding } = useOnboarding();
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showValidationError, setShowValidationError] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const totalSteps = 6;
 
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
-    // Step 1: About You
-    faithJourney: '',
-    churchAttendance: '',
-    relationshipGoals: '',
-
+    // Step 1: Core Info
+    birthday: '',
+    phoneNumber: '',
+    countryCode: '+1',
     location: '',
     latitude: null,
     longitude: null,
+
+    // Step 2: Faith & Values
+    faithJourney: '',
+    churchAttendance: '',
     denomination: '',
-    phoneNumber: '',
-    countryCode: '+1',
-    birthday: '',
-    
-    education: '',
-    occupation: '',
     baptismStatus: '',
     spiritualGifts: [],
+
+    // Step 3: Lifestyle & Interests
+    education: '',
+    occupation: '',
     interests: [],
     lifestyle: '',
     bio: '',
 
-    // Step 2: Preferences
+    // Step 4: Relationship Goals
+    relationshipGoals: '',
+
+    // Step 5: Preferences
     preferredFaithJourney: [],
     preferredChurchAttendance: [],
     preferredRelationshipGoals: [],
@@ -55,21 +63,21 @@ const OnboardingPage = () => {
     maxAge: 99,
     maxDistance: 50,
 
-    // Step 3: Photos
+    // Step 6: Photos
     photos: [],
   });
 
   const nextStep = async () => {
     // TODO: Implement validation for each step
-    if (currentStep === 2) {
+    if (currentStep === totalSteps - 1) {
       if (onboardingData.photos.length < 2) {
-        setShowValidationError(true);
+        setValidationError('You must upload at least 2 photos to continue.');
         return;
       }
     }
     
-    setShowValidationError(false);
-    if (currentStep < 2) {
+    setValidationError(null);
+    if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       // Submit the form
@@ -81,12 +89,10 @@ const OnboardingPage = () => {
         // Append all fields from onboardingData to formData
         Object.entries(onboardingData).forEach(([key, value]) => {
           if (key === 'photos') {
-            // Append each photo file
-            value.forEach((photo, index) => {
+            (value as File[]).forEach((photo: File) => {
               formData.append(`photos`, photo);
             });
           } else if (Array.isArray(value)) {
-            // Append each item in an array
             value.forEach(item => formData.append(`${key}[]`, item));
           } else if (value !== null && value !== undefined) {
             formData.append(key, String(value));
@@ -118,30 +124,43 @@ const OnboardingPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg--gray-900 text-white">
       <OnboardingHeader
         currentSlide={currentStep}
-        totalSlides={3}
+        totalSlides={totalSteps}
         onPrevious={prevStep}
         canGoBack={currentStep > 0}
       />
 
       <main className="container mx-auto px-4 sm:px-6 py-8 pb-24 max-w-2xl">
         <div className="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-2xl">
-          <FaithSlide 
+          <CoreInfoSlide
             isVisible={currentStep === 0}
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
-
-          <PreferenceSlide
+          <FaithValuesSlide
             isVisible={currentStep === 1}
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
-
-          <ImageUploadSlide
+          <LifestyleInterestsSlide
             isVisible={currentStep === 2}
+            onboardingData={onboardingData}
+            setOnboardingData={setOnboardingData}
+          />
+          <RelationshipGoalsSlide
+            isVisible={currentStep === 3}
+            onboardingData={onboardingData}
+            setOnboardingData={setOnboardingData}
+          />
+          <MatchingPreferencesSlide
+            isVisible={currentStep === 4}
+            onboardingData={onboardingData}
+            setOnboardingData={setOnboardingData}
+          />
+          <ImageUploadSlide
+            isVisible={currentStep === 5}
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
@@ -150,10 +169,10 @@ const OnboardingPage = () => {
 
       <OnboardingNavigation
         currentSlide={currentStep}
-        totalSlides={3}
+        totalSlides={totalSteps}
         canGoBack={currentStep > 0}
         submitting={submitting}
-        showValidationError={showValidationError}
+        validationError={validationError}
         onPrevious={prevStep}
         onNext={nextStep}
       />
