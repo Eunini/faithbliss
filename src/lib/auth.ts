@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/lib/auth.ts
-import NextAuth, { type Session, type User } from "next-auth";
+import NextAuth, { type Session, type User, type Account, type Profile } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import type { NextAuthOptions } from "next-auth"
+import type { NextAuthConfig } from "next-auth";
 import { JWT } from "next-auth/jwt";
 
 // Define a type for the backend response to ensure type safety
@@ -110,7 +110,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
   }
 }
 
-export const config: NextAuthOptions = {
+export const config: NextAuthConfig = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
@@ -173,7 +173,7 @@ export const config: NextAuthOptions = {
     error: "/login", // Redirect users to login page on error
   },
   callbacks: {
-    async signIn({ user, account, profile }: { user: any; account: any; profile?: any }) {
+    async signIn({ user, account, profile }: { user: User; account?: Account | null; profile?: Profile }) {
       if (account?.provider === "google" && profile) {
         const backendResponse = await syncWithBackend(profile as GoogleProfile);
 

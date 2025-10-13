@@ -1,10 +1,9 @@
 // src/middleware.ts
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import type { NextRequest } from "next/server";
 
-export async function middleware(req: NextRequest) {
-  const session = await auth();
+export default auth((req) => {
+  const session = req.auth;
   const { pathname } = req.nextUrl;
 
   const isLoggedIn = !!session;
@@ -45,7 +44,7 @@ export async function middleware(req: NextRequest) {
 
   // If none of the above conditions are met, allow the request to proceed.
   return NextResponse.next();
-}
+});
 
 // The matcher configures which routes the middleware will run on.
 // This regex excludes API routes, Next.js internal routes, and static files.
