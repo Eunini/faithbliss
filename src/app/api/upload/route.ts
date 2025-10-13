@@ -25,7 +25,15 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const folder = formData.get('folder') as string || 'faithbliss/profile-photos';
+    const userId = formData.get('userId') as string;
     const photoNumber = formData.get('photoNumber') as string || '1';
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
+    }
 
     if (!file) {
       return NextResponse.json(
@@ -56,10 +64,10 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const base64 = `data:${file.type};base64,${Buffer.from(bytes).toString('base64')}`;
 
-    // Generate unique public_id with sanitized email
-    const sanitizedEmail = session.user.email.replace(/[@.]/g, '_');
+    // Generate unique public_id with userId
+    const sanitizedUserId = userId.replace(/[@.]/g, '_');
     const timestamp = Date.now();
-    const publicId = `${folder}/${sanitizedEmail}_photo${photoNumber}_${timestamp}`;
+    const publicId = `${folder}/${sanitizedUserId}_photo${photoNumber}_${timestamp}`;
 
     // Upload to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(base64, {

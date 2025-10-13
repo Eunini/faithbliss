@@ -7,12 +7,14 @@ interface Props {
   children: ReactNode;
 }
 
-// This wrapper now uses the built-in refetchInterval to keep the session alive.
-// NextAuth.js will automatically refetch the session in the background,
-// which triggers the `jwt` callback and our token refresh logic.
+// Enhanced session provider with better token refresh handling
 export default function SessionProviderWrapper({ children }: Props) {
   return (
-    <SessionProvider refetchInterval={5 * 60}>
+    <SessionProvider 
+      refetchInterval={5 * 60} // Refetch every 5 minutes
+      refetchOnWindowFocus={true} // Refetch when window regains focus
+      refetchWhenOffline={false} // Don't refetch when offline
+    >
       {children}
     </SessionProvider>
   );

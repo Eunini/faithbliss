@@ -216,6 +216,7 @@ const apiRequest = async <T = unknown>(
       throw authError;
     }
   }
+  
   try {
     const response = await fetch(url, {
       ...options,

@@ -1,4 +1,3 @@
-import { useSession } from 'next-auth/react';
 import { User, Camera, X, Upload } from 'lucide-react';
 import { FormData } from './types';
 import { CountryCodeSelect, defaultCountry, type Country } from '../CountryCodeSelect';
@@ -6,6 +5,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CloudinaryService } from '@/lib/cloudinary';
 import { useToast } from '@/contexts/ToastContext';
+import { useRequireAuth } from '@/hooks/useAuth';
 
 interface BasicInfoSlideProps {
   formData: FormData;
@@ -15,7 +15,7 @@ interface BasicInfoSlideProps {
 export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps) => {
   const [selectedCountry, setSelectedCountry] = useState(defaultCountry);
   const [uploadingPhotos, setUploadingPhotos] = useState<{[key: number]: boolean}>({});
-  const { data: session } = useSession(); // <-- Use the standard useSession hook
+  const { user, isLoading, isAuthenticated } = useRequireAuth();
   const { showSuccess, showError } = useToast();
 
   // Initialize country code if not set
@@ -24,6 +24,15 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
       updateFormData('countryCode', defaultCountry.dialCode);
     }
   }, [formData.countryCode, updateFormData]);
+
+  // Don't render if session is loading or not authenticated
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-64">Loading...</div>;
+  }
+
+  if (!isAuthenticated || !user?.id) {
+    return <div className="text-center text-red-600 p-4">Please log in to upload photos.</div>;
+  }
 
   const handlePhotoUpload = (photoNumber: 1 | 2 | 3) => async (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log('📸 Photo upload triggered for photo', photoNumber);
@@ -34,7 +43,7 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
       return;
     }
     
-    if (!session?.userId) {
+    if (!user?.id) {
       showError('You must be signed in to upload photos.', 'Authentication Error');
       return;
     }
@@ -81,7 +90,7 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
       const result = await CloudinaryService.uploadImage(
         file,
         'faithbliss/profile-photos',
-        session.userId, 
+        user.id, 
         photoNumber
       );
 
@@ -123,8 +132,8 @@ export const BasicInfoSlide = ({ formData, updateFormData }: BasicInfoSlideProps
     const handleClick = () => {
       if (!isUploading) {
         console.log(`Clicked on photo ${photoNumber} upload area`);
-        console.log(`User ID:`, session?.userId);
-        console.log(`User authenticated:`, !!session);
+        console.log(`User ID:`, user?.id);
+        console.log(`User authenticated:`, isAuthenticated);
         
         console.log(`📂 Triggering file picker for photo ${photoNumber}`);
         

@@ -22,7 +22,7 @@ export const UserDebugInfo = () => {
       <div className="space-y-2">
         <div>
           <strong>Session User ID:</strong>
-          <p className="text-xs break-all">{session?.userId || 'N/A'}</p>
+          <p className="text-xs break-all">{session?.user?.id || 'N/A'}</p>
         </div>
 
         <div>

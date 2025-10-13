@@ -19,8 +19,8 @@ export class CloudinaryService {
   static async uploadImage(
     imageFile: File,
     folder: string = 'faithbliss/profile-photos',
-    userId?: string,
-    photoNumber?: number
+    userId: string,
+    photoNumber: number
   ): Promise<CloudinaryUploadResult> {
     try {
       if (!imageFile || !(imageFile instanceof File)) {
@@ -31,9 +31,8 @@ export class CloudinaryService {
       const formData = new FormData();
       formData.append('file', imageFile);
       formData.append('folder', folder);
-      if (photoNumber) {
-        formData.append('photoNumber', photoNumber.toString());
-      }
+      formData.append('userId', userId);
+      formData.append('photoNumber', photoNumber.toString());
 
       // Upload via API route
       const response = await fetch('/api/upload', {
@@ -69,7 +68,7 @@ export class CloudinaryService {
   static async uploadMultipleImages(
     imageFiles: File[],
     folder: string = 'faithbliss/profile-photos',
-    userId?: string
+    userId: string
   ): Promise<CloudinaryUploadResult[]> {
     const uploadPromises = imageFiles.map((file, index) => 
       this.uploadImage(file, folder, userId, index + 1)

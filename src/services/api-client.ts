@@ -21,17 +21,9 @@ const apiClientRequest = async <T = unknown>(
   // Add auth token if provided
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
-  } else {
-    // If no token is available for a protected route, throw an error immediately
-    console.error('Auth token required but not available for client-side request');
-    const authError = new Error('Authentication required') as Error & {
-      statusCode: number;
-      isAuthError: boolean;
-    };
-    authError.statusCode = 401;
-    authError.isAuthError = true;
-    throw authError;
   }
+  // Note: We don't throw an error here for missing tokens
+  // Let the backend handle authentication requirements
 
   try {
     const response = await fetch(url, {

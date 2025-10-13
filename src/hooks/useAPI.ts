@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useToast } from '@/contexts/ToastContext';
 import { getApiClient } from '@/services/api-client';
 import wsService from '@/services/websocket';
+import { useRequireAuth } from './useAuth';
 
 interface ApiState<T> {
   data: T | null;
@@ -103,23 +104,26 @@ export function useApi<T>(
 
 // Hook for potential matches
 export function usePotentialMatches() {
-  const { data: session } = useSession();
-  const accessToken = session?.accessToken;
+  const { accessToken, isAuthenticated } = useRequireAuth();
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
 
-  const apiCall = useCallback(() => apiClient.Match.getPotentialMatches(), [apiClient]);
+  const apiCall = useCallback(() => {
+    if (!accessToken) {
+      throw new Error('Authentication required. Please log in.');
+    }
+    return apiClient.Match.getPotentialMatches();
+  }, [apiClient, accessToken]);
 
   return useApi(
-    accessToken ? apiCall : null, // Only provide the apiCall if the token exists
-    [accessToken],
-    { immediate: !!accessToken }
+    isAuthenticated ? apiCall : null,
+    [accessToken, isAuthenticated],
+    { immediate: isAuthenticated }
   );
 }
 
 // Hook for matches
 export function useMatches() {
-  const { data: session } = useSession();
-  const accessToken = session?.accessToken;
+  const { accessToken, isAuthenticated } = useRequireAuth();
 
   // For now, return mock data until backend endpoint is available
   const mockMatches: any[] = [
@@ -154,20 +158,22 @@ export function useMatches() {
   ];
 
   return useApi(
-    accessToken ? () => Promise.resolve(mockMatches) : null,
-    [accessToken],
-    { immediate: !!accessToken }
+    isAuthenticated ? () => Promise.resolve(mockMatches) : null,
+    [accessToken, isAuthenticated],
+    { immediate: isAuthenticated }
   );
 }
 
 // Hook for liking/passing users
 export function useMatching() {
-  const { data: session } = useSession();
-  const accessToken = session?.accessToken;
+  const { accessToken } = useRequireAuth();
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
   const { showSuccess, showError } = useToast();
 
   const likeUser = useCallback(async (userId: string) => {
+    if (!accessToken) {
+      throw new Error('Authentication required. Please log in.');
+    }
     try {
       const result = await apiClient.Match.likeUser(userId);
       showSuccess(result.isMatch ? '💕 It\'s a match!' : '👍 Like sent!');
@@ -176,9 +182,12 @@ export function useMatching() {
       showError('Failed to like user', 'Error');
       throw error;
     }
-  }, [apiClient, showSuccess, showError]);
+  }, [apiClient, showSuccess, showError, accessToken]);
 
   const passUser = useCallback(async (userId: string) => {
+    if (!accessToken) {
+      throw new Error('Authentication required. Please log in.');
+    }
     try {
       await apiClient.Match.passUser(userId);
       return true;
@@ -186,21 +195,24 @@ export function useMatching() {
       showError('Failed to pass user', 'Error');
       throw error;
     }
-  }, [apiClient, showError]);
+  }, [apiClient, showError, accessToken]);
 
   return { likeUser, passUser };
 }
 
 // Hook for completing onboarding
 export function useOnboarding() {
-  const { data: session, update } = useSession();
-  const accessToken = session?.accessToken;
+  const { accessToken } = useRequireAuth();
+  const { update } = useSession();
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
   const { showSuccess, showError } = useToast();
 
   const completeOnboarding = useCallback(async (
     onboardingData: any
   ) => {
+    if (!accessToken) {
+      throw new Error('Authentication required. Please log in.');
+    }
     try {
       const result = await apiClient.Auth.completeOnboarding(onboardingData);
       
@@ -216,18 +228,18 @@ export function useOnboarding() {
       showError('Failed to complete profile setup. Please try again.', 'Setup Error');
       throw error;
     }
-  }, [apiClient, showSuccess, showError, update]);
+  }, [apiClient, showSuccess, showError, update, accessToken]);
 
   return { completeOnboarding };
 }
 
 // Hook for WebSocket connection
 export function useWebSocket() {
-  const { data: session } = useSession();
+  const { user } = useRequireAuth();
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    if (session?.user?.id) {
+    if (user?.id) {
       wsService.connect().then(() => {
         setConnected(wsService.isConnected());
       });
@@ -237,7 +249,7 @@ export function useWebSocket() {
         setConnected(false);
       };
     }
-  }, [session?.user?.id]);
+  }, [user?.id]);
 
   return {
     connected,
@@ -254,8 +266,7 @@ export function useWebSocket() {
 
 // Hook for conversations
 export function useConversations() {
-  const { data: session } = useSession();
-  const accessToken = session?.accessToken;
+  const { accessToken, isAuthenticated } = useRequireAuth();
 
   // For now, return mock data until backend endpoint is available
   const mockConversations: Conversation[] = [
@@ -296,9 +307,9 @@ export function useConversations() {
   ];
 
   return useApi(
-    accessToken ? () => Promise.resolve(mockConversations) : null,
-    [accessToken],
-    { immediate: !!accessToken }
+    isAuthenticated ? () => Promise.resolve(mockConversations) : null,
+    [accessToken, isAuthenticated],
+    { immediate: isAuthenticated }
   );
 }
 
@@ -323,8 +334,7 @@ export function useMessaging() {
 
 // Hook for conversation messages
 export function useConversationMessages(matchId: string) {
-  const { data: session } = useSession();
-  const accessToken = session?.accessToken;
+  const { accessToken, isAuthenticated } = useRequireAuth();
 
   // Mock messages data
   const mockMessages: Message[] = [
@@ -352,8 +362,8 @@ export function useConversationMessages(matchId: string) {
   ];
 
   return useApi(
-    accessToken && matchId ? () => Promise.resolve(mockMessages) : null,
-    [accessToken, matchId],
-    { immediate: !!(accessToken && matchId) }
+    isAuthenticated && matchId ? () => Promise.resolve(mockMessages) : null,
+    [accessToken, isAuthenticated, matchId],
+    { immediate: !!(isAuthenticated && matchId) }
   );
 }

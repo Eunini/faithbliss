@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/lib/auth.ts
-import NextAuth from "next-auth";
+import NextAuth, { type Session, type User } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import type { NextAuthConfig } from "next-auth";
 import { JWT } from "next-auth/jwt";
 
 // Define a type for the backend response to ensure type safety
@@ -39,6 +38,7 @@ async function syncWithBackend(profile: GoogleProfile): Promise<BackendAuthRespo
     const response = await fetch(`${backendUrl}/auth/google`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include", // Send cookies with the request
       body: JSON.stringify({
         email: profile.email,
         name: profile.name,
@@ -109,7 +109,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
   }
 }
 
-export const config: NextAuthConfig = {
+export const config = {
   secret: process.env.NEXTAUTH_SECRET,
   trustHost: true, // Essential for Vercel deployment
   providers: [
@@ -133,6 +133,7 @@ export const config: NextAuthConfig = {
           const response = await fetch(`${backendUrl}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include", // Send cookies with the request
             body: JSON.stringify({
               email: credentials.email,
               password: credentials.password,
@@ -172,7 +173,7 @@ export const config: NextAuthConfig = {
     error: "/login", // Redirect users to login page on error
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile }: { user: any; account: any; profile?: any }) {
       if (account?.provider === "google" && profile) {
         const backendResponse = await syncWithBackend(profile as GoogleProfile);
 
@@ -192,17 +193,17 @@ export const config: NextAuthConfig = {
       return true;
     },
 
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, trigger, session }: { session?: Session; token: JWT; user?: User; trigger?: "signIn" | "signUp" | "update"; }) {
       // Handle session updates from the client
       if (trigger === "update" && session) {
-        token.onboardingCompleted = session.onboardingCompleted;
+        token.onboardingCompleted = session.user.onboardingCompleted;
         return token;
       }
       
       // Initial sign-in
       if (user) {
         const expiresIn = user.accessTokenExpiresIn;
-        const expiresInMs = (parseInt(String(expiresIn), 10) || 3600) * 1000;
+        const expiresInMs = (expiresIn ? parseInt(String(expiresIn), 10) : 3600) * 1000;
 
         token.accessToken = user.accessToken as string;
         token.accessTokenExpiresAt = Date.now() + expiresInMs;
@@ -219,9 +220,21 @@ export const config: NextAuthConfig = {
       // Access token has expired, try to update it
       return refreshAccessToken(token);
     },
+    async session({ session, token }: { session: Session; token: JWT }) {
+      if (token && session.user) {
+        session.user.id = token.userId as string;
+        session.user.onboardingCompleted = token.onboardingCompleted as boolean;
+        session.accessToken = token.accessToken as string;
+      }
+      return session;
+    },
   },
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // Update session every 24 hours
+  },
+  jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   debug: process.env.NODE_ENV === "development",

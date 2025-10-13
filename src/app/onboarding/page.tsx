@@ -23,18 +23,7 @@ const OnboardingPage = () => {
   const [showValidationError, setShowValidationError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Authentication temporarily disabled for testing
-  // useEffect(() => {
-  //   if (!authLoading && !user) {
-  //     router.push('/login');
-  //   }
-  // }, [user, authLoading, router]);
-
-  // useEffect(() => {
-  //   if (!authLoading && user && userProfile?.onboardingCompleted) {
-  //     router.push('/dashboard');
-  //   }
-  // }, [userProfile, authLoading, user, router]);
+  // Authentication is handled by ProtectedRoute wrapper
   const [formData, setFormData] = useState<FormData>({
     // Basic Info
     fullName: '',
@@ -175,7 +164,7 @@ const OnboardingPage = () => {
 
 export default function ProtectedOnboarding() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireOnboarding={true}>
       <OnboardingPage />
     </ProtectedRoute>
   );
