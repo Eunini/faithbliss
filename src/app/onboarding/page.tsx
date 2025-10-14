@@ -12,9 +12,7 @@ import {
   OnboardingData,
 } from '@/components/onboarding';
 import ImageUploadSlide from '@/components/onboarding/ImageUploadSlide';
-import ProfileBuilderSlide from '@/components/onboarding/ProfileBuilderSlide';
-import MatchingPreferencesSlide from '@/components/onboarding/MatchingPreferencesSlide';
-import RelationshipGoalsSlide from '@/components/onboarding/RelationshipGoalsSlide';
+import { FaithSlide } from '@/components/onboarding/FaithSlide';
 
 const OnboardingPage = () => {
   const router = useRouter();
@@ -23,7 +21,7 @@ const OnboardingPage = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const totalSteps = 4; // Photos -> Profile -> Goals -> Preferences
+  const totalSteps = 2; // Photos -> Faith
 
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     // Photos
@@ -45,12 +43,6 @@ const OnboardingPage = () => {
     favoriteVerse: '',
     // Goals
     relationshipGoals: '',
-    // Preferences
-    preferredGender: '',
-    minAge: 18,
-    maxAge: 35,
-    maxDistance: 50,
-    
     // Fields not in the new UI but required by the type (setting defaults)
     phoneNumber: '',
     countryCode: '+1',
@@ -59,10 +51,6 @@ const OnboardingPage = () => {
     spiritualGifts: [],
     interests: [],
     lifestyle: '',
-    preferredFaithJourney: [],
-    preferredChurchAttendance: [],
-    preferredRelationshipGoals: [],
-    preferredDenominations: [],
   });
 
   const nextStep = async () => {
@@ -75,10 +63,6 @@ const OnboardingPage = () => {
     }
     if (currentStep === 1 && (!onboardingData.birthday || !onboardingData.location || !onboardingData.faithJourney)) {
       setValidationError('Please fill out the basics: birthday, location, and faith journey.');
-      return;
-    }
-     if (currentStep === 2 && !onboardingData.relationshipGoals) {
-      setValidationError('Please select your relationship goal.');
       return;
     }
 
@@ -95,11 +79,15 @@ const OnboardingPage = () => {
           if (key === 'photos') {
             (value as File[]).forEach((photo: File) => formData.append('photos', photo));
           } else if (key === 'denomination' && value === 'OTHER' && onboardingData.customDenomination) {
-            formData.append(key, onboardingData.customDenomination);
-          } else if (Array.isArray(value)) {
-            value.forEach(item => formData.append(`${key}[]`, item as string));
-          } else if (value !== null && value !== undefined && key !== 'customDenomination') {
-            formData.append(key, String(value));
+            formData.append('denomination', onboardingData.customDenomination);
+          } else if (Array.isArray(value) && value.length > 0) {
+            // Convert camelCase to snake_case for array fields
+            const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+            value.forEach(item => formData.append(`${snakeKey}[]`, item as string));
+          } else if (value !== null && value !== undefined && value !== '' && key !== 'customDenomination') {
+            // Convert camelCase to snake_case for regular fields
+            const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+            formData.append(snakeKey, String(value));
           }
         });
 
@@ -141,18 +129,8 @@ const OnboardingPage = () => {
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
-          <ProfileBuilderSlide
+          <FaithSlide
             isVisible={currentStep === 1}
-            onboardingData={onboardingData}
-            setOnboardingData={setOnboardingData}
-          />
-          <RelationshipGoalsSlide
-            isVisible={currentStep === 2}
-            onboardingData={onboardingData}
-            setOnboardingData={setOnboardingData}
-          />
-          <MatchingPreferencesSlide
-            isVisible={currentStep === 3}
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
