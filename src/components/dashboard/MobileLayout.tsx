@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ReactNode } from 'react';
 import { TopBar } from './TopBar';
 
 interface MobileLayoutProps {
   userName: string;
+  userImage?: string;
+  user?: any;
   showFilters: boolean;
   showSidePanel: boolean;
   onToggleFilters: () => void;
@@ -12,6 +15,8 @@ interface MobileLayoutProps {
 
 export const MobileLayout = ({
   userName,
+  userImage,
+  user,
   showFilters,
   showSidePanel,
   onToggleFilters,
@@ -23,6 +28,8 @@ export const MobileLayout = ({
       {/* Mobile Top Bar */}
       <TopBar
         userName={userName}
+        userImage={userImage}
+        user={user}
         showFilters={showFilters}
         showSidePanel={showSidePanel}
         onToggleFilters={onToggleFilters}

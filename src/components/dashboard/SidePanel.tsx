@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   X, User, Heart, MessageCircle, Users, Star, Settings, 
   HelpCircle, LogOut, Home, Search, UserX, AlertTriangle
@@ -9,15 +11,20 @@ import { signOut } from 'next-auth/react';
 
 interface SidePanelProps {
   userName: string;
+  userImage?: string;
+  user?: any;
   onClose: () => void;
 }
 
-export const SidePanel = ({ userName, onClose }: SidePanelProps) => {
+export const SidePanel = ({ userName, userImage, user, onClose }: SidePanelProps) => {
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' });
   };
   
+  const displayImage = user?.profilePhotos?.photo1 || userImage;
+  const faithJourney = user?.faithJourney || 'Passionate Believer';
+
   return (
     <div className="h-screen flex flex-col bg-gray-900 lg:bg-gray-800/50 lg:backdrop-blur-sm lg:border-r lg:border-gray-700/30">
       {/* Header */}
@@ -25,11 +32,21 @@ export const SidePanel = ({ userName, onClose }: SidePanelProps) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">B</span>
+              {displayImage ? (
+                <Image
+                  src={displayImage}
+                  alt={userName}
+                  width={48}
+                  height={48}
+                  className="rounded-full"
+                />
+              ) : (
+                <span className="text-white font-bold text-lg">{userName.charAt(0).toUpperCase()}</span>
+              )}
             </div>
             <div>
               <h3 className="text-white font-bold text-lg">{userName}</h3>
-              <p className="text-gray-400 text-sm">Passionate Believer</p>
+              <p className="text-gray-400 text-sm capitalize">{faithJourney.toLowerCase()}</p>
             </div>
           </div>
           {/* Close button only on mobile */}

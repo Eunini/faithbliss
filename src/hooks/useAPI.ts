@@ -111,6 +111,25 @@ export function useApi<T>(
   };
 }
 
+// Hook for user profile
+export function useUserProfile() {
+  const { accessToken, isAuthenticated } = useRequireAuth();
+  const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
+
+  const apiCall = useCallback(() => {
+    if (!accessToken) {
+      throw new Error('Authentication required. Please log in.');
+    }
+    return apiClient.User.getMe();
+  }, [apiClient, accessToken]);
+
+  return useApi(
+    isAuthenticated ? apiCall : null,
+    [accessToken, isAuthenticated],
+    { immediate: isAuthenticated }
+  );
+}
+
 // Hook for potential matches
 export function usePotentialMatches() {
   const { accessToken, isAuthenticated } = useRequireAuth();
@@ -212,7 +231,7 @@ export function useMatching() {
 // Hook for completing onboarding
 export function useOnboarding() {
   const { accessToken } = useRequireAuth();
-  const { update } = useSession();
+  const { update: updateSession } = useSession(); // Rename to avoid conflict
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
   const { showSuccess, showError } = useToast();
 
@@ -225,8 +244,11 @@ export function useOnboarding() {
     try {
       const result = await apiClient.Auth.completeOnboarding(onboardingData);
       
-      // Update the session to reflect onboarding completion
-      await update({ onboardingCompleted: true });
+      // Update the session to reflect onboarding completion and new profile picture
+      await updateSession({ 
+        onboardingCompleted: true,
+        picture: result.profilePhotos?.photo1 // Assuming the backend returns the new user data with photo URLs
+      });
 
       // Add a small delay to allow session to propagate
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -237,7 +259,7 @@ export function useOnboarding() {
       showError('Failed to complete profile setup. Please try again.', 'Setup Error');
       throw error;
     }
-  }, [apiClient, showSuccess, showError, update, accessToken]);
+  }, [apiClient, showSuccess, showError, updateSession, accessToken]);
 
   return { completeOnboarding };
 }

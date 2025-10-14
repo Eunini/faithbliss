@@ -12,6 +12,7 @@ declare module 'next-auth' {
     accessTokenExpiresIn?: number;
     onboardingCompleted?: boolean;
     isNewUser?: boolean;
+    picture?: string;
   }
 
   /**
@@ -23,6 +24,7 @@ declare module 'next-auth' {
     user: {
       id: string;
       onboardingCompleted?: boolean;
+      picture?: string;
     } & DefaultSession['user'];
   }
 }
@@ -38,5 +40,6 @@ declare module 'next-auth/jwt' {
     onboardingCompleted?: boolean;
     isNewUser?: boolean;
     error?: string; // Allow any string for flexibility
+    picture?: string;
   }
 }

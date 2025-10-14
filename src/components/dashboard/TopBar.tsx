@@ -1,10 +1,12 @@
-'use client';
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Bell, Filter, Sparkles, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface TopBarProps {
   userName: string;
+  userImage?: string;
+  user?: any;
   showFilters?: boolean;
   showSidePanel?: boolean;
   onToggleFilters?: () => void;
@@ -16,6 +18,8 @@ interface TopBarProps {
 
 export const TopBar = ({ 
   userName, 
+  userImage,
+  user,
   showFilters = false, 
   showSidePanel = false, // eslint-disable-line @typescript-eslint/no-unused-vars
   onToggleFilters, 
@@ -24,6 +28,8 @@ export const TopBar = ({
   showBackButton = false,
   onBack
 }: TopBarProps) => {
+  const displayImage = user?.profilePhotos?.photo1 || userImage;
+
   return (
     <div className="bg-gray-900/80 backdrop-blur-xl border-b border-gray-700/50 px-4 py-4 sticky top-0 z-50">
       {/* Gradient Overlay */}
@@ -85,7 +91,17 @@ export const TopBar = ({
             className="p-3 hover:bg-white/10 rounded-2xl transition-all hover:scale-105 group lg:hidden"
           >
             <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">B</span>
+              {displayImage ? (
+                <Image
+                  src={displayImage}
+                  alt={userName}
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
+              ) : (
+                <span className="text-white font-bold text-sm">{userName.charAt(0).toUpperCase()}</span>
+              )}
             </div>
           </button>
           

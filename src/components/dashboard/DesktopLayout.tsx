@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ReactNode } from 'react';
 import { SidePanel } from './SidePanel';
 import { TopBar } from './TopBar';
 
 interface DesktopLayoutProps {
   userName: string;
+  userImage?: string;
+  user?: any;
   showFilters: boolean;
   showSidePanel: boolean;
   onToggleFilters: () => void;
@@ -13,6 +16,8 @@ interface DesktopLayoutProps {
 
 export const DesktopLayout = ({
   userName,
+  userImage,
+  user,
   showFilters,
   showSidePanel,
   onToggleFilters,
@@ -22,7 +27,7 @@ export const DesktopLayout = ({
   return (
     <div className="hidden lg:flex min-h-screen">
       <div className="w-80 flex-shrink-0">
-        <SidePanel userName={userName} onClose={() => {}} />
+        <SidePanel userName={userName} userImage={userImage} user={user} onClose={() => {}} />
       </div>
       
       {/* Main Content Area */}
@@ -30,6 +35,8 @@ export const DesktopLayout = ({
         {/* Top Bar */}
         <TopBar
           userName={userName}
+          userImage={userImage}
+          user={user}
           showFilters={showFilters}
           showSidePanel={showSidePanel}
           onToggleFilters={onToggleFilters}

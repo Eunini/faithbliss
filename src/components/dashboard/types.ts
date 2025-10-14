@@ -9,6 +9,9 @@ export interface Profile {
   };
   profilePhotoUrl?: string;
   profilePicture?: string;
+  profilePhoto1?: string;
+  profilePhoto2?: string;
+  profilePhoto3?: string;
   profilePhotos?: {
     photo1?: string;
     photo2?: string;

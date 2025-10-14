@@ -190,6 +190,7 @@ export const config: NextAuthConfig = {
         user.id = backendResponse.user.id;
         user.onboardingCompleted = backendResponse.user.onboardingCompleted;
         user.isNewUser = !backendResponse.user.onboardingCompleted;
+        user.picture = profile.picture; // Add this line
       }
       return true;
     },
@@ -198,6 +199,9 @@ export const config: NextAuthConfig = {
       // Handle session updates from the client
       if (trigger === "update" && session) {
         token.onboardingCompleted = (session as any).onboardingCompleted;
+        if ((session as any).picture) {
+          token.picture = (session as any).picture;
+        }
         return token;
       }
       
@@ -211,6 +215,7 @@ export const config: NextAuthConfig = {
         token.userId = user.id as string;
         token.onboardingCompleted = user.onboardingCompleted as boolean;
         token.isNewUser = user.isNewUser as boolean;
+        token.picture = user.picture; // Add this line
       }
 
       // Return previous token if the access token has not expired yet
@@ -227,6 +232,7 @@ export const config: NextAuthConfig = {
         session.user.id = token.userId as string;
         session.user.onboardingCompleted = token.onboardingCompleted as boolean;
         session.accessToken = token.accessToken as string;
+        session.user.picture = token.picture as string; // Add this line
         // Pass the error to the client-side session
         if (token.error) {
           session.error = token.error as string;

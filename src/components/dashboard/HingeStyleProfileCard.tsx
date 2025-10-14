@@ -13,10 +13,17 @@ export const HingeStyleProfileCard = ({ profile }: HingeStyleProfileCardProps) =
   const getPhotos = () => {
     const photos: string[] = [];
     
-    // Add profile photos from backend
-    if (profile.profilePhotos?.photo1) photos.push(profile.profilePhotos.photo1);
-    if (profile.profilePhotos?.photo2) photos.push(profile.profilePhotos.photo2);
-    if (profile.profilePhotos?.photo3) photos.push(profile.profilePhotos.photo3);
+    // Add profile photos from backend (new flat structure)
+    if (profile.profilePhoto1) photos.push(profile.profilePhoto1);
+    if (profile.profilePhoto2) photos.push(profile.profilePhoto2);
+    if (profile.profilePhoto3) photos.push(profile.profilePhoto3);
+
+    // Fallback to nested structure for backward compatibility
+    if (photos.length === 0) {
+      if (profile.profilePhotos?.photo1) photos.push(profile.profilePhotos.photo1);
+      if (profile.profilePhotos?.photo2) photos.push(profile.profilePhotos.photo2);
+      if (profile.profilePhotos?.photo3) photos.push(profile.profilePhotos.photo3);
+    }
     
     // Fallback to other photo fields
     if (photos.length === 0) {
@@ -27,7 +34,7 @@ export const HingeStyleProfileCard = ({ profile }: HingeStyleProfileCardProps) =
     
     // Default placeholder if no photos
     if (photos.length === 0) {
-      photos.push('https://images.unsplash.com/photo-1494790108755-2616b612b647?w=400'); // Default placeholder
+      photos.push('https://images.unsplash.com/photo-1494790108755-2616b647?w=400'); // Default placeholder
     }
     
     return photos;
