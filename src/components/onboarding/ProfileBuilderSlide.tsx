@@ -37,6 +37,8 @@ const denominationOptions = [
 const personalityOptions = ["Adventurous", "Outgoing", "Creative", "Reserved", "Analytical", "Charismatic"];
 const hobbiesOptions = ["Reading", "Hiking", "Photography", "Cooking", "Gaming", "Traveling", "Sports", "Music"];
 const valuesOptions = ["Love", "Faith", "Hope", "Honesty", "Kindness", "Compassion", "Family", "Friendship"];
+const spiritualGiftsOptions = ["Serving", "Teaching", "Encouragement", "Giving", "Leadership", "Mercy", "Wisdom", "Faith"];
+const interestsOptions = ["Volunteering", "Travel", "Brunch", "Coffee", "Movies", "Concerts", "Art", "Tech"];
 
 const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: ProfileBuilderSlideProps) => {
   if (!isVisible) return null;
@@ -52,7 +54,7 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
     setOnboardingData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleMultiSelect = (name: 'personality' | 'hobbies' | 'values', value: string) => {
+  const handleMultiSelect = (name: 'personality' | 'hobbies' | 'values' | 'spiritualGifts' | 'interests', value: string) => {
     setOnboardingData(prev => {
       const list = prev[name] || [];
       const newList: string[] = list.includes(value)
@@ -186,6 +188,7 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
           </div>
         </div>
 
+
         {/* Values */}
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-white">What are your values?</h3>
@@ -197,6 +200,48 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
                 onClick={() => handleMultiSelect('values', option)}
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
                   onboardingData.values?.includes(option)
+                    ? 'bg-pink-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Spiritual Gifts */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-white">What are your spiritual gifts?</h3>
+          <div className="flex flex-wrap gap-2">
+            {spiritualGiftsOptions.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => handleMultiSelect('spiritualGifts', option)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  onboardingData.spiritualGifts?.includes(option)
+                    ? 'bg-pink-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Interests */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-white">What are your interests?</h3>
+          <div className="flex flex-wrap gap-2">
+            {interestsOptions.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => handleMultiSelect('interests', option)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  onboardingData.interests?.includes(option)
                     ? 'bg-pink-600 text-white'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
