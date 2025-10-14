@@ -53,6 +53,10 @@ export interface OnboardingData {
   favoriteVerse: string;
 
   // Step 2: Matching Preferences
+  preferredFaithJourney: string[];
+  preferredChurchAttendance: string[];
+  preferredRelationshipGoals: string[];
+  preferredDenominations: string[];
   preferredGender: string;
   minAge: number;
   maxAge: number;

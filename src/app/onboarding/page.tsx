@@ -12,7 +12,9 @@ import {
   OnboardingData,
 } from '@/components/onboarding';
 import ImageUploadSlide from '@/components/onboarding/ImageUploadSlide';
-import { FaithSlide } from '@/components/onboarding/FaithSlide';
+import ProfileBuilderSlide from '@/components/onboarding/ProfileBuilderSlide';
+import MatchingPreferencesSlide from '@/components/onboarding/MatchingPreferencesSlide';
+import RelationshipGoalsSlide from '@/components/onboarding/RelationshipGoalsSlide';
 
 const OnboardingPage = () => {
   const router = useRouter();
@@ -21,7 +23,7 @@ const OnboardingPage = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const totalSteps = 2; // Photos -> Faith
+  const totalSteps = 4; // Photos -> Profile -> Goals -> Preferences
 
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     // Photos
@@ -43,6 +45,12 @@ const OnboardingPage = () => {
     favoriteVerse: '',
     // Goals
     relationshipGoals: '',
+    // Preferences
+    preferredGender: '',
+    minAge: 18,
+    maxAge: 35,
+    maxDistance: 50,
+    
     // Fields not in the new UI but required by the type (setting defaults)
     phoneNumber: '',
     countryCode: '+1',
@@ -51,6 +59,10 @@ const OnboardingPage = () => {
     spiritualGifts: [],
     interests: [],
     lifestyle: '',
+    preferredFaithJourney: [],
+    preferredChurchAttendance: [],
+    preferredRelationshipGoals: [],
+    preferredDenominations: [],
   });
 
   const nextStep = async () => {
@@ -63,6 +75,10 @@ const OnboardingPage = () => {
     }
     if (currentStep === 1 && (!onboardingData.birthday || !onboardingData.location || !onboardingData.faithJourney)) {
       setValidationError('Please fill out the basics: birthday, location, and faith journey.');
+      return;
+    }
+     if (currentStep === 2 && !onboardingData.relationshipGoals) {
+      setValidationError('Please select your relationship goal.');
       return;
     }
 
@@ -129,8 +145,18 @@ const OnboardingPage = () => {
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
-          <FaithSlide
+          <ProfileBuilderSlide
             isVisible={currentStep === 1}
+            onboardingData={onboardingData}
+            setOnboardingData={setOnboardingData}
+          />
+          <RelationshipGoalsSlide
+            isVisible={currentStep === 2}
+            onboardingData={onboardingData}
+            setOnboardingData={setOnboardingData}
+          />
+          <MatchingPreferencesSlide
+            isVisible={currentStep === 3}
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
