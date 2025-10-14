@@ -197,7 +197,7 @@ export const config: NextAuthConfig = {
     async jwt({ token, user, trigger, session }: { session?: Session; token: JWT; user?: User; trigger?: "signIn" | "signUp" | "update"; }) {
       // Handle session updates from the client
       if (trigger === "update" && session) {
-        token.onboardingCompleted = session.user.onboardingCompleted;
+        token.onboardingCompleted = (session as any).onboardingCompleted;
         return token;
       }
       
