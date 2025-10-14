@@ -14,6 +14,7 @@ import {
 import ImageUploadSlide from '@/components/onboarding/ImageUploadSlide';
 import ProfileBuilderSlide from '@/components/onboarding/ProfileBuilderSlide';
 import MatchingPreferencesSlide from '@/components/onboarding/MatchingPreferencesSlide';
+import PartnerPreferencesSlide from '@/components/onboarding/PartnerPreferencesSlide';
 import RelationshipGoalsSlide from '@/components/onboarding/RelationshipGoalsSlide';
 
 const OnboardingPage = () => {
@@ -23,7 +24,7 @@ const OnboardingPage = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const totalSteps = 4; // Photos -> Profile -> Goals -> Preferences
+  const totalSteps = 5; // Photos -> Profile -> Goals -> Partner Preferences -> Matching Preferences
 
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     // Photos
@@ -77,8 +78,18 @@ const OnboardingPage = () => {
       setValidationError('Please fill out the basics: birthday, location, and faith journey.');
       return;
     }
-     if (currentStep === 2 && !onboardingData.relationshipGoals) {
+    if (currentStep === 2 && !onboardingData.relationshipGoals) {
       setValidationError('Please select your relationship goal.');
+      return;
+    }
+    if (
+      currentStep === 3 &&
+      (onboardingData.preferredFaithJourney.length === 0 ||
+        onboardingData.preferredChurchAttendance.length === 0 ||
+        onboardingData.preferredRelationshipGoals.length === 0 ||
+        onboardingData.preferredDenominations.length === 0)
+    ) {
+      setValidationError('Please select at least one option for each preference.');
       return;
     }
 
@@ -157,8 +168,13 @@ const OnboardingPage = () => {
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
-          <MatchingPreferencesSlide
+          <PartnerPreferencesSlide
             isVisible={currentStep === 3}
+            onboardingData={onboardingData}
+            setOnboardingData={setOnboardingData}
+          />
+          <MatchingPreferencesSlide
+            isVisible={currentStep === 4}
             onboardingData={onboardingData}
             setOnboardingData={setOnboardingData}
           />
