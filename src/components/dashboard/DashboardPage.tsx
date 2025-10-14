@@ -35,6 +35,64 @@ export const DashboardPage = ({ session }: { session: Session }) => {
   if (matchesLoading || userLoading) {
     return <HeartBeatLoader message="Preparing your matches..." />;
   }
+
+  const currentProfile = profiles?.[currentProfileIndex] as Profile;
+
+  const goToNextProfile = () => {
+    if (!profiles) return;
+    
+    if (currentProfileIndex < profiles.length - 1) {
+      setCurrentProfileIndex(prev => prev + 1);
+    } else {
+      // No more profiles - fetch more or show end state
+      refetch(); // Fetch more potential matches
+      setCurrentProfileIndex(0);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!currentProfile) return;
+    
+    try {
+      await likeUser(currentProfile.id);
+      console.log(`Liked profile ${currentProfile.id}`);
+      showSuccess(`You liked ${currentProfile.name}! 💕`, 'Great Choice!');
+      goToNextProfile();
+    } catch (error) {
+      console.error('Failed to like user:', error);
+      showInfo('Failed to send like. Please try again.', 'Error');
+    }
+  };
+
+  const handlePass = async () => {
+    if (!currentProfile) return;
+    
+    try {
+      await passUser(currentProfile.id);
+      console.log(`Passed on profile ${currentProfile.id}`);
+      showInfo(`Passed on ${currentProfile.name}`, 'No worries!');
+      goToNextProfile();
+    } catch (error) {
+      console.error('Failed to pass user:', error);
+      // Still go to next profile even if pass fails
+      goToNextProfile();
+    }
+  };
+
+  const handleBless = () => {
+    console.log(`Blessed profile ${currentProfile?.id}`);
+    showSuccess(`You blessed ${currentProfile?.name}! ✨`, 'Blessing Sent!');
+    goToNextProfile();
+  };
+
+  const handleMessage = () => {
+    if (currentProfile) {
+      router.push(`/messages?profileId=${currentProfile.id}&profileName=${encodeURIComponent(currentProfile.name)}`);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white pb-20 no-horizontal-scroll dashboard-main">
       {/* Desktop Layout */}
       <DesktopLayout
         userName={userName}
@@ -87,3 +145,6 @@ export const DashboardPage = ({ session }: { session: Session }) => {
         onCloseFilters={() => setShowFilters(false)}
         onCloseSidePanel={() => setShowSidePanel(false)}
       />
+    </div>
+  );
+};
