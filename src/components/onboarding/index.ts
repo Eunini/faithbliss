@@ -1,7 +1,7 @@
 // src/components/onboarding/index.ts
 
 // Main Slides/Views
-export { FaithSlide } from './FaithSlide';
+export { default as ProfileBuilderSlide } from './ProfileBuilderSlide';
 export { default as PreferenceSlide } from './PreferenceSlide';
 // Note: Other slides like BasicInfo, Education, etc., are now deprecated 
 // in favor of the consolidated FaithSlide and the new PreferenceSlide.
