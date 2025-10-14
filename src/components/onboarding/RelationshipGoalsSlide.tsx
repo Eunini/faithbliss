@@ -12,7 +12,7 @@ interface RelationshipGoalsSlideProps {
 
 const goalsOptions = [
   { value: RelationshipGoals.MARRIAGE_MINDED, label: 'Marriage Minded', emoji: '💍' },
-  { value: RelationshipGoals.DATING, label: 'Dating', emoji: '❤️' },
+  { value: RelationshipGoals.RELATIONSHIP, label: 'Relationship', emoji: '❤️' },
   { value: RelationshipGoals.FRIENDSHIP, label: 'Friendship', emoji: '🤝' },
 ];
 

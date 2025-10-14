@@ -34,6 +34,10 @@ const denominationOptions = [
   "SEVENTH_DAY_ADVENTIST", "OTHER"
 ];
 
+const personalityOptions = ["Adventurous", "Outgoing", "Creative", "Reserved", "Analytical", "Charismatic"];
+const hobbiesOptions = ["Reading", "Hiking", "Photography", "Cooking", "Gaming", "Traveling", "Sports", "Music"];
+const valuesOptions = ["Love", "Faith", "Hope", "Honesty", "Kindness", "Compassion", "Family", "Friendship"];
+
 const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: ProfileBuilderSlideProps) => {
   if (!isVisible) return null;
 
@@ -41,15 +45,21 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    if (name === 'hobbies' || name === 'values') {
-      setOnboardingData(prev => ({ ...prev, [name]: value.split(',').map(item => item.trim()) }));
-    } else {
-      setOnboardingData(prev => ({ ...prev, [name]: value }));
-    }
+    setOnboardingData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleCardSelect = (name: keyof OnboardingData, value: string) => {
     setOnboardingData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleMultiSelect = (name: 'personality' | 'hobbies' | 'values', value: string) => {
+    setOnboardingData(prev => {
+      const list = prev[name] || [];
+      const newList: string[] = list.includes(value)
+        ? list.filter((item: string) => item !== value)
+        : [...list, value];
+      return { ...prev, [name]: newList };
+    });
   };
 
   const handleCountryChange = (country: Country) => {
@@ -133,11 +143,68 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
           />
 
         <textarea name="bio" value={onboardingData.bio} onChange={handleChange} placeholder="Write a short bio..." rows={4} className="input-style w-full"></textarea>
-        <textarea name="personality" value={onboardingData.personality} onChange={handleChange} placeholder="Describe your personality..." rows={3} className="input-style w-full"></textarea>
         
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <input type="text" name="hobbies" value={Array.isArray(onboardingData.hobbies) ? onboardingData.hobbies.join(', ') : ''} onChange={handleChange} placeholder="Hobbies (comma-separated)" className="input-style" />
-          <input type="text" name="values" value={Array.isArray(onboardingData.values) ? onboardingData.values.join(', ') : ''} onChange={handleChange} placeholder="Values (comma-separated)" className="input-style" />
+        {/* Personality */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-white">Describe your personality</h3>
+          <div className="flex flex-wrap gap-2">
+            {personalityOptions.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => handleMultiSelect('personality', option)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  onboardingData.personality?.includes(option)
+                    ? 'bg-pink-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Hobbies */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-white">What are your hobbies?</h3>
+          <div className="flex flex-wrap gap-2">
+            {hobbiesOptions.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => handleMultiSelect('hobbies', option)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  onboardingData.hobbies?.includes(option)
+                    ? 'bg-pink-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Values */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-white">What are your values?</h3>
+          <div className="flex flex-wrap gap-2">
+            {valuesOptions.map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => handleMultiSelect('values', option)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  onboardingData.values?.includes(option)
+                    ? 'bg-pink-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </motion.div>

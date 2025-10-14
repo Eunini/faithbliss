@@ -17,7 +17,7 @@ export enum ChurchAttendance {
 
 export enum RelationshipGoals {
   FRIENDSHIP = 'FRIENDSHIP',
-  DATING = 'DATING',
+  RELATIONSHIP = 'RELATIONSHIP',
   MARRIAGE_MINDED = 'MARRIAGE_MINDED',
 }
 
@@ -47,7 +47,7 @@ export interface OnboardingData {
   interests: string[];
   lifestyle: string;
   bio: string;
-  personality: string;
+  personality: string[];
   hobbies: string[];
   values: string[];
   favoriteVerse: string;

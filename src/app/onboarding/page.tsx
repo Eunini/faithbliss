@@ -39,7 +39,7 @@ const OnboardingPage = () => {
     customDenomination: '',
     occupation: '',
     bio: '',
-    personality: '',
+    personality: [],
     hobbies: [],
     values: [],
     favoriteVerse: '',
@@ -96,6 +96,8 @@ const OnboardingPage = () => {
             (value as File[]).forEach((photo: File) => formData.append('photos', photo));
           } else if (key === 'denomination' && value === 'OTHER' && onboardingData.customDenomination) {
             formData.append('denomination', onboardingData.customDenomination);
+          } else if (key === 'personality' && Array.isArray(value)) {
+            formData.append('personality', value.join(', '));
           } else if (Array.isArray(value) && value.length > 0) {
             // Convert camelCase to snake_case for array fields
             const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
