@@ -101,23 +101,34 @@ const OnboardingPage = () => {
       try {
         setSubmitting(true);
         const formData = new FormData();
+        const dataForBackend: { [key: string]: any } = {};
 
+        // 1. Build the JSON object for the 'data' field
         Object.entries(onboardingData).forEach(([key, value]) => {
-          if (key === 'photos') {
-            (value as File[]).forEach((photo: File) => formData.append('photos', photo));
-          } else if (key === 'denomination' && value === 'OTHER' && onboardingData.customDenomination) {
-            formData.append('denomination', onboardingData.customDenomination);
-          } else if (key === 'personality' && Array.isArray(value)) {
-            formData.append('personality', value.join(', '));
-          } else if (Array.isArray(value) && value.length > 0) {
-            // Convert camelCase to snake_case for array fields
-            const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-            value.forEach(item => formData.append(`${snakeKey}[]`, item as string));
-          } else if (value !== null && value !== undefined && value !== '' && key !== 'customDenomination') {
-            // Convert camelCase to snake_case for regular fields
-            const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-            formData.append(snakeKey, String(value));
+          // Skip photos (handled separately) and customDenomination (handled within denomination)
+          if (key === 'photos' || key === 'customDenomination') {
+            return;
           }
+
+          const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+
+          if (key === 'denomination' && value === 'OTHER' && onboardingData.customDenomination) {
+            dataForBackend[snakeKey] = onboardingData.customDenomination;
+          } else if (value !== null && value !== undefined) {
+             // Ensure empty arrays are still included if that's the desired behavior
+            if (Array.isArray(value) && value.length === 0) {
+               dataForBackend[snakeKey] = [];
+            } else if (value !== '') {
+               dataForBackend[snakeKey] = value;
+            }
+          }
+        });
+        
+        formData.append('data', JSON.stringify(dataForBackend));
+
+        // 2. Append photos
+        onboardingData.photos.forEach((photo) => {
+          formData.append('photos', photo);
         });
 
         await completeOnboarding(formData);
