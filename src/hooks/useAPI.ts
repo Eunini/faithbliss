@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Custom hooks for API integration - REFACTORED FOR CLIENT-SIDE
 import { useState, useEffect, useCallback, useMemo } from 'react';

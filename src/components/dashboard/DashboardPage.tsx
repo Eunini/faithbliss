@@ -28,7 +28,7 @@ export const DashboardPage = ({ session }: { session: Session }) => {
   const [isLoadingFilters, setIsLoadingFilters] = useState(false);
 
   // Fetch real potential matches from backend
-  const { data: profiles, loading: matchesLoading, error, refetch } = usePotentialMatches();
+  const { data: profiles, loading: matchesLoading, refetch } = usePotentialMatches();
   const { data: user, loading: userLoading } = useUserProfile();
   const { likeUser, passUser } = useMatching();
 
@@ -89,10 +89,6 @@ export const DashboardPage = ({ session }: { session: Session }) => {
     }
   };
 
-  const handleBless = () => {
-    // console.log(`Blessed profile ${currentProfile?.id}`); // Removed blessing functionality
-    goToNextProfile();
-  };
 
   const handleMessage = () => {
     if (currentProfile) {
