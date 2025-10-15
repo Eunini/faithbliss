@@ -24,7 +24,7 @@ export const SidePanel = ({ userName, userImage, user, onClose }: SidePanelProps
     await signOut({ callbackUrl: '/login' });
   };
   
-  const displayImage = user?.profilePhotos?.photo1 || userImage;
+  const displayImage = user?.profilePhotos?.photo1 || userImage || '/default-avatar.png';
   const faithJourney = user?.faithJourney || 'Passionate Believer';
 
   return (
