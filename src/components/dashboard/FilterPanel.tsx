@@ -5,10 +5,41 @@ import { Filter, X, ChevronDown } from 'lucide-react';
 
 interface FilterPanelProps {
   onClose: () => void;
+  onApplyFilters: (filters: any) => void;
 }
 
-export const FilterPanel = ({ onClose }: FilterPanelProps) => {
+export const FilterPanel = ({ onClose, onApplyFilters }: FilterPanelProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [distance, setDistance] = useState(25);
+  const [minAge, setMinAge] = useState(18);
+  const [maxAge, setMaxAge] = useState(35);
+  const [faithJourney, setFaithJourney] = useState('');
+  const [relationshipGoals, setRelationshipGoals] = useState('');
+  const [denomination, setDenomination] = useState('');
+  const [gender, setGender] = useState('');
+
+  const handleApply = () => {
+    onApplyFilters({
+      maxDistance: distance,
+      minAge,
+      maxAge,
+      preferredFaithJourney: faithJourney ? [faithJourney] : undefined,
+      preferredRelationshipGoals: relationshipGoals ? [relationshipGoals] : undefined,
+      preferredDenominations: denomination ? [denomination] : undefined,
+      preferredGender: gender,
+    });
+    onClose();
+  };
+
+  const handleReset = () => {
+    setDistance(25);
+    setMinAge(18);
+    setMaxAge(35);
+    setFaithJourney('');
+    setRelationshipGoals('');
+    setDenomination('');
+    setGender('');
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -39,6 +70,20 @@ export const FilterPanel = ({ onClose }: FilterPanelProps) => {
           scrollbarColor: 'rgba(236, 72, 153, 0.4) transparent'
         }}
       >
+        {/* Gender Filter */}
+        <div className="bg-gradient-to-br from-indigo-500/10 to-blue-500/10 rounded-2xl p-5 border border-indigo-500/20">
+          <label className="block text-sm font-bold text-indigo-300 mb-3 uppercase tracking-wide">Gender</label>
+          <select 
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            className="w-full p-3 bg-gray-800/50 border border-indigo-500/30 rounded-xl text-white focus:border-indigo-400 focus:outline-none transition-colors"
+          >
+            <option value="">Any</option>
+            <option value="MALE">Male</option>
+            <option value="FEMALE">Female</option>
+          </select>
+        </div>
+
         {/* Distance Filter */}
         <div className="bg-gradient-to-br from-pink-500/10 to-purple-500/10 rounded-2xl p-5 border border-pink-500/20">
           <label className="block text-sm font-bold text-pink-300 mb-3 uppercase tracking-wide">Distance Range</label>
@@ -46,12 +91,13 @@ export const FilterPanel = ({ onClose }: FilterPanelProps) => {
             type="range"
             min="1"
             max="50"
-            defaultValue="25"
+            value={distance}
+            onChange={(e) => setDistance(Number(e.target.value))}
             className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
           />
           <div className="flex justify-between text-xs text-gray-400 mt-2">
             <span>1 km</span>
-            <span className="text-pink-400 font-semibold">25 km</span>
+            <span className="text-pink-400 font-semibold">{distance} km</span>
             <span>50 km</span>
           </div>
         </div>
@@ -65,6 +111,8 @@ export const FilterPanel = ({ onClose }: FilterPanelProps) => {
               placeholder="18"
               min="18"
               max="100"
+              value={minAge}
+              onChange={(e) => setMinAge(Number(e.target.value))}
               className="w-20 p-3 bg-gray-800/50 border border-blue-500/30 rounded-xl text-white placeholder-gray-500 focus:border-blue-400 focus:outline-none transition-colors text-center"
             />
             <span className="text-gray-400 text-sm font-medium">to</span>
@@ -73,6 +121,8 @@ export const FilterPanel = ({ onClose }: FilterPanelProps) => {
               placeholder="35"
               min="18"
               max="100"
+              value={maxAge}
+              onChange={(e) => setMaxAge(Number(e.target.value))}
               className="w-20 p-3 bg-gray-800/50 border border-blue-500/30 rounded-xl text-white placeholder-gray-500 focus:border-blue-400 focus:outline-none transition-colors text-center"
             />
             <span className="text-gray-400 text-xs">years old</span>
@@ -82,23 +132,29 @@ export const FilterPanel = ({ onClose }: FilterPanelProps) => {
         {/* Faith Journey */}
         <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-2xl p-5 border border-emerald-500/20">
           <label className="block text-sm font-bold text-emerald-300 mb-3 uppercase tracking-wide">Faith Journey</label>
-          <select className="w-full p-3 bg-gray-800/50 border border-emerald-500/30 rounded-xl text-white focus:border-emerald-400 focus:outline-none transition-colors">
+          <select 
+            value={faithJourney}
+            onChange={(e) => setFaithJourney(e.target.value)}
+            className="w-full p-3 bg-gray-800/50 border border-emerald-500/30 rounded-xl text-white focus:border-emerald-400 focus:outline-none transition-colors"
+          >
             <option value="">All faith levels</option>
-            <option value="exploring">🌱 Exploring Faith</option>
-            <option value="growing">🌿 Growing in Faith</option>
-            <option value="rooted">🌳 Rooted in Faith</option>
-            <option value="passionate">🔥 Passionate Believer</option>
+            <option value="EXPLORING">🌱 Exploring Faith</option>
+            <option value="GROWING">🌿 Growing in Faith</option>
+            <option value="ROOTED">🌳 Rooted in Faith</option>
           </select>
         </div>
 
         {/* Relationship Goals */}
         <div className="bg-gradient-to-br from-rose-500/10 to-pink-500/10 rounded-2xl p-5 border border-rose-500/20">
           <label className="block text-sm font-bold text-rose-300 mb-3 uppercase tracking-wide">Looking For</label>
-          <select className="w-full p-3 bg-gray-800/50 border border-rose-500/30 rounded-xl text-white focus:border-rose-400 focus:outline-none transition-colors">
+          <select 
+            value={relationshipGoals}
+            onChange={(e) => setRelationshipGoals(e.targe.value)}
+            className="w-full p-3 bg-gray-800/50 border border-rose-500/30 rounded-xl text-white focus:border-rose-400 focus:outline-none transition-colors"
+          >
             <option value="">Any relationship type</option>
-            <option value="friendship">💫 Christian Friendship</option>
-            <option value="dating">💕 Dating with Purpose</option>
-            <option value="marriage">💍 Marriage-Minded</option>
+            <option value="RELATIONSHIP">💕 Dating with Purpose</option>
+            <option value="MARRIAGE_MINDED">💍 Marriage-Minded</option>
           </select>
         </div>
 
@@ -116,38 +172,16 @@ export const FilterPanel = ({ onClose }: FilterPanelProps) => {
           <div className="space-y-4 animate-in slide-in-from-top duration-300">
             <div className="bg-gradient-to-br from-purple-500/10 to-violet-500/10 rounded-2xl p-5 border border-purple-500/20">
               <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">Denomination</label>
-              <select className="w-full p-3 bg-gray-800/50 border border-purple-500/30 rounded-xl text-white text-sm focus:border-purple-400 focus:outline-none transition-colors">
+              <select 
+                value={denomination}
+                onChange={(e) => setDenomination(e.target.value)}
+                className="w-full p-3 bg-gray-800/50 border border-purple-500/30 rounded-xl text-white text-sm focus:border-purple-400 focus:outline-none transition-colors"
+              >
                 <option value="">Any denomination</option>
-                <option value="pentecostal">⛪ Pentecostal</option>
-                <option value="catholic">✝️ Catholic</option>
-                <option value="anglican">🏛️ Anglican</option>
-                <option value="baptist">🙏 Baptist</option>
-                <option value="methodist">📖 Methodist</option>
-                <option value="presbyterian">🕊️ Presbyterian</option>
+                <option value="BAPTIST">🙏 Baptist</option>
+                <option value="METHODIST">📖 Methodist</option>
+                <option value="CATHOLIC">✝️ Catholic</option>
               </select>
-            </div>
-
-            <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-2xl p-5 border border-yellow-500/20">
-              <label className="block text-sm font-bold text-yellow-300 mb-3 uppercase tracking-wide">Prayer Life</label>
-              <select className="w-full p-3 bg-gray-800/50 border border-yellow-500/30 rounded-xl text-white text-sm focus:border-yellow-400 focus:outline-none transition-colors">
-                <option value="">Any frequency</option>
-                <option value="daily">🌅 Daily Prayer</option>
-                <option value="weekly">📅 Weekly Prayer</option>
-                <option value="learning">📚 Learning to Pray</option>
-              </select>
-            </div>
-
-            {/* Checkboxes */}
-            <div className="space-y-3">
-              <label className="flex items-center space-x-3 p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded accent-pink-500" />
-                <span className="text-gray-300 font-medium">✅ Verified profiles only</span>
-              </label>
-              
-              <label className="flex items-center space-x-3 p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded accent-emerald-500" />
-                <span className="text-gray-300 font-medium">🟢 Active in last 7 days</span>
-              </label>
             </div>
           </div>
         )}
@@ -155,10 +189,16 @@ export const FilterPanel = ({ onClose }: FilterPanelProps) => {
 
       {/* Footer Actions */}
       <div className="p-6 border-t border-gray-700/50 space-y-3">
-        <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white py-2 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-lg">
+        <button 
+          onClick={handleApply}
+          className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white py-2 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-lg"
+        >
           Apply Filters
         </button>
-        <button className="w-full bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 py-2 rounded-2xl font-medium transition-colors">
+        <button 
+          onClick={handleReset}
+          className="w-full bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 py-2 rounded-2xl font-medium transition-colors"
+        >
           Reset All
         </button>
       </div>

@@ -695,6 +695,23 @@ export const DiscoveryAPI = {
   getDailyChallenge: async (): Promise<{ challenge: string; verse: string; date: string }> => {
     return apiRequest('/discover/challenge');
   },
+
+  // Filter profiles based on criteria
+  filterProfiles: async (filters: {
+    preferredGender?: 'MALE' | 'FEMALE';
+    preferredDenominations?: string[];
+    minAge?: number;
+    maxAge?: number;
+    maxDistance?: number;
+    preferredFaithJourney?: string[];
+    preferredChurchAttendance?: string[];
+    preferredRelationshipGoals?: string[];
+  }): Promise<User[]> => {
+    return apiRequest('/discover/filter', {
+      method: 'POST',
+      body: JSON.stringify(filters),
+    });
+  },
 };
 
 // Export all APIs

@@ -10,6 +10,7 @@ interface OverlayPanelsProps {
   user?: any;
   onCloseFilters: () => void;
   onCloseSidePanel: () => void;
+  onApplyFilters: (filters: any) => void;
 }
 
 export const OverlayPanels = ({
@@ -19,14 +20,15 @@ export const OverlayPanels = ({
   userImage,
   user,
   onCloseFilters,
-  onCloseSidePanel
+  onCloseSidePanel,
+  onApplyFilters
 }: OverlayPanelsProps) => {
   return (
     <>
       {/* Filter Panel */}
       {showFilters && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40">
-          <FilterPanel onClose={onCloseFilters} />
+          <FilterPanel onClose={onCloseFilters} onApplyFilters={onApplyFilters} />
         </div>
       )}
 

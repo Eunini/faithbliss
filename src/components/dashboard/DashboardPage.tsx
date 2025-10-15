@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/contexts/ToastContext';
@@ -12,6 +12,7 @@ import { insertScrollbarStyles } from '@/components/dashboard/styles';
 import { usePotentialMatches, useMatching, useUserProfile } from '@/hooks/useAPI';
 import { Profile } from '@/components/dashboard/types';
 import { Session } from 'next-auth';
+import { API, User } from '@/services/api';
 
 // Insert scrollbar styles
 insertScrollbarStyles();
@@ -22,7 +23,9 @@ export const DashboardPage = ({ session }: { session: Session }) => {
   const [showFilters, setShowFilters] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
-  
+  const [filteredProfiles, setFilteredProfiles] = useState<User[] | null>(null);
+  const [isLoadingFilters, setIsLoadingFilters] = useState(false);
+
   // Fetch real potential matches from backend
   const { data: profiles, loading: matchesLoading, error, refetch } = usePotentialMatches();
   const { data: user, loading: userLoading } = useUserProfile();
@@ -31,22 +34,31 @@ export const DashboardPage = ({ session }: { session: Session }) => {
   const userName = user?.name || session?.user?.name || "User";
   const userImage = user?.profilePhotos?.photo1 || session?.user?.image || undefined;
 
+  const activeProfiles = filteredProfiles ?? profiles;
+
+  useEffect(() => {
+    setCurrentProfileIndex(0);
+  }, [filteredProfiles]);
+
   // Show loading state while fetching matches or refreshing the token.
   if (matchesLoading || userLoading) {
     return <HeartBeatLoader message="Preparing your matches..." />;
   }
 
-  const currentProfile = profiles?.[currentProfileIndex] as Profile;
+  const currentProfile = activeProfiles?.[currentProfileIndex] as Profile;
 
   const goToNextProfile = () => {
-    if (!profiles) return;
+    if (!activeProfiles) return;
     
-    if (currentProfileIndex < profiles.length - 1) {
+    if (currentProfileIndex < activeProfiles.length - 1) {
       setCurrentProfileIndex(prev => prev + 1);
     } else {
-      // No more profiles - fetch more or show end state
-      refetch(); // Fetch more potential matches
-      setCurrentProfileIndex(0);
+      if (filteredProfiles) {
+        showInfo("End of filtered results.");
+      } else {
+        refetch(); // Fetch more potential matches
+        setCurrentProfileIndex(0);
+      }
     }
   };
 
@@ -87,8 +99,22 @@ export const DashboardPage = ({ session }: { session: Session }) => {
     }
   };
 
+  const handleApplyFilters = async (filters: any) => {
+    setIsLoadingFilters(true);
+    try {
+      const results = await API.Discovery.filterProfiles(filters);
+      setFilteredProfiles(results);
+      showSuccess('Filters applied!');
+    } catch (error) {
+      console.error('Failed to apply filters:', error);
+    } finally {
+      setIsLoadingFilters(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white pb-20 no-horizontal-scroll dashboard-main">
+      {isLoadingFilters && <HeartBeatLoader message="Applying filters..." />}
       {/* Desktop Layout */}
       <DesktopLayout
         userName={userName}
@@ -140,6 +166,7 @@ export const DashboardPage = ({ session }: { session: Session }) => {
         user={user}
         onCloseFilters={() => setShowFilters(false)}
         onCloseSidePanel={() => setShowSidePanel(false)}
+        onApplyFilters={handleApplyFilters}
       />
     </div>
   );
