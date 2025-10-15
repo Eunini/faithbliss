@@ -4,18 +4,7 @@ import { io, Socket } from 'socket.io-client';
 
 const WS_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
 
-interface MessageData {
-  matchId: string;
-  content: string;
-  senderId: string;
-  timestamp: Date;
-}
-
-interface TypingData {
-  matchId: string;
-  userId: string;
-  isTyping: boolean;
-}
+import { Message, Notification, TypingEventSent, TypingEventReceived } from '@/types/chat';
 
 class WebSocketService {
   private socket: Socket | null = null;
@@ -44,6 +33,7 @@ class WebSocketService {
         reconnection: true,
         reconnectionAttempts: this.maxReconnectAttempts,
         reconnectionDelay: 1000,
+        withCredentials: true, // Important for cookies (refreshToken)
       });
 
       this.socket.on('connect', () => {
@@ -87,37 +77,51 @@ class WebSocketService {
   }
 
   // Send a real-time message
-  sendMessage(messageData: MessageData): void {
+  sendMessage(messageData: Pick<Message, 'matchId' | 'content'>): void {
     if (this.socket?.connected) {
       this.socket.emit('sendMessage', messageData);
     }
   }
 
   // Send typing indicator
-  sendTyping(typingData: TypingData): void {
+  sendTyping(typingData: TypingEventSent): void {
     if (this.socket?.connected) {
       this.socket.emit('typing', typingData);
     }
   }
 
   // Listen for new messages
-  onMessage(callback: (message: MessageData) => void): void {
+  onMessage(callback: (message: Message) => void): void {
     if (this.socket) {
       this.socket.on('newMessage', callback);
     }
   }
 
   // Listen for typing indicators
-  onTyping(callback: (data: TypingData) => void): void {
+  onTyping(callback: (data: TypingEventReceived) => void): void {
     if (this.socket) {
       this.socket.on('userTyping', callback);
     }
   }
 
-  // Listen for match updates
-  onMatchUpdate(callback: (data: unknown) => void): void {
+  // Listen for unread count updates
+  onUnreadCount(callback: (data: { count: number }) => void): void {
     if (this.socket) {
-      this.socket.on('matchUpdate', callback);
+      this.socket.on('unreadCount', callback);
+    }
+  }
+
+  // Listen for general notifications
+  onNotification(callback: (notification: Notification) => void): void {
+    if (this.socket) {
+      this.socket.on('notification', callback);
+    }
+  }
+
+  // Listen for WebSocket errors
+  onError(callback: (error: { message: string }) => void): void {
+    if (this.socket) {
+      this.socket.on('error', callback);
     }
   }
 

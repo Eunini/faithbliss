@@ -23,7 +23,7 @@ export const validateStep1 = (data: OnboardingData): boolean => {
   return !!(
     data.faithJourney &&
     data.churchAttendance &&
-    data.relationshipGoals &&
+    data.relationshipGoals?.length > 0 &&
 
     data.location &&
     data.denomination &&

@@ -107,4 +107,12 @@ export const getApiClient = (accessToken: string | null) => ({
         body: onboardingData,
       }, accessToken),
   },
+  Message: {
+    getConversations: () =>
+      apiClientRequest<any[]>('/messages/conversations', { method: 'GET' }, accessToken),
+    getMatchMessages: (matchId: string, page: number = 1, limit: number = 50) =>
+      apiClientRequest<any[]>(`/messages/match/${matchId}?page=${page}&limit=${limit}`, { method: 'GET' }, accessToken),
+    markMessageAsRead: (messageId: string) =>
+      apiClientRequest<void>(`/messages/mark-read/${messageId}`, { method: 'POST' }, accessToken),
+  },
 });

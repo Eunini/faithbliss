@@ -10,8 +10,12 @@ import {
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { EmojiPicker } from '@/components/chat/EmojiPicker';
-import { useConversationMessages, useMessaging, useWebSocket } from '@/hooks/useAPI';
+import { useConversationMessages, useWebSocket } from '@/hooks/useAPI';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
+import { Message } from '@/types/chat';
+import { getApiClient } from '@/services/api-client';
+import { useRequireAuth } from '@/hooks/useAuth';
+
 
 const ChatPage = () => {
   const params = useParams();
@@ -22,45 +26,108 @@ const ChatPage = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch real conversation data from backend
-  const { data: messages, loading: messagesLoading, error: messagesError } = useConversationMessages(chatId);
-  const { sendMessage } = useMessaging();
-  const { connected, sendTyping, onTyping } = useWebSocket();
-  const [isTyping] = useState(false);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const { connected, joinMatch, leaveMatch, sendMessage, sendTyping, onMessage, onTyping, onUnreadCount, onNotification, onError } = useWebSocket();
+  const [otherUserIsTyping, setOtherUserIsTyping] = useState(false);
+
+  const { data: initialMessages, loading: messagesLoading, error: messagesError } = useConversationMessages(chatId);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  const { accessToken } = useRequireAuth();
+  const apiClient = getApiClient(accessToken ?? null);
+
+  useEffect(() => {
+    if (initialMessages) {
+      setMessages(initialMessages);
+    }
+  }, [initialMessages]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
   useEffect(() => {
-    // Set up typing indicators
+    if (connected && chatId) {
+      joinMatch(chatId);
+    }
+
+    return () => {
+      if (connected && chatId) {
+        leaveMatch(chatId);
+      }
+    };
+  }, [connected, chatId, joinMatch, leaveMatch]);
+
+  useEffect(() => {
     if (onTyping) {
-      onTyping((data) => {
-        // Handle typing indicator updates
-        console.log('Typing indicator:', data);
+      const handleUserTyping = (data: { userId: string; isTyping: boolean }) => {
+        if (data.userId !== session?.user?.id) {
+          setOtherUserIsTyping(data.isTyping);
+        }
+      };
+      onTyping(handleUserTyping);
+      return () => {
+        // Clean up the event listener when the component unmounts or dependencies change
+        // This assumes wsService.off can remove specific listeners
+        // If not, a more robust cleanup mechanism might be needed in wsService
+        // For now, we'll rely on the effect re-running and re-registering
+      };
+    }
+  }, [onTyping, session?.user?.id]);
+
+  useEffect(() => {
+    if (onMessage) {
+      onMessage((message) => {
+        setMessages((prevMessages) => [...prevMessages, message]);
+        scrollToBottom();
       });
     }
-  }, [onTyping]);
+  }, [onMessage]);
+
+  useEffect(() => {
+    if (onUnreadCount) {
+      onUnreadCount((data) => {
+        console.log('Unread count update:', data);
+      });
+    }
+  }, [onUnreadCount]);
+
+  useEffect(() => {
+    if (onNotification) {
+      onNotification((notification) => {
+        console.log('New notification:', notification);
+      });
+    }
+  }, [onNotification]);
+
+  useEffect(() => {
+    if (onError) {
+      onError((error) => {
+        console.error('WebSocket Error:', error);
+      });
+    }
+  }, [onError]);
 
   const handleTyping = (value: string) => {
     setNewMessage(value);
     if (sendTyping) {
       sendTyping({
         matchId: chatId,
-        userId: session?.user?.id || '',
         isTyping: value.length > 0
       });
     }
   };
 
   const handleSendMessage = async () => {
-    if (newMessage.trim()) {
+    if (newMessage.trim() && session?.user?.id) {
       try {
-        await sendMessage(chatId, newMessage.trim());
+        sendMessage({
+          matchId: chatId,
+          content: newMessage.trim(),
+        });
         setNewMessage('');
         scrollToBottom();
       } catch (error) {
@@ -69,6 +136,26 @@ const ChatPage = () => {
     }
   };
 
+  // Mark messages as read when they are loaded
+  useEffect(() => {
+    if (messages.length > 0 && accessToken) {
+      messages.forEach(async (message) => {
+        if (!message.isRead && message.receiverId === session?.user?.id) {
+          try {
+            await apiClient.Message.markMessageAsRead(message.id);
+            // Optionally update the message in state to mark it as read
+            setMessages(prevMessages =>
+              prevMessages.map(msg =>
+                msg.id === message.id ? { ...msg, isRead: true } : msg
+              )
+            );
+          } catch (error) {
+            console.error(`Failed to mark message ${message.id} as read:`, error);
+          }
+        }
+      });
+    }
+  }, [messages, accessToken, apiClient.Message, session?.user?.id]);
 
 
   // Show loading state
@@ -93,20 +180,20 @@ const ChatPage = () => {
     );
   }
 
-  // Use real conversation data
-  const realMessages = messages || [];
-  
-  // For now, use default user info since we don't have user details in messages
-  // TODO: Fetch user details from API using chatId
+  // Determine the other user's details
+  const otherUser = messages.find(
+    (msg) => msg.senderId !== session?.user?.id
+  )?.sender;
+
   const conversation = {
     id: chatId,
-    name: 'Chat User', // TODO: Get from API
-    photo: '/default-avatar.png', // TODO: Get from API
-    age: 0, // TODO: Get from API
-    location: 'Unknown', // TODO: Get from API
+    name: otherUser?.name || 'Chat User',
+    photo: '/default-avatar.png', // TODO: Fetch actual photo from user profile API
+    age: 0, // TODO: Fetch actual age from user profile API
+    location: 'Unknown', // TODO: Fetch actual location from user profile API
     online: connected,
     lastSeen: connected ? 'Active now' : 'Last seen recently',
-    messages: realMessages
+    messages: messages
   };
 
   return (
@@ -215,7 +302,7 @@ const ChatPage = () => {
               );
             })}
             
-            {isTyping && (
+            {otherUserIsTyping && (
               <div className="flex justify-start animate-in slide-in-from-bottom duration-300">
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 px-4 py-3 rounded-2xl rounded-bl-md mr-16">
                   <div className="flex space-x-1">

@@ -46,7 +46,7 @@ const OnboardingPage = () => {
     values: [],
     favoriteVerse: '',
     // Goals
-    relationshipGoals: '',
+    relationshipGoals: [],
     // Preferences
     preferredGender: '',
     minAge: 18,

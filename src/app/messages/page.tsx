@@ -9,7 +9,8 @@ import {
   Smile, Paperclip, Info, Check, CheckCheck, Users, Heart
 } from 'lucide-react';
 import Link from 'next/link';
-import { useConversations, useMessaging, useConversationMessages } from '@/hooks/useAPI';
+import { useConversations, useWebSocket, useConversationMessages } from '@/hooks/useAPI';
+
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
 const MessagesContent = () => {
@@ -26,7 +27,7 @@ const MessagesContent = () => {
 
   // Fetch real conversations data from backend
   const { data: conversations, loading, error, refetch } = useConversations();
-  const { sendMessage } = useMessaging();
+  const { sendMessage } = useWebSocket();
   
   // Fetch messages for selected conversation
   const { data: messages } = useConversationMessages(selectedChat || '');
@@ -51,7 +52,7 @@ const MessagesContent = () => {
   const handleSendMessage = async () => {
     if (newMessage.trim() && selectedChat) {
       try {
-        await sendMessage(selectedChat, newMessage.trim());
+        await sendMessage({ matchId: selectedChat, content: newMessage.trim() });
         setNewMessage('');
         scrollToBottom();
       } catch (error) {

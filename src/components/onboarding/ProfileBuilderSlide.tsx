@@ -7,6 +7,7 @@ import { OnboardingData, FaithJourney, ChurchAttendance } from './types';
 import SelectableCard from './SelectableCard';
 import { CountryCodeSelect, defaultCountry } from '../CountryCodeSelect';
 import { Country } from '../CountryCodeSelect';
+import SelectWithOtherInput from './SelectWithOtherInput'; // Import the new component
 
 interface ProfileBuilderSlideProps {
   onboardingData: OnboardingData;
@@ -34,6 +35,19 @@ const denominationOptions = [
   "SEVENTH_DAY_ADVENTIST", "OTHER"
 ];
 
+const occupationOptions = [
+  "Software Engineer", "Doctor", "Teacher", "Nurse", "Accountant",
+  "Marketing Specialist", "Graphic Designer", "Project Manager",
+  "Sales Representative", "Customer Service", "Student", "Unemployed", "Other"
+];
+
+const fieldOfStudyOptions = [
+  "Computer Science", "Medicine", "Education", "Nursing",
+  "Business Administration", "Marketing", "Graphic Design", "Engineering",
+  "Psychology", "Biology", "Chemistry", "Physics", "Mathematics",
+  "History", "English", "Art", "Other"
+];
+
 const personalityOptions = ["Adventurous", "Outgoing", "Creative", "Reserved", "Analytical", "Charismatic"];
 const hobbiesOptions = ["Reading", "Hiking", "Photography", "Cooking", "Gaming", "Traveling", "Sports", "Music"];
 const valuesOptions = ["Love", "Faith", "Hope", "Honesty", "Kindness", "Compassion", "Family", "Friendship"];
@@ -47,6 +61,10 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    setOnboardingData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectWithOtherChange = (name: string, value: string) => {
     setOnboardingData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -130,10 +148,24 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
             ))}
           </select>
           
-          <input type="text" name="occupation" value={onboardingData.occupation} onChange={handleChange} placeholder="Your Occupation" className="input-style" />
+          <SelectWithOtherInput
+            label="Occupation"
+            name="occupation"
+            options={occupationOptions}
+            selectedValue={onboardingData.occupation}
+            onChange={handleSelectWithOtherChange}
+            placeholder="Select your Occupation"
+          />
           <input type="date" name="birthday" value={onboardingData.birthday} onChange={handleChange} placeholder="Birthday" className="input-style" />
           <input type="text" name="location" value={onboardingData.location} onChange={handleChange} placeholder="Your Location (e.g., City, State)" className="input-style" />
-          <input type="text" name="education" value={onboardingData.education} onChange={handleChange} placeholder="Field of Study" className="input-style" />
+          <SelectWithOtherInput
+            label="Field of Study"
+            name="education"
+            options={fieldOfStudyOptions}
+            selectedValue={onboardingData.education}
+            onChange={handleSelectWithOtherChange}
+            placeholder="Select your Field of Study"
+          />
           <input type="text" name="favoriteVerse" value={onboardingData.favoriteVerse} onChange={handleChange} placeholder="Favorite Bible Verse" className="input-style" />
 
         </div>

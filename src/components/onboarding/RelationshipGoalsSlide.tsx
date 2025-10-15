@@ -20,7 +20,12 @@ const RelationshipGoalsSlide = ({ onboardingData, setOnboardingData, isVisible }
   if (!isVisible) return null;
 
   const handleSelect = (value: string) => {
-    setOnboardingData(prev => ({ ...prev, relationshipGoals: value }));
+    const currentGoals = onboardingData.relationshipGoals || [];
+    if (currentGoals.includes(value)) {
+      setOnboardingData(prev => ({ ...prev, relationshipGoals: currentGoals.filter(goal => goal !== value) }));
+    } else {
+      setOnboardingData(prev => ({ ...prev, relationshipGoals: [...currentGoals, value] }));
+    }
   };
 
   return (
@@ -42,7 +47,7 @@ const RelationshipGoalsSlide = ({ onboardingData, setOnboardingData, isVisible }
             key={option.value}
             label={option.label}
             emoji={option.emoji}
-            isSelected={onboardingData.relationshipGoals === option.value}
+            isSelected={(onboardingData.relationshipGoals || []).includes(option.value)}
             onClick={() => handleSelect(option.value)}
           />
         ))}

@@ -31,7 +31,7 @@ export interface OnboardingData {
   // Step 1: User Profile Data
   faithJourney: string;
   churchAttendance: string;
-  relationshipGoals: string;
+  relationshipGoals: string[];
   location: string;
   latitude: number | null;
   longitude: number | null;

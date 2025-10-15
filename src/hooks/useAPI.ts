@@ -15,30 +15,17 @@ interface ApiState<T> {
 }
 
 // Types for messaging
-interface Message {
-  id: string;
-  content: string;
-  senderId: string;
-  createdAt: string;
-  isRead: boolean;
-}
+import { Message } from '@/types/chat';
 
-interface Conversation {
-  matchId: string;
-  match: {
-    matchedUser: {
-      id: string;
-      name: string;
-      profilePhotos?: {
-        photo1?: string;
-      };
-    };
+interface ConversationSummary {
+  id: string; // matchId
+  otherUser: {
+    id: string;
+    name: string;
   };
-  lastMessage?: {
-    content: string;
-    createdAt: string;
-  };
+  lastMessage: Message | null;
   unreadCount: number;
+  updatedAt: string; // ISO date string
 }
 
 // Generic hook for API calls
@@ -290,7 +277,9 @@ export function useWebSocket() {
     sendTyping: wsService.sendTyping.bind(wsService),
     onMessage: wsService.onMessage.bind(wsService),
     onTyping: wsService.onTyping.bind(wsService),
-    onMatchUpdate: wsService.onMatchUpdate.bind(wsService),
+    onUnreadCount: wsService.onUnreadCount.bind(wsService),
+    onNotification: wsService.onNotification.bind(wsService),
+    onError: wsService.onError.bind(wsService),
     off: wsService.off.bind(wsService),
   };
 }
@@ -299,101 +288,39 @@ export function useWebSocket() {
 export function useConversations() {
   const { accessToken, isAuthenticated } = useRequireAuth();
 
-  // For now, return mock data until backend endpoint is available
-  const mockConversations: Conversation[] = [
-    {
-      matchId: 'mock-match-1',
-      match: {
-        matchedUser: {
-          id: 'user-1',
-          name: 'Sarah Johnson',
-          profilePhotos: {
-            photo1: '/default-avatar.png'
-          }
-        }
-      },
-      lastMessage: {
-        content: 'Hey! How are you doing?',
-        createdAt: new Date().toISOString()
-      },
-      unreadCount: 2
-    },
-    {
-      matchId: 'mock-match-2',
-      match: {
-        matchedUser: {
-          id: 'user-2',
-          name: 'Michael Chen',
-          profilePhotos: {
-            photo1: '/default-avatar.png'
-          }
-        }
-      },
-      lastMessage: {
-        content: 'Thanks for the match!',
-        createdAt: new Date().toISOString()
-      },
-      unreadCount: 0
+  const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
+
+  const apiCall = useCallback(() => {
+    if (!accessToken) {
+      throw new Error('Authentication required. Please log in.');
     }
-  ];
+    return apiClient.Message.getConversations();
+  }, [apiClient, accessToken]);
 
   return useApi(
-    isAuthenticated ? () => Promise.resolve(mockConversations) : null,
+    isAuthenticated ? apiCall : null,
     [accessToken, isAuthenticated],
     { immediate: isAuthenticated }
   );
 }
 
-// Hook for messaging
-export function useMessaging() {
-  const { showError } = useToast();
 
-  const sendMessage = useCallback(async (matchId: string, content: string) => {
-    try {
-      // TODO: Replace with actual API call when backend is ready
-      // await apiClient.Message.sendMessage(matchId, { content });
-      console.log('Sending message:', { matchId, content });
-      return { success: true };
-    } catch (error) {
-      showError('Failed to send message', 'Error');
-      throw error;
-    }
-  }, [showError]);
-
-  return { sendMessage };
-}
 
 // Hook for conversation messages
 export function useConversationMessages(matchId: string) {
   const { accessToken, isAuthenticated } = useRequireAuth();
 
-  // Mock messages data
-  const mockMessages: Message[] = [
-    {
-      id: 'msg-1',
-      content: 'Hi there! Nice to match with you.',
-      senderId: 'other-user',
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-      isRead: true
-    },
-    {
-      id: 'msg-2',
-      content: 'Thanks! You too. How has your day been?',
-      senderId: 'current-user',
-      createdAt: new Date(Date.now() - 1800000).toISOString(),
-      isRead: true
-    },
-    {
-      id: 'msg-3',
-      content: 'It\'s been great! Just finished reading a good book.',
-      senderId: 'other-user',
-      createdAt: new Date(Date.now() - 900000).toISOString(),
-      isRead: false
+  const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
+
+  const apiCall = useCallback(() => {
+    if (!accessToken) {
+      throw new Error('Authentication required. Please log in.');
     }
-  ];
+    return apiClient.Message.getMatchMessages(matchId);
+  }, [apiClient, accessToken, matchId]);
 
   return useApi(
-    isAuthenticated && matchId ? () => Promise.resolve(mockMessages) : null,
+    isAuthenticated && matchId ? apiCall : null,
     [accessToken, isAuthenticated, matchId],
     { immediate: !!(isAuthenticated && matchId) }
   );
