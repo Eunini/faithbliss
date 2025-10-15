@@ -308,7 +308,7 @@ export function useConversations() {
 
 
 // Hook for conversation messages
-export function useConversationMessages(matchId: string) {
+export function useConversationMessages(matchId: string, page: number = 1, limit: number = 50) {
   const { accessToken, isAuthenticated } = useRequireAuth();
 
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
@@ -317,12 +317,12 @@ export function useConversationMessages(matchId: string) {
     if (!accessToken) {
       throw new Error('Authentication required. Please log in.');
     }
-    return apiClient.Message.getMatchMessages(matchId);
-  }, [apiClient, accessToken, matchId]);
+    return apiClient.Message.getMatchMessages(matchId, page, limit);
+  }, [apiClient, accessToken, matchId, page, limit]);
 
   return useApi(
     isAuthenticated && matchId ? apiCall : null,
-    [accessToken, isAuthenticated, matchId],
+    [accessToken, isAuthenticated, matchId, page, limit],
     { immediate: !!(isAuthenticated && matchId) }
   );
 }

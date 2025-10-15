@@ -33,7 +33,7 @@ const ChatPage = () => {
   const { connected, joinMatch, leaveMatch, sendMessage, sendTyping, onMessage, onTyping, onUnreadCount, onNotification, onError } = useWebSocket();
   const [otherUserIsTyping, setOtherUserIsTyping] = useState(false);
 
-  const { data: initialMessages, loading: messagesLoading, error: messagesError } = useConversationMessages(chatId);
+  const { data: initialMessages, loading: messagesLoading, error: messagesError } = useConversationMessages(chatId, 1, 50);
   const [messages, setMessages] = useState<Message[]>([]);
 
   const { accessToken } = useRequireAuth();
