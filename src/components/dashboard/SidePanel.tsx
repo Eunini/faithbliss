@@ -17,6 +17,8 @@ interface SidePanelProps {
 }
 
 export const SidePanel = ({ userName, userImage, user, onClose }: SidePanelProps) => {
+  console.log('SidePanel user:', user);
+  console.log('SidePanel userImage:', userImage);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' });
@@ -73,18 +75,6 @@ export const SidePanel = ({ userName, userImage, user, onClose }: SidePanelProps
               <div>
                 <h4 className="text-white font-semibold">Home</h4>
                 <p className="text-gray-400 text-sm">Discover new connections</p>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/discover" onClick={onClose}>
-            <div className="flex items-center space-x-4 p-4 hover:bg-gray-800/50 rounded-2xl transition-colors cursor-pointer group">
-              <div className="p-2 bg-purple-500/20 rounded-xl group-hover:bg-purple-500/30 transition-colors">
-                <Search className="w-5 h-5 text-purple-400" />
-              </div>
-              <div>
-                <h4 className="text-white font-semibold">Explore</h4>
-                <p className="text-gray-400 text-sm">Find nearby believers</p>
               </div>
             </div>
           </Link>

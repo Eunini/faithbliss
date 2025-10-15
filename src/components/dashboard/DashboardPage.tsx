@@ -56,11 +56,9 @@ export const DashboardPage = ({ session }: { session: Session }) => {
     try {
       await likeUser(currentProfile.id);
       console.log(`Liked profile ${currentProfile.id}`);
-      showSuccess(`You liked ${currentProfile.name}! 💕`, 'Great Choice!');
       goToNextProfile();
     } catch (error) {
       console.error('Failed to like user:', error);
-      showInfo('Failed to send like. Please try again.', 'Error');
     }
   };
 
@@ -70,7 +68,6 @@ export const DashboardPage = ({ session }: { session: Session }) => {
     try {
       await passUser(currentProfile.id);
       console.log(`Passed on profile ${currentProfile.id}`);
-      showInfo(`Passed on ${currentProfile.name}`, 'No worries!');
       goToNextProfile();
     } catch (error) {
       console.error('Failed to pass user:', error);
@@ -81,7 +78,6 @@ export const DashboardPage = ({ session }: { session: Session }) => {
 
   const handleBless = () => {
     console.log(`Blessed profile ${currentProfile?.id}`);
-    showSuccess(`You blessed ${currentProfile?.name}! ✨`, 'Blessing Sent!');
     goToNextProfile();
   };
 

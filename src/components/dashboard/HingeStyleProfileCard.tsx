@@ -56,7 +56,7 @@ export const HingeStyleProfileCard = ({ profile }: HingeStyleProfileCardProps) =
       <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-pink-500 scrollbar-track-gray-700">
         
         {/* Photo Section */}
-        <div className="relative h-80 bg-gray-700 flex-shrink-0">
+        <div className="relative h-96 bg-gray-700 flex-shrink-0">
           <Image
             src={photos[currentPhotoIndex]}
             alt={profile.name}
