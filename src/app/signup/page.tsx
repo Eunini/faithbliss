@@ -95,7 +95,7 @@ export default function Signup() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create account');
+        throw new Error(errorData.message || 'Failed to create account. Please check your details.');
       }
 
       // Automatically sign in the user after successful registration
@@ -106,12 +106,12 @@ export default function Signup() {
       });
 
       if (result?.error) {
-        setError(result.error);
+        setError(result.error || 'An unknown error occurred during sign-in after registration.');
       } else {
         router.push('/onboarding');
       }
     } catch (error: any) {
-      setError(error.message || 'Failed to create account');
+      setError(error.message || 'An unexpected error occurred during signup.');
     } finally {
       setLoading(false);
     }
