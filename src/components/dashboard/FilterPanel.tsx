@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -149,7 +150,7 @@ export const FilterPanel = ({ onClose, onApplyFilters }: FilterPanelProps) => {
           <label className="block text-sm font-bold text-rose-300 mb-3 uppercase tracking-wide">Looking For</label>
           <select 
             value={relationshipGoals}
-            onChange={(e) => setRelationshipGoals(e.targe.value)}
+            onChange={(e) => setRelationshipGoals(e.target.value)}
             className="w-full p-3 bg-gray-800/50 border border-rose-500/30 rounded-xl text-white focus:border-rose-400 focus:outline-none transition-colors"
           >
             <option value="">Any relationship type</option>

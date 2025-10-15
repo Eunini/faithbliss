@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { 
   X, User, Heart, MessageCircle, Users, Star, Settings, 
-  HelpCircle, LogOut, Home, Search, UserX, AlertTriangle
+  HelpCircle, LogOut, Home, UserX, AlertTriangle
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
