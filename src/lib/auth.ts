@@ -180,7 +180,7 @@ export const config: NextAuthConfig = {
 
         if (!backendResponse || !backendResponse.user?.id) {
           console.error("Google sign-in failed: Malformed response from backend, user ID is missing.");
-          return false;
+          throw new Error("Google authentication failed. Please try again.");
         }
 
         // We only need to attach the data the frontend can access.
