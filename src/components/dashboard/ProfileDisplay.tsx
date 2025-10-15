@@ -9,7 +9,6 @@ interface ProfileDisplayProps {
   onGoBack: () => void;
   onLike: () => void;
   onPass: () => void;
-  onBless: () => void;
   onMessage: () => void;
 }
 
@@ -19,7 +18,6 @@ export const ProfileDisplay = ({
   onGoBack,
   onLike,
   onPass,
-  onBless,
   onMessage
 }: ProfileDisplayProps) => {
   if (!currentProfile) {
@@ -35,7 +33,6 @@ export const ProfileDisplay = ({
         onGoBack={() => onGoBack()}
         onLike={onLike}
         onPass={onPass}
-        onBless={onBless}
         onMessage={onMessage}
       />
     </>

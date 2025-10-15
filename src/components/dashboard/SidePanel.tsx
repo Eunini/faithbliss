@@ -90,18 +90,6 @@ export const SidePanel = ({ userName, userImage, user, onClose }: SidePanelProps
               </div>
             </div>
           </Link>
-
-          <Link href="/community" onClick={onClose}>
-            <div className="flex items-center space-x-4 p-4 hover:bg-gray-800/50 rounded-2xl transition-colors cursor-pointer group">
-              <div className="p-2 bg-amber-500/20 rounded-xl group-hover:bg-amber-500/30 transition-colors">
-                <Users className="w-5 h-5 text-amber-400" />
-              </div>
-              <div>
-                <h4 className="text-white font-semibold">Faith Hub</h4>
-                <p className="text-gray-400 text-sm">Community & events</p>
-              </div>
-            </div>
-          </Link>
         </div>
 
         {/* Secondary Navigation */}

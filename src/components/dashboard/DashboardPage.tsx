@@ -90,7 +90,7 @@ export const DashboardPage = ({ session }: { session: Session }) => {
   };
 
   const handleBless = () => {
-    console.log(`Blessed profile ${currentProfile?.id}`);
+    // console.log(`Blessed profile ${currentProfile?.id}`); // Removed blessing functionality
     goToNextProfile();
   };
 
@@ -132,7 +132,6 @@ export const DashboardPage = ({ session }: { session: Session }) => {
           onGoBack={() => setCurrentProfileIndex(Math.max(0, currentProfileIndex - 1))}
           onLike={handleLike}
           onPass={handlePass}
-          onBless={handleBless}
           onMessage={handleMessage}
         />
       </DesktopLayout>
@@ -153,7 +152,6 @@ export const DashboardPage = ({ session }: { session: Session }) => {
           onGoBack={() => setCurrentProfileIndex(Math.max(0, currentProfileIndex - 1))}
           onLike={handleLike}
           onPass={handlePass}
-          onBless={handleBless}
           onMessage={handleMessage}
         />
       </MobileLayout>
