@@ -34,7 +34,8 @@ const ChatPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messagesEndRef]);
 
-  const { connected, joinMatch, leaveMatch, sendMessage, sendTyping, onMessage, onTyping, onUnreadCount, onNotification, onError } = useWebSocket();
+  const webSocketService = useWebSocket();
+  const { connected, joinMatch, leaveMatch, sendMessage, sendTyping, onMessage, onTyping, onUnreadCount, onNotification, onError } = webSocketService || {};
   const [otherUserIsTyping, setOtherUserIsTyping] = useState(false);
 
   const { data: initialMessages, loading: messagesLoading, error: messagesError } = useConversationMessages(chatId, 1, 50);
