@@ -1,14 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { io, Socket } from 'socket.io-client';
-
-export interface MessagePayload {
-  matchId: string;
-  senderId: string;
-  receiverId: string;
-  content: string;
-  createdAt: string;
-  // Add other message properties as needed
-}
+import { Message } from '@/types/chat';
 
 export interface UnreadCountPayload {
   count: number;
@@ -33,8 +25,14 @@ class WebSocketService {
   private socket: Socket | null = null;
   private readonly WEBSOCKET_URL: string;
 
-  constructor() {
-    this.WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'http://localhost:3000'; // Default to localhost for dev
+  // Allow optional token at construction for convenience
+  constructor(token?: string) {
+    this.WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'http://localhost:3001'; // Default to localhost for dev
+    // If token is provided, attempt immediate connect
+    if (token) {
+      // ignore promise here; callers can still rely on connect() if they want
+      this.connect(token).catch(err => console.error('WebSocket connect error:', err));
+    }
   }
 
   /**
@@ -78,12 +76,12 @@ class WebSocketService {
     }
   }
 
-  public onNewMessage(callback: (message: MessagePayload) => void): void {
+  public onNewMessage(callback: (message: Message) => void): void {
     this.socket?.on('newMessage', callback);
   }
 
   // Backwards-compatible alias expected by consumers
-  public onMessage(callback: (message: MessagePayload) => void): void {
+  public onMessage(callback: (message: Message) => void): void {
     this.onNewMessage(callback);
   }
 
@@ -126,8 +124,14 @@ class WebSocketService {
   }
 
   /** Returns true if socket is currently connected */
+  // Backwards-compatible function
   public isConnected(): boolean {
     return this.socket?.connected || false;
+  }
+
+  // Expose a `connected` getter property so consumers can access `service.connected`
+  public get connected(): boolean {
+    return this.isConnected();
   }
 
   /**

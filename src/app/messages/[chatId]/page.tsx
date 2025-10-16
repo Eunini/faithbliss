@@ -15,11 +15,29 @@ import { EmojiPicker } from '@/components/chat/EmojiPicker';
 import { useConversationMessages } from '@/hooks/useAPI';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
-import { Message } from '@/types/chat';
 import { NotificationPayload, UnreadCountPayload } from '@/services/websocket';
 import { getApiClient } from '@/services/api-client';
 import { useRequireAuth } from '@/hooks/useAuth';
 
+/**
+ * Basic Message type used across this chat page.
+ * Adjust fields as needed to match the backend shapes.
+ */
+type Message = {
+  id: string;
+  content: string;
+  createdAt: string;
+  senderId: string;
+  receiverId?: string;
+  sender?: {
+    id: string;
+    name?: string;
+    photo?: string;
+    [key: string]: any;
+  };
+  isRead?: boolean;
+  [key: string]: any;
+};
 
 const ChatPage = () => {
   const params = useParams();
@@ -35,7 +53,18 @@ const ChatPage = () => {
   }, [messagesEndRef]);
 
   const webSocketService = useWebSocket();
-  const { connected, joinMatch, leaveMatch, sendMessage, sendTyping, onMessage, onTyping, onUnreadCount, onNotification, onError } = webSocketService || {};
+  const { 
+    connected = false, 
+    joinMatch = () => {}, 
+    leaveMatch = () => {}, 
+    sendMessage = () => {}, 
+    sendTyping = () => {}, 
+    onMessage = () => {}, 
+    onTyping = () => {}, 
+    onUnreadCount = () => {}, 
+    onNotification = () => {}, 
+    onError = () => {} 
+  } = webSocketService || {};
   const [otherUserIsTyping, setOtherUserIsTyping] = useState(false);
 
   const { data: initialMessages, loading: messagesLoading, error: messagesError } = useConversationMessages(chatId, 1, 50);

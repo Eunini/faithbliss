@@ -28,7 +28,7 @@ const MessagesContent = () => {
 
   // Fetch real conversations data from backend
   const { data: conversations, loading, error, refetch } = useConversations();
-  const { sendMessage } = useWebSocket();
+  const webSocketService = useWebSocket();
   
   // Fetch messages for selected conversation
   const { data: messages } = useConversationMessages(selectedChat || '');
@@ -53,9 +53,13 @@ const MessagesContent = () => {
   const handleSendMessage = async () => {
     if (newMessage.trim() && selectedChat) {
       try {
-        await sendMessage({ matchId: selectedChat, content: newMessage.trim() });
-        setNewMessage('');
-        scrollToBottom();
+        if (webSocketService) {
+          webSocketService.sendMessage(selectedChat, newMessage.trim());
+          setNewMessage('');
+          scrollToBottom();
+        } else {
+          console.warn('WebSocket service not available. Message not sent.');
+        }
       } catch (error) {
         console.error('Failed to send message:', error);
       }
