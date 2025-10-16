@@ -183,7 +183,7 @@ const NotificationsPage = () => {
               </button>
             )}
             
-            <Link href="/settings/notifications">
+            <Link href="/notifications">
               <button className="p-2 hover:bg-gray-700/50 rounded-xl transition-colors">
                 <Settings className="w-5 h-5 text-gray-400" />
               </button>

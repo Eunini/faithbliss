@@ -17,9 +17,7 @@ async function refreshSession() {
     return newSession.accessToken;
   } catch (error) {
     console.error('Session refresh failed:', error);
-    // Potentially redirect to login or show a global error message
-    window.location.href = '/login'; // Force logout
-    return null;
+    throw new Error('Session refresh failed'); // Throw error instead of redirecting
   }
 }
 
@@ -59,9 +57,14 @@ const apiClientRequest = async <T = unknown>(
       if (response.status === 401 && !isRetry) {
         console.log('Access token expired. Attempting to refresh...');
         const newAccessToken = await refreshSession();
+        // If refreshSession throws, it will be caught by the outer catch block
         if (newAccessToken) {
           // Retry the request with the new token
           return apiClientRequest(endpoint, options, newAccessToken, true);
+        } else {
+          // This case should ideally not be reached if refreshSession throws on failure
+          // If it does, it means refreshSession returned null without throwing, which is unexpected now.
+          throw new Error('Failed to obtain new access token after refresh attempt.');
         }
       }
 
