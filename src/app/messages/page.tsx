@@ -9,7 +9,8 @@ import {
   Smile, Paperclip, Info, Check, CheckCheck, Users, Heart
 } from 'lucide-react';
 import Link from 'next/link';
-import { useConversations, useWebSocket, useConversationMessages } from '@/hooks/useAPI';
+import { useConversations, useConversationMessages } from '@/hooks/useAPI';
+import { useWebSocket } from '@/hooks/useWebSocket';
 
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 

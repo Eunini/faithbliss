@@ -518,8 +518,8 @@ export const MatchAPI = {
 // 💬 Messaging API
 export const MessageAPI = {
   // Get user conversations
-  getConversations: async (): Promise<Conversation[]> => {
-    return apiRequest('/messages/conversations');
+  getMatchConversations: async (): Promise<Conversation[]> => {
+    return apiRequest('/matches/conversations');
   },
 
   // Get unread message count
@@ -539,12 +539,12 @@ export const MessageAPI = {
   },
 
   // Get messages for a match
-  getMessages: async (matchId: string): Promise<Message[]> => {
-    return apiRequest(`/messages/match/${matchId}`);
+  getMatchMessages: async (matchId: string): Promise<Message[]> => {
+    return apiRequest(`/messages/${matchId}`);
   },
 
   // Mark message as read
-  markAsRead: async (messageId: string): Promise<void> => {
+  markMessageAsRead: async (messageId: string): Promise<void> => {
     return apiRequest(`/messages/${messageId}/read`, {
       method: 'PATCH',
     });

@@ -1,6 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -10,9 +12,11 @@ import {
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { EmojiPicker } from '@/components/chat/EmojiPicker';
-import { useConversationMessages, useWebSocket } from '@/hooks/useAPI';
+import { useConversationMessages } from '@/hooks/useAPI';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 import { Message } from '@/types/chat';
+import { NotificationPayload, UnreadCountPayload } from '@/services/websocket';
 import { getApiClient } from '@/services/api-client';
 import { useRequireAuth } from '@/hooks/useAuth';
 
@@ -26,9 +30,9 @@ const ChatPage = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, [messagesEndRef]);
 
   const { connected, joinMatch, leaveMatch, sendMessage, sendTyping, onMessage, onTyping, onUnreadCount, onNotification, onError } = useWebSocket();
   const [otherUserIsTyping, setOtherUserIsTyping] = useState(false);
@@ -80,7 +84,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (onMessage) {
-      onMessage((message) => {
+      onMessage((message: Message) => {
         setMessages((prevMessages) => [...prevMessages, message]);
         scrollToBottom();
       });
@@ -89,7 +93,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (onUnreadCount) {
-      onUnreadCount((data) => {
+      onUnreadCount((data: UnreadCountPayload) => {
         console.log('Unread count update:', data);
       });
     }
@@ -97,7 +101,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (onNotification) {
-      onNotification((notification) => {
+      onNotification((notification: NotificationPayload) => {
         console.log('New notification:', notification);
       });
     }
@@ -105,7 +109,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (onError) {
-      onError((error) => {
+      onError((error: any) => {
         console.error('WebSocket Error:', error);
       });
     }
@@ -114,23 +118,17 @@ const ChatPage = () => {
   const handleTyping = (value: string) => {
     setNewMessage(value);
     if (sendTyping) {
-      sendTyping({
-        matchId: chatId,
-        isTyping: value.length > 0
-      });
+      sendTyping(chatId, value.length > 0);
     }
   };
 
   const handleSendMessage = async () => {
     if (newMessage.trim() && session?.user?.id) {
       try {
-        sendMessage({
-          matchId: chatId,
-          content: newMessage.trim(),
-        });
+        sendMessage(chatId, newMessage.trim());
         setNewMessage('');
         scrollToBottom();
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to send message:', error);
       }
     }
@@ -149,7 +147,7 @@ const ChatPage = () => {
                 msg.id === message.id ? { ...msg, isRead: true } : msg
               )
             );
-          } catch (error) {
+          } catch (error: any) {
             console.error(`Failed to mark message ${message.id} as read:`, error);
           }
         }

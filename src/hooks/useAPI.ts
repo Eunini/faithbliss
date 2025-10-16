@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/contexts/ToastContext';
 import { getApiClient } from '@/services/api-client';
-import wsService from '@/services/websocket';
+
 import { useRequireAuth } from './useAuth';
 import { useRouter } from 'next/navigation';
 
@@ -253,38 +253,6 @@ export function useOnboarding() {
 }
 
 // Hook for WebSocket connection
-export function useWebSocket() {
-  const { user } = useRequireAuth();
-  const [connected, setConnected] = useState(false);
-
-  useEffect(() => {
-    if (user?.id) {
-      wsService.connect().then(() => {
-        setConnected(wsService.isConnected());
-      });
-
-      return () => {
-        wsService.disconnect();
-        setConnected(false);
-      };
-    }
-  }, [user?.id]);
-
-  return {
-    connected,
-    joinMatch: wsService.joinMatch.bind(wsService),
-    leaveMatch: wsService.leaveMatch.bind(wsService),
-    sendMessage: wsService.sendMessage.bind(wsService),
-    sendTyping: wsService.sendTyping.bind(wsService),
-    onMessage: wsService.onMessage.bind(wsService),
-    onTyping: wsService.onTyping.bind(wsService),
-    onUnreadCount: wsService.onUnreadCount.bind(wsService),
-    onNotification: wsService.onNotification.bind(wsService),
-    onError: wsService.onError.bind(wsService),
-    off: wsService.off.bind(wsService),
-  };
-}
-
 // Hook for conversations
 export function useConversations() {
   const { accessToken, isAuthenticated } = useRequireAuth();
@@ -295,7 +263,7 @@ export function useConversations() {
     if (!accessToken) {
       throw new Error('Authentication required. Please log in.');
     }
-    return apiClient.Message.getConversations();
+    return apiClient.Message.getMatchConversations();
   }, [apiClient, accessToken]);
 
   return useApi(

@@ -108,11 +108,15 @@ export const getApiClient = (accessToken: string | null) => ({
       }, accessToken),
   },
   Message: {
-    getConversations: () =>
-      apiClientRequest<any[]>('/messages/conversations', { method: 'GET' }, accessToken),
+    sendMessage: (matchId: string, content: string) =>
+      apiClientRequest<any>('/messages', { method: 'POST', body: JSON.stringify({ matchId, content }) }, accessToken),
     getMatchMessages: (matchId: string, page: number = 1, limit: number = 50) =>
-      apiClientRequest<any[]>(`/messages/match/${matchId}?page=${page}&limit=${limit}`, { method: 'GET' }, accessToken),
+      apiClientRequest<any[]>(`/messages/${matchId}?page=${page}&limit=${limit}`, { method: 'GET' }, accessToken),
     markMessageAsRead: (messageId: string) =>
-      apiClientRequest<void>(`/messages/mark-read/${messageId}`, { method: 'POST' }, accessToken),
+      apiClientRequest<void>(`/messages/${messageId}/read`, { method: 'PATCH' }, accessToken),
+    getUnreadMessageCount: () =>
+      apiClientRequest<{ count: number }>('/messages/unread-count', { method: 'GET' }, accessToken),
+    getMatchConversations: () =>
+      apiClientRequest<any[]>('/matches/conversations', { method: 'GET' }, accessToken),
   },
 });
