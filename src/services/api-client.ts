@@ -91,6 +91,8 @@ const apiClientRequest = async <T = unknown>(
 // This instance will be configured with the user's access token.
 export const getApiClient = (accessToken: string | null) => ({
   Match: {
+    getMatches: () =>
+      apiClientRequest<any[]>('/matches', { method: 'GET' }, accessToken),
     getPotentialMatches: () =>
       apiClientRequest<any[]>('/matches/potential', { method: 'GET' }, accessToken),
     likeUser: (userId: string) =>
@@ -117,7 +119,7 @@ export const getApiClient = (accessToken: string | null) => ({
       apiClientRequest<any[]>(`/messages/${matchId}?page=${page}&limit=${limit}`, { method: 'GET' }, accessToken),
     markMessageAsRead: (messageId: string) =>
       apiClientRequest<void>(`/messages/${messageId}/read`, { method: 'PATCH' }, accessToken),
-    getUnreadMessageCount: () =>
+    getUnreadCount: () =>
       apiClientRequest<{ count: number }>('/messages/unread-count', { method: 'GET' }, accessToken),
     getMatchConversations: () =>
       apiClientRequest<any[]>('/matches/conversations', { method: 'GET' }, accessToken),

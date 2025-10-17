@@ -17,6 +17,7 @@ interface ApiState<T> {
 
 // Types for messaging
 import { Message } from '@/types/chat';
+import { Match } from '@/services/api';
 
 interface ConversationSummary {
   id: string; // matchId
