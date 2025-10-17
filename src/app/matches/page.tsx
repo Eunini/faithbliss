@@ -9,25 +9,9 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { TopBar } from '@/components/dashboard/TopBar';
 import { useMatches } from '@/hooks/useAPI';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
+import { Match } from '@/services/api';
 
-interface Match {
-  id: string;
-  matchedUserId: string;
-  matchedUser: {
-    id: string;
-    name: string;
-    age: number;
-    location?: {
-      address: string;
-    };
-    denomination?: string;
-    profilePhotos?: {
-      photo1: string;
-    };
-    isActive: boolean;
-  };
-  createdAt: string;
-}
+
 
 const MatchesPage = () => {
   const [activeTab, setActiveTab] = useState('mutual');
@@ -64,19 +48,7 @@ const MatchesPage = () => {
   // Use real matches data or empty arrays
   const mutualMatches = matchesData || [];
   const sentRequests: Match[] = []; // This would come from a different API endpoint
-
-  const receivedRequests = [
-    {
-      id: 4,
-      name: 'Michael Peters',
-      age: 27,
-      location: 'Port Harcourt, Nigeria',
-      denomination: 'Anglican',
-      photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
-      compatibility: 79,
-      receivedDate: '1 day ago'
-    }
-  ];
+  const receivedRequests: Match[] = []; // This would also come from a different API endpoint
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white no-horizontal-scroll dashboard-main">
