@@ -245,12 +245,14 @@ const MatchesPage = () => {
 
             {activeTab === 'received' && (
               <div className="space-y-4">
-                {receivedRequests.map((request) => (
+                {receivedRequests.map((request: Match) => {
+                  const matchedUser = request.matchedUser;
+                  return (
                     <div key={request.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300">
                       <div className="flex items-center gap-4 mb-4">
                         <Image
-                          src={request.photo}
-                          alt={request.name}
+                          src={matchedUser?.profilePhotos?.photo1 || '/default-avatar.png'}
+                          alt={matchedUser?.name || 'User'}
                           width={64}
                           height={64}
                           className="w-16 h-16 object-cover rounded-full ring-2 ring-purple-500/30"
@@ -258,18 +260,19 @@ const MatchesPage = () => {
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <h3 className="font-semibold text-white">
-                              {request.name}, {request.age}
+                              {matchedUser?.name || 'Unknown'}, {matchedUser?.age || 'N/A'}
                             </h3>
-                            <span className="text-sm font-medium text-purple-400">
+                            {/* Compatibility was part of mock data, removing for now */}
+                            {/* <span className="text-sm font-medium text-purple-400">
                               {request.compatibility}% Match
-                            </span>
+                            </span> */}
                           </div>
                           <div className="flex items-center gap-2 text-gray-300 text-sm mt-1">
                             <MapPin className="w-4 h-4" />
-                            <span>{request.location}</span>
+                            <span>{matchedUser?.location?.address || 'Location unknown'}</span>
                           </div>
                           <p className="text-sm text-gray-400">
-                            Received {request.receivedDate}
+                            Received {new Date(request.createdAt).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
@@ -284,7 +287,8 @@ const MatchesPage = () => {
                         </button>
                       </div>
                     </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
