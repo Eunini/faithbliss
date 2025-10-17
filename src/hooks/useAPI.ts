@@ -140,41 +140,17 @@ export function usePotentialMatches() {
 // Hook for matches
 export function useMatches() {
   const { accessToken, isAuthenticated } = useRequireAuth();
+  const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
 
-  // For now, return mock data until backend endpoint is available
-  const mockMatches: any[] = [
-    {
-      id: 'match-1',
-      matchedUserId: 'user-1',
-      matchedUser: {
-        id: 'user-1',
-        name: 'Sarah Johnson',
-        age: 26,
-        location: { address: 'Lagos, Nigeria' },
-        denomination: 'Pentecostal',
-        profilePhotos: { photo1: '/default-avatar.png' },
-        isActive: true
-      },
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'match-2',
-      matchedUserId: 'user-2',
-      matchedUser: {
-        id: 'user-2',
-        name: 'David Chen',
-        age: 29,
-        location: { address: 'Abuja, Nigeria' },
-        denomination: 'Catholic',
-        profilePhotos: { photo1: '/default-avatar.png' },
-        isActive: false
-      },
-      createdAt: new Date().toISOString()
+  const apiCall = useCallback(() => {
+    if (!accessToken) {
+      throw new Error('Authentication required. Please log in.');
     }
-  ];
+    return apiClient.Match.getMatches();
+  }, [apiClient, accessToken]);
 
-  return useApi(
-    isAuthenticated ? () => Promise.resolve(mockMatches) : null,
+  return useApi<Match[]>(
+    isAuthenticated ? apiCall : null,
     [accessToken, isAuthenticated],
     { immediate: isAuthenticated }
   );
@@ -292,5 +268,24 @@ export function useConversationMessages(matchId: string, page: number = 1, limit
     isAuthenticated && matchId ? apiCall : null,
     [accessToken, isAuthenticated, matchId, page, limit],
     { immediate: !!(isAuthenticated && matchId) }
+  );
+}
+
+// Hook for unread message count
+export function useUnreadCount() {
+  const { accessToken, isAuthenticated } = useRequireAuth();
+  const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
+
+  const apiCall = useCallback(() => {
+    if (!accessToken) {
+      throw new Error('Authentication required. Please log in.');
+    }
+    return apiClient.Message.getUnreadCount();
+  }, [apiClient, accessToken]);
+
+  return useApi<{ count: number }>(
+    isAuthenticated ? apiCall : null,
+    [accessToken, isAuthenticated],
+    { immediate: isAuthenticated }
   );
 }

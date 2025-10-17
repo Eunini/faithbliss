@@ -2,6 +2,7 @@
 import { Bell, Filter, Sparkles, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useUnreadCount } from '@/hooks/useAPI';
 
 interface TopBarProps {
   userName: string;
@@ -29,6 +30,8 @@ export const TopBar = ({
   onBack
 }: TopBarProps) => {
   const displayImage = user?.profilePhotos?.photo1 || userImage;
+  const { data: unreadData } = useUnreadCount();
+  const unreadCount = unreadData?.count || 0;
 
   return (
     <div className="bg-gray-900/80 backdrop-blur-xl border-b border-gray-700/50 px-4 py-4 sticky top-0 z-50">
@@ -79,9 +82,11 @@ export const TopBar = ({
           <Link href="/notifications">
             <button className="relative p-3 hover:bg-white/10 rounded-2xl transition-all hover:scale-105 group">
               <Bell className="w-6 h-6 text-gray-300 group-hover:text-white transition-colors" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center">
-                <span className="text-xs font-bold text-white">3</span>
-              </span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">{unreadCount}</span>
+                </span>
+              )}
             </button>
           </Link>
           
