@@ -9,15 +9,18 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-
 // A function to refresh the session by making a request to the NextAuth backend
 async function refreshSession() {
   try {
-    // getSession forces a session update, which will trigger the JWT refresh logic
+    console.log('Attempting to refresh session...');
     const newSession = await getSession();
+    console.log('New session after refresh attempt:', newSession);
     if (!newSession?.accessToken) {
-      throw new Error('Failed to refresh token.');
+      console.error('Session refresh failed: No accessToken found in new session.', newSession);
+      throw new Error('Failed to refresh token: No access token.');
     }
+    console.log('Session successfully refreshed.');
     return newSession.accessToken;
   } catch (error) {
-    console.error('Session refresh failed:', error);
-    throw new Error('Session refresh failed'); // Throw error instead of redirecting
+    console.error('Session refresh failed during getSession():', error);
+    throw new Error('Session refresh failed');
   }
 }
 
