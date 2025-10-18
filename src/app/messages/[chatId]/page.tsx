@@ -53,18 +53,16 @@ const ChatPage = () => {
   }, [messagesEndRef]);
 
   const webSocketService = useWebSocket();
-  const { 
-    connected = false, 
-    joinMatch = () => {}, 
-    leaveMatch = () => {}, 
-    sendMessage = () => {}, 
-    sendTyping = () => {}, 
-    onMessage = () => {}, 
-    onTyping = () => {}, 
-    onUnreadCount = () => {}, 
-    onNotification = () => {}, 
-    onError = () => {} 
-  } = webSocketService || {};
+  const connected = webSocketService?.connected ?? false; 
+  const joinMatch = webSocketService?.joinMatch ?? (() => {}); 
+  const leaveMatch = webSocketService?.leaveMatch ?? (() => {}); 
+  const sendMessage = webSocketService?.sendMessage ?? (() => {}); 
+  const sendTyping = webSocketService?.sendTyping ?? (() => {}); 
+  const onMessage = webSocketService?.onMessage ?? (() => {}); 
+  const onTyping = webSocketService?.onTyping ?? (() => {}); 
+  const onUnreadCount = webSocketService?.onUnreadCount ?? (() => {}); 
+  const onNotification = webSocketService?.onNotification ?? (() => {}); 
+  const onError = webSocketService?.onError ?? (() => {});
   const [otherUserIsTyping, setOtherUserIsTyping] = useState(false);
 
   const { data: initialMessages, loading: messagesLoading, error: messagesError } = useConversationMessages(chatId, 1, 50);
