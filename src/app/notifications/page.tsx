@@ -13,9 +13,10 @@ import {
   Bell,
   Settings,
   Check,
-  X
 } from 'lucide-react';
 import { TopBar } from '@/components/dashboard/TopBar';
+import { useNotifications } from '@/hooks/useAPI';
+import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
 interface Notification {
   id: number;
@@ -30,90 +31,40 @@ interface Notification {
 }
 
 const NotificationsPage = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: 1,
-      type: 'like',
-      title: 'New Like!',
-      message: 'Grace liked your profile',
-      timestamp: '2 minutes ago',
-      isRead: false,
-      profilePicture: 'https://images.unsplash.com/photo-1494790108755-2616b612b647?w=400&h=600&fit=crop',
-      profileName: 'Grace',
-      profileId: 1
-    },
-    {
-      id: 2,
-      type: 'bless',
-      title: 'You received a blessing!',
-      message: 'Sarah sent you a blessing with a message',
-      timestamp: '15 minutes ago',
-      isRead: false,
-      profilePicture: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=600&fit=crop',
-      profileName: 'Sarah',
-      profileId: 2
-    },
-    {
-      id: 3,
-      type: 'match',
-      title: 'It\'s a Match! 💕',
-      message: 'You and David both liked each other',
-      timestamp: '1 hour ago',
-      isRead: false,
-      profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop',
-      profileName: 'David',
-      profileId: 3
-    },
-    {
-      id: 4,
-      type: 'message',
-      title: 'New Message',
-      message: 'Joy: "Hello! I loved your favorite Bible verse..."',
-      timestamp: '3 hours ago',
-      isRead: true,
-      profilePicture: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=600&fit=crop',
-      profileName: 'Joy',
-      profileId: 4
-    },
-    {
-      id: 5,
-      type: 'event',
-      title: 'Community Event',
-      message: 'New Christian Singles Meetup in Lagos this Sunday',
-      timestamp: '1 day ago',
-      isRead: true
-    },
-    {
-      id: 6,
-      type: 'system',
-      title: 'Profile Boost',
-      message: 'Your profile was shown to 50+ new believers today!',
-      timestamp: '2 days ago',
-      isRead: true
-    }
-  ]);
-
+  const { data: conversationsData, loading, error } = useNotifications();
   const [activeTab, setActiveTab] = useState<'all' | 'likes' | 'messages' | 'matches'>('all');
 
-  const markAsRead = (id: number) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id 
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
-  };
+  const notifications: Notification[] = conversationsData ? conversationsData.map(conv => ({
+    id: parseInt(conv.matchId), // Assuming matchId can be parsed to a number for Notification ID
+    type: 'message', // All these are message notifications
+    title: `New Message from ${conv.match.matchedUser?.name || 'Unknown'}`,
+    message: conv.lastMessage?.content || 'No messages yet.',
+    timestamp: conv.lastMessage?.createdAt || conv.match.createdAt,
+    isRead: conv.unreadCount === 0,
+    profilePicture: conv.match.matchedUser?.profilePhotos?.photo1,
+    profileName: conv.match.matchedUser?.name,
+    profileId: parseInt(conv.match.matchedUser?.id || '0'), // Assuming matchedUser.id can be parsed
+  })) : [];
 
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, isRead: true }))
-    );
-  };
+  // Show loading state
+  if (loading) {
+    return <HeartBeatLoader message="Loading your notifications..." />;
+  }
 
-  const deleteNotification = (id: number) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
-  };
+  // Handle error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+        <TopBar userName="User" title="Notifications" showBackButton onBack={() => window.history.back()} />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-center p-8">
+            <p className="text-red-600 mb-4">Failed to load notifications: {error}</p>
+            {/* No refetch for now, as useNotifications doesn't expose it directly */}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -135,16 +86,7 @@ const NotificationsPage = () => {
   };
 
   const getFilteredNotifications = () => {
-    switch (activeTab) {
-      case 'likes':
-        return notifications.filter(n => n.type === 'like' || n.type === 'bless');
-      case 'messages':
-        return notifications.filter(n => n.type === 'message');
-      case 'matches':
-        return notifications.filter(n => n.type === 'match');
-      default:
-        return notifications;
-    }
+    return notifications;
   };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -173,16 +115,6 @@ const NotificationsPage = () => {
           </div>
           
           <div className="flex items-center space-x-2">
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-500/20 text-blue-400 rounded-xl hover:bg-blue-500/30 transition-colors"
-              >
-                <Check className="w-4 h-4" />
-                <span className="text-sm">Mark all read</span>
-              </button>
-            )}
-            
             <Link href="/notifications">
               <button className="p-2 hover:bg-gray-700/50 rounded-xl transition-colors">
                 <Settings className="w-5 h-5 text-gray-400" />
@@ -279,21 +211,12 @@ const NotificationsPage = () => {
                       <div className="flex items-center space-x-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
                         {!notification.isRead && (
                           <button
-                            onClick={() => markAsRead(notification.id)}
                             className="p-1.5 hover:bg-blue-500/20 text-blue-400 rounded-lg transition-colors"
                             title="Mark as read"
                           >
                             <Check className="w-4 h-4" />
                           </button>
                         )}
-                        
-                        <button
-                          onClick={() => deleteNotification(notification.id)}
-                          className="p-1.5 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
                       </div>
                     </div>
 

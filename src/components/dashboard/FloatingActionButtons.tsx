@@ -22,7 +22,7 @@ export const FloatingActionButtons = ({
         <div className="relative group">
           <button
             onClick={onGoBack}
-            className="bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 text-white p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+            className="bg-gray-700 hover:bg-gray-600 text-white p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110"
           >
             <ArrowLeft className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
           </button>
@@ -38,7 +38,7 @@ export const FloatingActionButtons = ({
         <div className="relative group">
           <button
             onClick={onPass}
-            className="bg-red-700/30 hover:bg-red-600/40 backdrop-blur-xl border border-red-600/40 hover:border-red-500/50 text-red-400 hover:text-red-300 p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_rgba(239,68,68,0.4)]"
+            className="bg-red-500 hover:bg-red-600 text-white p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110"
           >
             <X className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
           </button>
@@ -54,7 +54,7 @@ export const FloatingActionButtons = ({
         <div className="relative group">
           <button
             onClick={onLike}
-            className="bg-gradient-to-r from-pink-700/30 to-purple-800/30 hover:from-pink-600/40 hover:to-purple-700/40 backdrop-blur-xl border border-pink-600/40 hover:border-pink-500/50 text-pink-400 hover:text-pink-300 p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_rgba(236,72,153,0.4)]"
+            className="bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110"
           >
             <Heart className="w-6 h-6 group-hover:scale-110 group-hover:fill-current transition-all duration-300" />
           </button>
@@ -70,7 +70,7 @@ export const FloatingActionButtons = ({
         <div className="relative group">
           <button
             onClick={onMessage}
-            className="bg-blue-700/30 hover:bg-blue-600/40 backdrop-blur-xl border border-blue-600/40 hover:border-blue-500/50 text-blue-400 hover:text-blue-300 p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_rgba(59,130,246,0.4)]"
+            className="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110"
           >
             <MessageCircle className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
           </button>

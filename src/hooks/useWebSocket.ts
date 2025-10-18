@@ -1,10 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
 import WebSocketService from '../services/websocket';
 import { useAuth } from './useAuth';
+import type WebSocketServiceClass from '../services/websocket';
+
+type WebSocketServiceInstance = InstanceType<typeof WebSocketServiceClass>;
 
 export function useWebSocket() {
   const { accessToken, isAuthenticated } = useAuth();
-  const [webSocketService, setWebSocketService] = useState<WebSocketService | null>(null);
+  const [webSocketService, setWebSocketService] = useState<WebSocketServiceInstance | null>(null);
   const initialized = useRef(false);
 
   useEffect(() => {

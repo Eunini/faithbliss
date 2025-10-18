@@ -61,6 +61,31 @@ interface User {
     longitude: number;
     address: string;
   };
+  favoriteVerse?: string;
+  values?: string[];
+  faithJourney?: string;
+  lookingFor?: string;
+  churchRole?: string;
+  prompts?: Array<{
+    question: string;
+    answer: string;
+  }>;
+  lifestyle?: {
+    prayerLife?: string;
+    bibleStudy?: string;
+    workout?: string;
+    diet?: string;
+    socialStyle?: string;
+    musicPreference?: string;
+  };
+  passions?: string[];
+  basics?: {
+    height?: string;
+    education?: string;
+    jobTitle?: string;
+    company?: string;
+  };
+  jobTitle?: string;
 }
 
 interface UserPreferences {
@@ -408,6 +433,39 @@ export const UserAPI = {
     age?: number;
     denomination?: string;
     interests?: string[];
+    profilePhotos?: {
+      photo1?: string;
+      photo2?: string;
+      photo3?: string;
+    };
+    values?: string[];
+    faithJourney?: string;
+    lookingFor?: string;
+    churchRole?: string;
+    prompts?: Array<{
+      question: string;
+      answer: string;
+    }>;
+    lifestyle?: {
+      prayerLife?: string;
+      bibleStudy?: string;
+      workout?: string;
+      diet?: string;
+      socialStyle?: string;
+      musicPreference?: string;
+    };
+    passions?: string[];
+    basics?: {
+      height?: string;
+      education?: string;
+      jobTitle?: string;
+      company?: string;
+    };
+    location?: {
+      latitude: number;
+      longitude: number;
+      address: string;
+    };
   }): Promise<User> => {
     return apiRequest('/users/me', {
       method: 'PUT',

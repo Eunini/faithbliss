@@ -11,6 +11,7 @@ import {
 import Link from 'next/link';
 import { useConversations, useConversationMessages } from '@/hooks/useAPI';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useSession } from 'next-auth/react';
 
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
@@ -25,6 +26,8 @@ const MessagesContent = () => {
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id;
 
   // Fetch real conversations data from backend
   const { data: conversations, loading, error, refetch } = useConversations();
@@ -258,7 +261,7 @@ const MessagesContent = () => {
                   <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
                     <Video className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
                   </button>
-                  <Link href={`/profile/${selectedChat}`}>
+                  <Link href={`/profile/${selectedConversation?.match?.matchedUser?.id}`}>
                     <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
                       <Info className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
                     </button>
@@ -272,23 +275,23 @@ const MessagesContent = () => {
               {messages && messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.senderId === 'current-user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.senderId === currentUserId ? 'justify-end' : 'justify-start'}`}
                 >
                   <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
-                    message.senderId === 'current-user'
+                    message.senderId === currentUserId
                       ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-br-md'
                       : 'bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-bl-md'
                   }`}>
                     <p className="text-sm">{message.content}</p>
                     <div className={`flex items-center justify-between mt-1 ${
-                      message.senderId === 'current-user' ? 'justify-end' : 'justify-start'
+                      message.senderId === currentUserId ? 'justify-end' : 'justify-start'
                     }`}>
                       <span className={`text-xs ${
-                        message.senderId === 'current-user' ? 'text-white/70' : 'text-gray-400'
+                        message.senderId === currentUserId ? 'text-white/70' : 'text-gray-400'
                       }`}>
                         {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
-                      {message.senderId === 'current-user' && (
+                      {message.senderId === currentUserId && (
                         <div className="ml-2">
                           {message.isRead ? (
                             <CheckCheck className="w-3 h-3 text-white/70" />

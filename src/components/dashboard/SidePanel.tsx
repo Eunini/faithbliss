@@ -122,15 +122,17 @@ export const SidePanel = ({ userName, userImage, user, onClose }: SidePanelProps
           </Link>
         </div>
 
-        <div className="flex items-center space-x-4 p-4 hover:bg-gray-800/50 rounded-2xl transition-colors cursor-pointer group">
-          <div className="p-2 bg-yellow-500/20 rounded-xl group-hover:bg-yellow-500/30 transition-colors">
-            <Star className="w-5 h-5 text-yellow-400" />
-          </div>
-          <div>
-            <h4 className="text-white font-semibold">Premium Features</h4>
-            <p className="text-gray-400 text-sm">Unlock advanced matching</p>
-          </div>
-        </div>
+          <Link href="/premium" onClick={onClose}>
+            <div className="flex items-center space-x-4 p-4 hover:bg-gray-800/50 rounded-2xl transition-colors cursor-pointer group">
+              <div className="p-2 bg-yellow-500/20 rounded-xl group-hover:bg-yellow-500/30 transition-colors">
+                <Star className="w-5 h-5 text-yellow-400" />
+              </div>
+              <div>
+                <h4 className="text-white font-semibold">Premium Features</h4>
+                <p className="text-gray-400 text-sm">Explore exclusive benefits</p>
+              </div>
+            </div>
+          </Link>
 
         <div className="border-t border-gray-700/50 pt-4 mt-4">
           <Link href="/settings" onClick={onClose}>
@@ -145,37 +147,41 @@ export const SidePanel = ({ userName, userImage, user, onClose }: SidePanelProps
             </div>
           </Link>
 
-          <div className="flex items-center space-x-4 p-4 hover:bg-gray-800/50 rounded-2xl transition-colors cursor-pointer group">
-            <div className="p-2 bg-gray-500/20 rounded-xl group-hover:bg-gray-500/30 transition-colors">
-              <HelpCircle className="w-5 h-5 text-gray-400" />
+          <Link href="/help" onClick={onClose}>
+            <div className="flex items-center space-x-4 p-4 hover:bg-gray-800/50 rounded-2xl transition-colors cursor-pointer group">
+              <div className="p-2 bg-gray-500/20 rounded-xl group-hover:bg-gray-500/30 transition-colors">
+                <HelpCircle className="w-5 h-5 text-gray-400" />
+              </div>
+              <div>
+                <h4 className="text-white font-semibold">Help & Support</h4>
+                <p className="text-gray-400 text-sm">Find answers and contact us</p>
+              </div>
             </div>
-            <div>
-              <h4 className="text-white font-semibold">Help & Support</h4>
-              <p className="text-gray-400 text-sm">FAQs and contact us</p>
-            </div>
-          </div>
+          </Link>
 
-          {/* Report Option */}
-          <div className="flex items-center space-x-4 p-4 hover:bg-gray-800/50 rounded-2xl transition-colors cursor-pointer group">
-            <div className="p-2 bg-orange-500/20 rounded-xl group-hover:bg-orange-500/30 transition-colors">
-              <AlertTriangle className="w-5 h-5 text-orange-400" />
+          <Link href="/report" onClick={onClose}>
+            <div className="flex items-center space-x-4 p-4 hover:bg-gray-800/50 rounded-2xl transition-colors cursor-pointer group">
+              <div className="p-2 bg-orange-500/20 rounded-xl group-hover:bg-orange-500/30 transition-colors">
+                <AlertTriangle className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <h4 className="text-white font-semibold">Report an Issue</h4>
+                <p className="text-gray-400 text-sm">Report users or content</p>
+              </div>
             </div>
-            <div>
-              <h4 className="text-white font-semibold">Report an Issue</h4>
-              <p className="text-gray-400 text-sm">Report users or content</p>
-            </div>
-          </div>
+          </Link>
 
-          {/* Deactivate Account */}
-          <div className="flex items-center space-x-4 p-4 hover:bg-gray-800/50 rounded-2xl transition-colors cursor-pointer group">
-            <div className="p-2 bg-red-500/20 rounded-xl group-hover:bg-red-500/30 transition-colors">
-              <UserX className="w-5 h-5 text-red-400" />
+          <Link href="/deactivate" onClick={onClose}>
+            <div className="flex items-center space-x-4 p-4 hover:bg-gray-800/50 rounded-2xl transition-colors cursor-pointer group">
+              <div className="p-2 bg-red-500/20 rounded-xl group-hover:bg-red-500/30 transition-colors">
+                <UserX className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h4 className="text-white font-semibold">Deactivate Account</h4>
+                <p className="text-gray-400 text-sm">Temporarily disable account</p>
+              </div>
             </div>
-            <div>
-              <h4 className="text-white font-semibold">Deactivate Account</h4>
-              <p className="text-gray-400 text-sm">Temporarily disable account</p>
-            </div>
-          </div>
+          </Link>
         </div>
       </div>
 

@@ -56,7 +56,7 @@ export const HingeStyleProfileCard = ({ profile }: HingeStyleProfileCardProps) =
       <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-pink-500 scrollbar-track-gray-700">
         
         {/* Photo Section */}
-        <div className="relative h-96 bg-gray-700 flex-shrink-0">
+        <div className="relative h-[70vh] bg-gray-700 flex-shrink-0">
           <Image
             src={photos[currentPhotoIndex]}
             alt={profile.name}
@@ -98,7 +98,7 @@ export const HingeStyleProfileCard = ({ profile }: HingeStyleProfileCardProps) =
           )}
 
           {/* Basic Info Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
             <h2 className="text-white text-2xl font-bold">
               {profile.name}{profile.age ? `, ${profile.age}` : ''}
             </h2>
@@ -109,7 +109,7 @@ export const HingeStyleProfileCard = ({ profile }: HingeStyleProfileCardProps) =
         </div>
 
         {/* Profile Details */}
-        <div className="p-6 space-y-4">
+        <div className="p-4 space-y-3">
         {/* Bio Section */}
         {profile.bio && (
           <div>

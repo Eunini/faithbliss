@@ -44,7 +44,7 @@ export const DesktopLayout = ({
         />
         
         {/* Main Profile Display */}
-        <div className="flex-1 flex justify-center items-center px-4 py-6 overflow-hidden">
+        <div className="flex-1 flex justify-center items-center px-2 py-3 overflow-hidden">
           <div className="w-full max-w-lg h-full max-h-[calc(100vh-120px)] relative">
             {children}
           </div>

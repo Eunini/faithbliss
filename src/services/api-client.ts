@@ -107,6 +107,14 @@ export const getApiClient = (accessToken: string | null) => ({
   User: {
     getMe: () => 
       apiClientRequest<any>('/users/me', { method: 'GET' }, accessToken),
+    getAllUsers: (filters?: {
+      limit?: number;
+      offset?: number;
+      active?: boolean;
+    }) => {
+      const query = filters ? `?${new URLSearchParams(filters as Record<string, string>)}` : '';
+      return apiClientRequest<any[]>(`/users${query}`, { method: 'GET' }, accessToken);
+    },
   },
   Auth: {
     completeOnboarding: (onboardingData: FormData) =>

@@ -16,8 +16,7 @@ interface ApiState<T> {
 }
 
 // Types for messaging
-import { Message } from '@/types/chat';
-import { Match } from '@/services/api';
+import { Match, Conversation, User, Message } from '@/services/api';
 
 interface ConversationSummary {
   id: string; // matchId
@@ -269,6 +268,44 @@ export function useConversationMessages(matchId: string, page: number = 1, limit
     isAuthenticated && matchId ? apiCall : null,
     [accessToken, isAuthenticated, matchId, page, limit],
     { immediate: !!(isAuthenticated && matchId) }
+  );
+}
+
+// Hook for notifications (using message conversations as a proxy for now)
+export function useNotifications() {
+  const { accessToken, isAuthenticated } = useRequireAuth();
+  const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
+
+  const apiCall = useCallback(() => {
+    if (!accessToken) {
+      throw new Error('Authentication required. Please log in.');
+    }
+    return apiClient.Message.getMatchConversations();
+  }, [apiClient, accessToken]);
+
+  return useApi<Conversation[]>(
+    isAuthenticated ? apiCall : null,
+    [accessToken, isAuthenticated],
+    { immediate: isAuthenticated }
+  );
+}
+
+// Hook for fetching all users
+export function useAllUsers() {
+  const { accessToken, isAuthenticated } = useRequireAuth();
+  const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
+
+  const apiCall = useCallback(() => {
+    if (!accessToken) {
+      throw new Error('Authentication required. Please log in.');
+    }
+    return apiClient.User.getAllUsers();
+  }, [apiClient, accessToken]);
+
+  return useApi<User[]>(
+    isAuthenticated ? apiCall : null,
+    [accessToken, isAuthenticated],
+    { immediate: isAuthenticated }
   );
 }
 

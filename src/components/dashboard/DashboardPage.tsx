@@ -10,7 +10,7 @@ import { MobileLayout } from '@/components/dashboard/MobileLayout';
 import { ProfileDisplay } from '@/components/dashboard/ProfileDisplay';
 import { OverlayPanels } from '@/components/dashboard/OverlayPanels';
 import { insertScrollbarStyles } from '@/components/dashboard/styles';
-import { usePotentialMatches, useMatching, useUserProfile } from '@/hooks/useAPI';
+import { usePotentialMatches, useMatching, useUserProfile, useAllUsers } from '@/hooks/useAPI';
 import { Profile } from '@/components/dashboard/types';
 import { Session } from 'next-auth';
 import { API, User } from '@/services/api';
@@ -29,20 +29,21 @@ export const DashboardPage = ({ session }: { session: Session }) => {
 
   // Fetch real potential matches from backend
   const { data: profiles, loading: matchesLoading, refetch } = usePotentialMatches();
+  const { data: allUsers, loading: allUsersLoading } = useAllUsers();
   const { data: user, loading: userLoading } = useUserProfile();
   const { likeUser, passUser } = useMatching();
 
   const userName = user?.name || session?.user?.name || "User";
   const userImage = user?.profilePhotos?.photo1 || session?.user?.image || undefined;
 
-  const activeProfiles = filteredProfiles ?? profiles;
+  const activeProfiles = (profiles && profiles.length > 0) ? profiles : allUsers;
 
   useEffect(() => {
     setCurrentProfileIndex(0);
-  }, [filteredProfiles]);
+  }, [filteredProfiles, activeProfiles]);
 
   // Show loading state while fetching matches or refreshing the token.
-  if (matchesLoading || userLoading) {
+  if (matchesLoading || userLoading || allUsersLoading) {
     return <HeartBeatLoader message="Preparing your matches..." />;
   }
 
