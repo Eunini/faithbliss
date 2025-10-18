@@ -50,10 +50,10 @@ const PartnerPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible 
     value: string
   ) => {
     setOnboardingData(prev => {
-      const list = prev[name] || [];
-      const newList: string[] = list.includes(value)
-        ? list.filter((item: string) => item !== value)
-        : [...list, value];
+      const currentList = (prev[name] || []) as string[]; // Ensure it's always an array
+      const newList = currentList.includes(value)
+        ? currentList.filter((item: string) => item !== value)
+        : [...currentList, value];
       return { ...prev, [name]: newList };
     });
   };
