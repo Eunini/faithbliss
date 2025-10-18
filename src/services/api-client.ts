@@ -108,12 +108,17 @@ export const getApiClient = (accessToken: string | null) => ({
     getMe: () => 
       apiClientRequest<any>('/users/me', { method: 'GET' }, accessToken),
     getAllUsers: (filters?: {
+      page?: number;
       limit?: number;
-      offset?: number;
-      active?: boolean;
+      search?: string;
     }) => {
-      const query = filters ? `?${new URLSearchParams(filters as Record<string, string>)}` : '';
-      return apiClientRequest<any[]>(`/users${query}`, { method: 'GET' }, accessToken);
+      const queryParams: Record<string, string> = {};
+      if (filters?.page) queryParams.page = filters.page.toString();
+      if (filters?.limit) queryParams.limit = filters.limit.toString();
+      if (filters?.search) queryParams.search = filters.search;
+
+      const query = Object.keys(queryParams).length > 0 ? `?${new URLSearchParams(queryParams).toString()}` : '';
+      return apiClientRequest<GetUsersResponse>(`/users${query}`, { method: 'GET' }, accessToken);
     },
   },
   Auth: {

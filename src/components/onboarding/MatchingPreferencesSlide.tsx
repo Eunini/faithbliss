@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { OnboardingData, Gender } from './types';
+import { OnboardingData } from './types';
 import SelectableCard from './SelectableCard';
 
 interface MatchingPreferencesSlideProps {
@@ -11,9 +11,8 @@ interface MatchingPreferencesSlideProps {
 }
 
 const genderOptions = [
-  { value: Gender.MAN, label: 'Men', emoji: '👨' },
-  { value: Gender.WOMAN, label: 'Women', emoji: '👩' },
-  { value: Gender.OTHER, label: 'Everyone', emoji: '🧑‍🤝‍🧑' },
+  { value: 'MALE', label: 'Men', emoji: '👨' },
+  { value: 'FEMALE', label: 'Women', emoji: '👩' },
 ];
 
 const MatchingPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible }: MatchingPreferencesSlideProps) => {
@@ -64,7 +63,7 @@ const MatchingPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible
           <input
             type="number"
             name="minAge"
-            value={onboardingData.minAge}
+            value={onboardingData.minAge || ''}
             onChange={handleChange}
             className="input-style w-24 text-center"
             min="18"
@@ -74,7 +73,7 @@ const MatchingPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible
           <input
             type="number"
             name="maxAge"
-            value={onboardingData.maxAge}
+            value={onboardingData.maxAge || ''}
             onChange={handleChange}
             className="input-style w-24 text-center"
             min="18"
@@ -93,7 +92,7 @@ const MatchingPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible
             name="maxDistance"
             min="1"
             max="100"
-            value={onboardingData.maxDistance}
+            value={onboardingData.maxDistance || ''}
             onChange={handleChange}
             className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
           />

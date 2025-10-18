@@ -61,7 +61,11 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setOnboardingData(prev => ({ ...prev, [name]: value }));
+    if (name === 'denomination') {
+      setOnboardingData(prev => ({ ...prev, [name]: value as 'BAPTIST' | 'METHODIST' | 'PRESBYTERIAN' | 'PENTECOSTAL' | 'CATHOLIC' | 'ORTHODOX' | 'ANGLICAN' | 'LUTHERAN' | 'ASSEMBLIES_OF_GOD' | 'SEVENTH_DAY_ADVENTIST' | 'OTHER' }));
+    } else {
+      setOnboardingData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSelectWithOtherChange = (name: string, value: string) => {

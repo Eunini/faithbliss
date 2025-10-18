@@ -8,6 +8,7 @@ import { getApiClient } from '@/services/api-client';
 
 import { useRequireAuth } from './useAuth';
 import { useRouter } from 'next/navigation';
+import { GetUsersResponse } from '@/services/api'; // New import
 
 interface ApiState<T> {
   data: T | null;
@@ -272,43 +273,63 @@ export function useConversationMessages(matchId: string, page: number = 1, limit
 }
 
 // Hook for notifications (using message conversations as a proxy for now)
+
+import { useNotificationWebSocket } from './useNotificationWebSocket'; // New import
+import { NotificationPayload } from '../services/notification-websocket'; // New import
+
 export function useNotifications() {
-  const { accessToken, isAuthenticated } = useRequireAuth();
-  const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
+  const { isAuthenticated } = useRequireAuth();
+  const notificationWebSocketService = useNotificationWebSocket();
+  const [notifications, setNotifications] = useState<NotificationPayload[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const apiCall = useCallback(() => {
-    if (!accessToken) {
-      throw new Error('Authentication required. Please log in.');
+  useEffect(() => {
+    if (isAuthenticated && notificationWebSocketService) {
+      notificationWebSocketService.subscribeToNotifications();
+
+      const handleNotification = (payload: NotificationPayload) => {
+        setNotifications(prev => [...prev, payload]);
+      };
+
+      const handleError = (err: any) => {
+        setError(err?.message || 'Notification WebSocket error');
+      };
+
+      notificationWebSocketService.onNotification(handleNotification);
+      notificationWebSocketService.onError(handleError);
+
+      return () => {
+        notificationWebSocketService.off('notification', handleNotification);
+        notificationWebSocketService.off('error', handleError);
+      };
     }
-    return apiClient.Message.getMatchConversations();
-  }, [apiClient, accessToken]);
+  }, [isAuthenticated, notificationWebSocketService]);
 
-  return useApi<Conversation[]>(
-    isAuthenticated ? apiCall : null,
-    [accessToken, isAuthenticated],
-    { immediate: isAuthenticated }
-  );
+  return {
+    data: notifications,
+    loading: !isAuthenticated || !notificationWebSocketService, // Loading while not authenticated or service not ready
+    error,
+  };
 }
 
 // Hook for fetching all users
-export function useAllUsers() {
+export function useAllUsers(filters?: { page?: number; limit?: number; search?: string; }) {
   const { accessToken, isAuthenticated } = useRequireAuth();
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
 
-  const apiCall = useCallback(() => {
+  const apiCall: () => Promise<GetUsersResponse> = useCallback(() => {
     if (!accessToken) {
       throw new Error('Authentication required. Please log in.');
     }
-    return apiClient.User.getAllUsers();
-  }, [apiClient, accessToken]);
+    return apiClient.User.getAllUsers(filters);
+  }, [apiClient, accessToken, filters]);
 
-  return useApi<User[]>(
+  return useApi<GetUsersResponse>( 
     isAuthenticated ? apiCall : null,
-    [accessToken, isAuthenticated],
+    [accessToken, isAuthenticated, filters],
     { immediate: isAuthenticated }
   );
 }
-
 // Hook for unread message count
 export function useUnreadCount() {
   const { accessToken, isAuthenticated } = useRequireAuth();

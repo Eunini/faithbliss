@@ -26,10 +26,18 @@ const PreferenceSlide: React.FC<PreferenceSlideProps> = ({
   isVisible,
 }) => {
   const handleMultiSelectChange = (field: keyof OnboardingData, value: string) => {
-    const currentValues = (onboardingData[field] as string[]) || [];
-    const newValues = currentValues.includes(value)
-      ? currentValues.filter((item) => item !== value)
-      : [...currentValues, value];
+    const currentValues = (onboardingData[field] as string[] || onboardingData[field] as string | null) || [];
+    let newValues: string[] = [];
+
+    if (Array.isArray(currentValues)) {
+      newValues = currentValues.includes(value)
+        ? currentValues.filter((item) => item !== value)
+        : [...currentValues, value];
+    } else if (currentValues === value) {
+      newValues = [];
+    } else {
+      newValues = [value];
+    }
     setOnboardingData((prev) => ({ ...prev, [field]: newValues }));
   };
 
@@ -129,9 +137,9 @@ const PreferenceSlide: React.FC<PreferenceSlideProps> = ({
             <button
               key={option}
               type="button"
-              onClick={() => handleMultiSelectChange('preferredDenominations', option)}
+              onClick={() => handleMultiSelectChange('preferredDenomination', option)}
               className={`px-5 py-3 rounded-full text-md font-semibold transition-all duration-300 ease-in-out transform hover:scale-105 ${
-                onboardingData.preferredDenominations?.includes(option)
+                onboardingData.preferredDenomination?.includes(option)
                   ? 'bg-pink-600 text-white shadow-lg'
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
@@ -152,7 +160,7 @@ const PreferenceSlide: React.FC<PreferenceSlideProps> = ({
             <button
               key={option}
               type="button"
-              onClick={() => setOnboardingData(prev => ({ ...prev, preferredGender: option.toUpperCase() }))}
+              onClick={() => setOnboardingData(prev => ({ ...prev, preferredGender: option.toUpperCase() as 'MALE' | 'FEMALE' }))}
               className={`px-5 py-3 rounded-full text-md font-semibold transition-all duration-300 ease-in-out transform hover:scale-105 ${
                 onboardingData.preferredGender === option.toUpperCase()
                   ? 'bg-pink-600 text-white shadow-lg'

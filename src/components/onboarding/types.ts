@@ -53,14 +53,14 @@ export interface OnboardingData {
   favoriteVerse: string;
 
   // Step 2: Matching Preferences
-  preferredFaithJourney: string[];
-  preferredChurchAttendance: string[];
-  preferredRelationshipGoals: string[];
-  preferredDenominations: string[];
-  preferredGender: string;
-  minAge: number;
-  maxAge: number;
-  maxDistance: number;
+  preferredFaithJourney?: string[] | null;
+  preferredChurchAttendance?: string[] | null;
+  preferredRelationshipGoals?: string[] | null;
+  preferredDenomination?: string[] | null;
+  preferredGender?: 'MALE' | 'FEMALE' | null;
+  minAge?: number | null;
+  maxAge?: number | null;
+  maxDistance?: number | null;
 
   // Step 3: Photos
   photos: File[];

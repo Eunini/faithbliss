@@ -38,49 +38,20 @@ const BasicInfoSection = ({ profileData, setProfileData }: BasicInfoSectionProps
             <label className="block text-sm font-semibold text-gray-300 mb-3">Job Title</label>
             <input
               type="text"
-              value={profileData.basics?.jobTitle || ''}
-              onChange={(e) => setProfileData(prev => prev ? ({...prev, basics: {...(prev.basics || {}), jobTitle: e.target.value}}) : null)}
+              value={profileData.profession || ''}
+              onChange={(e) => setProfileData(prev => prev ? ({...prev, profession: e.target.value}) : null)}
               className="w-full p-4 bg-gray-700/50 border border-gray-600/50 rounded-2xl text-white placeholder-gray-400 focus:border-pink-500 focus:outline-none transition-colors"
               placeholder="Product Designer"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-3">Company</label>
-            <input
-              type="text"
-              value={profileData.basics?.company || ''}
-              onChange={(e) => setProfileData(prev => prev ? ({...prev, basics: {...(prev.basics || {}), company: e.target.value}}) : null)}
-              className="w-full p-4 bg-gray-700/50 border border-gray-600/50 rounded-2xl text-white placeholder-gray-400 focus:border-pink-500 focus:outline-none transition-colors"
-              placeholder="Tech Startup"
-            />
-          </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-3">Height</label>
-            <select
-              value={profileData.basics?.height || ''}
-              onChange={(e) => setProfileData(prev => prev ? ({...prev, basics: {...(prev.basics || {}), height: e.target.value}}) : null)}
-              className="w-full p-4 bg-gray-700/50 border border-gray-600/50 rounded-2xl text-white focus:border-pink-500 focus:outline-none transition-colors"
-            >
-              <option value="">Select height</option>
-              {Array.from({length: 24}, (_, i) => {
-                const feet = Math.floor((60 + i) / 12);
-                const inches = (60 + i) % 12;
-                return (
-                  <option key={i} value={`${feet}'${inches}"`}>
-                    {feet}&apos;{inches}&quot;
-                  </option>
-                );
-              })}
-            </select>
-          </div>
 
           <div>
             <label className="block text-sm font-semibold text-gray-300 mb-3">Education</label>
             <select
-              value={profileData.basics?.education || ''}
-              onChange={(e) => setProfileData(prev => prev ? ({...prev, basics: {...(prev.basics || {}), education: e.target.value}}) : null)}
+              value={profileData.fieldOfStudy || ''}
+              onChange={(e) => setProfileData(prev => prev ? ({...prev, fieldOfStudy: e.target.value}) : null)}
               className="w-full p-4 bg-gray-700/50 border border-gray-600/50 rounded-2xl text-white focus:border-pink-500 focus:outline-none transition-colors"
             >
               <option value="">Select education</option>

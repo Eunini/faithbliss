@@ -103,24 +103,24 @@ class WebSocketService {
   }
 
   public joinMatch(matchId: string): void {
-    this.socket?.emit('joinMatch', { matchId });
+    this.socket?.emit('joinRoom', { matchId });
   }
 
   public leaveMatch(matchId: string): void {
-    this.socket?.emit('leaveMatch', { matchId });
+    this.socket?.emit('leaveRoom', { matchId });
   }
 
-  public sendMessage(matchId: string, content: string): void {
-    this.socket?.emit('sendMessage', { matchId, content });
+  public sendMessage(receiverId: string, content: string): void {
+    this.socket?.emit('sendMessage', { receiverId, content });
   }
 
-  public emitTyping(matchId: string, isTyping: boolean): void {
-    this.socket?.emit('typing', { matchId, isTyping });
+  public emitTyping(receiverId: string, isTyping: boolean): void {
+    this.socket?.emit('userTyping', { receiverId, isTyping });
   }
 
   // Backwards-compatible name expected by hooks
-  public sendTyping(matchId: string, isTyping: boolean): void {
-    this.emitTyping(matchId, isTyping);
+  public sendTyping(receiverId: string, isTyping: boolean): void {
+    this.emitTyping(receiverId, isTyping);
   }
 
   /** Returns true if socket is currently connected */

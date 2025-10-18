@@ -145,15 +145,15 @@ const ChatPage = () => {
 
   const handleTyping = (value: string) => {
     setNewMessage(value);
-    if (sendTyping) {
-      sendTyping(chatId, value.length > 0);
+    if (sendTyping && receiverId) {
+      sendTyping(receiverId, value.length > 0);
     }
   };
 
   const handleSendMessage = async () => {
-    if (newMessage.trim() && session?.user?.id) {
+    if (newMessage.trim() && receiverId) {
       try {
-        sendMessage(chatId, newMessage.trim());
+        sendMessage(receiverId, newMessage.trim());
         setNewMessage('');
         scrollToBottom();
       } catch (error: any) {
@@ -210,6 +210,7 @@ const ChatPage = () => {
   const otherUser = messages.find(
     (msg) => msg.senderId !== session?.user?.id
   )?.sender;
+  const receiverId = otherUser?.id;
 
   const conversation = {
     id: chatId,

@@ -28,15 +28,15 @@ export const DashboardPage = ({ session }: { session: Session }) => {
   const [isLoadingFilters, setIsLoadingFilters] = useState(false);
 
   // Fetch real potential matches from backend
-  const { data: profiles, loading: matchesLoading, refetch } = usePotentialMatches();
-  const { data: allUsers, loading: allUsersLoading } = useAllUsers();
+  const { data: profiles, loading: matchesLoading, error: matchesError, refetch } = usePotentialMatches();
+  const { data: allUsersResponse, loading: allUsersLoading, error: allUsersError } = useAllUsers();
   const { data: user, loading: userLoading } = useUserProfile();
   const { likeUser, passUser } = useMatching();
 
   const userName = user?.name || session?.user?.name || "User";
   const userImage = user?.profilePhotos?.photo1 || session?.user?.image || undefined;
 
-  const activeProfiles = (profiles && profiles.length > 0) ? profiles : allUsers;
+  const activeProfiles = (profiles && profiles.length > 0) ? profiles : allUsersResponse?.data;
 
   useEffect(() => {
     setCurrentProfileIndex(0);
@@ -45,6 +45,43 @@ export const DashboardPage = ({ session }: { session: Session }) => {
   // Show loading state while fetching matches or refreshing the token.
   if (matchesLoading || userLoading || allUsersLoading) {
     return <HeartBeatLoader message="Preparing your matches..." />;
+  }
+
+  // Handle error state for profiles
+  if (matchesError || allUsersError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white flex items-center justify-center">
+        <div className="text-center p-8">
+          <p className="text-red-400 mb-4">Failed to load profiles: {matchesError || allUsersError}</p>
+          <button
+            onClick={() => refetch()} // Assuming refetch from usePotentialMatches can re-fetch both
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle no profiles found
+  if (!activeProfiles || activeProfiles.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white flex items-center justify-center">
+        <div className="text-center p-8">
+          <p className="text-gray-400 mb-4">No profiles found matching your criteria.</p>
+          <button
+            onClick={() => {
+              setFilteredProfiles(null); // Clear any applied filters
+              refetch(); // Re-fetch potential matches
+            }}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Reset Filters & Try Again
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const currentProfile = activeProfiles?.[currentProfileIndex] as Profile;

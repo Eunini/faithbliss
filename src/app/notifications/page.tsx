@@ -8,43 +8,17 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { 
   Heart, 
   MessageCircle, 
-  Star, 
-  Calendar,
   Bell,
   Settings,
-  Check,
 } from 'lucide-react';
 import { TopBar } from '@/components/dashboard/TopBar';
 import { useNotifications } from '@/hooks/useAPI';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
-
-interface Notification {
-  id: number;
-  type: 'like' | 'message' | 'bless' | 'match' | 'event' | 'system';
-  title: string;
-  message: string;
-  timestamp: string;
-  isRead: boolean;
-  profilePicture?: string;
-  profileName?: string;
-  profileId?: number;
-}
+import { NotificationPayload } from '@/services/notification-websocket';
 
 const NotificationsPage = () => {
-  const { data: conversationsData, loading, error } = useNotifications();
+  const { data: notifications, loading, error } = useNotifications();
   const [activeTab, setActiveTab] = useState<'all' | 'likes' | 'messages' | 'matches'>('all');
-
-  const notifications: Notification[] = conversationsData ? conversationsData.map(conv => ({
-    id: parseInt(conv.matchId), // Assuming matchId can be parsed to a number for Notification ID
-    type: 'message', // All these are message notifications
-    title: `New Message from ${conv.match.matchedUser?.name || 'Unknown'}`,
-    message: conv.lastMessage?.content || 'No messages yet.',
-    timestamp: conv.lastMessage?.createdAt || conv.match.createdAt,
-    isRead: conv.unreadCount === 0,
-    profilePicture: conv.match.matchedUser?.profilePhotos?.photo1,
-    profileName: conv.match.matchedUser?.name,
-    profileId: parseInt(conv.match.matchedUser?.id || '0'), // Assuming matchedUser.id can be parsed
-  })) : [];
 
   // Show loading state
   if (loading) {
@@ -66,30 +40,36 @@ const NotificationsPage = () => {
     );
   }
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (type: NotificationPayload['type']) => {
     switch (type) {
-      case 'like':
+      case 'PROFILE_LIKED':
         return <Heart className="w-5 h-5 text-pink-400" />;
-      case 'message':
+      case 'NEW_MESSAGE':
         return <MessageCircle className="w-5 h-5 text-blue-400" />;
-      case 'bless':
-        return <Star className="w-5 h-5 text-yellow-400" />;
-      case 'match':
+      case 'NEW_MATCH':
         return <Heart className="w-5 h-5 text-purple-400" />;
-      case 'event':
-        return <Calendar className="w-5 h-5 text-green-400" />;
-      case 'system':
-        return <Bell className="w-5 h-5 text-gray-400" />;
       default:
         return <Bell className="w-5 h-5 text-gray-400" />;
     }
   };
 
   const getFilteredNotifications = () => {
-    return notifications;
+    if (!notifications) return [];
+    switch (activeTab) {
+      case 'likes':
+        return notifications.filter(n => n.type === 'PROFILE_LIKED');
+      case 'messages':
+        return notifications.filter(n => n.type === 'NEW_MESSAGE');
+      case 'matches':
+        return notifications.filter(n => n.type === 'NEW_MATCH');
+      case 'all':
+      default:
+        return notifications;
+    }
   };
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  // Assuming all incoming notifications are unread until explicitly marked as read (which is not implemented yet)
+  const unreadCount = notifications ? notifications.length : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white no-horizontal-scroll dashboard-main">
@@ -127,9 +107,9 @@ const NotificationsPage = () => {
         <div className="flex space-x-1 bg-gray-800/50 rounded-2xl p-1 mb-6">
           {[
             { id: 'all', label: 'All', count: notifications.length },
-            { id: 'likes', label: 'Likes', count: notifications.filter(n => n.type === 'like' || n.type === 'bless').length },
-            { id: 'messages', label: 'Messages', count: notifications.filter(n => n.type === 'message').length },
-            { id: 'matches', label: 'Matches', count: notifications.filter(n => n.type === 'match').length }
+            { id: 'likes', label: 'Likes', count: notifications.filter(n => n.type === 'PROFILE_LIKED').length },
+            { id: 'messages', label: 'Messages', count: notifications.filter(n => n.type === 'NEW_MESSAGE').length },
+            { id: 'matches', label: 'Matches', count: notifications.filter(n => n.type === 'NEW_MATCH').length }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -161,23 +141,20 @@ const NotificationsPage = () => {
               <p className="text-gray-500">You&apos;re all caught up!</p>
             </div>
           ) : (
-            getFilteredNotifications().map((notification) => (
+            getFilteredNotifications().map((notification, index) => (
               <div
-                key={notification.id}
-                className={`group relative bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border transition-all duration-300 hover:bg-gray-700/50 ${
-                  notification.isRead 
-                    ? 'border-gray-700/50' 
-                    : 'border-pink-500/30 bg-gradient-to-r from-pink-500/5 to-purple-500/5'
-                }`}
+                key={index} // Using index as key for now, ideally notification.id from backend
+                className={`group relative bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border transition-all duration-300 hover:bg-gray-700/50 border-pink-500/30 bg-gradient-to-r from-pink-500/5 to-purple-500/5`} // All new notifications are "unread" visually
               >
                 <div className="flex items-start space-x-4">
                   {/* Profile Picture or Icon */}
                   <div className="flex-shrink-0">
-                    {notification.profilePicture ? (
+                    {notification.otherUser?.id || notification.senderId ? ( // Check if there's an associated user
                       <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                        {/* Placeholder for profile picture, as NotificationPayload doesn't have it directly */}
                         <Image
-                          src={notification.profilePicture}
-                          alt={notification.profileName || 'Profile'}
+                          src={'/default-avatar.png'} // Placeholder
+                          alt={notification.otherUser?.name || notification.senderName || 'Profile'}
                           fill
                           className="object-cover"
                         />
@@ -197,40 +174,34 @@ const NotificationsPage = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="text-sm font-semibold text-white mb-1">
-                          {notification.title}
+                          {notification.type === 'NEW_MESSAGE' && `New Message from ${notification.senderName || 'Unknown'}`}
+                          {notification.type === 'PROFILE_LIKED' && `${notification.senderName || 'Someone'} liked your profile!`}
+                          {notification.type === 'NEW_MATCH' && `New Match with ${notification.otherUser?.name || 'Someone'}`}
                         </h3>
                         <p className="text-sm text-gray-300 leading-relaxed">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-gray-500 mt-2">
+                        {/* NotificationPayload doesn't have timestamp directly, assuming it's part of the message or derived */}
+                        {/* <p className="text-xs text-gray-500 mt-2">
                           {notification.timestamp}
-                        </p>
+                        </p> */}
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center space-x-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {!notification.isRead && (
-                          <button
-                            className="p-1.5 hover:bg-blue-500/20 text-blue-400 rounded-lg transition-colors"
-                            title="Mark as read"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
+                      {/* No explicit isRead in NotificationPayload, so no mark as read button */}
                     </div>
 
                     {/* Action Buttons for Interactive Notifications */}
-                    {(notification.type === 'like' || notification.type === 'bless' || notification.type === 'match') && notification.profileId && (
+                    {(notification.type === 'PROFILE_LIKED' || notification.type === 'NEW_MATCH') && notification.otherUser?.id && (
                       <div className="flex items-center space-x-3 mt-3">
-                        <Link href={`/profile/${notification.profileId}`}>
+                        <Link href={`/profile/${notification.otherUser.id}`}>
                           <button className="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white rounded-xl text-sm transition-colors">
                             View Profile
                           </button>
                         </Link>
                         
-                        {notification.type === 'match' && (
-                          <Link href={`/messages?profileId=${notification.profileId}&profileName=${encodeURIComponent(notification.profileName || '')}`}>
+                        {notification.type === 'NEW_MATCH' && notification.matchId && notification.otherUser?.name && (
+                          <Link href={`/messages?profileId=${notification.otherUser.id}&profileName=${encodeURIComponent(notification.otherUser.name)}`}>
                             <button className="px-4 py-2 bg-gradient-to-r from-pink-500/20 to-purple-500/20 hover:from-pink-500/30 hover:to-purple-500/30 text-pink-400 hover:text-pink-300 border border-pink-500/30 rounded-xl text-sm transition-colors">
                               Send Message
                             </button>
@@ -238,13 +209,20 @@ const NotificationsPage = () => {
                         )}
                       </div>
                     )}
+                    {notification.type === 'NEW_MESSAGE' && notification.senderId && notification.senderName && (
+                      <div className="flex items-center space-x-3 mt-3">
+                        <Link href={`/messages?profileId=${notification.senderId}&profileName=${encodeURIComponent(notification.senderName)}`}>
+                          <button className="px-4 py-2 bg-gradient-to-r from-pink-500/20 to-purple-500/20 hover:from-pink-500/30 hover:to-purple-500/30 text-pink-400 hover:text-pink-300 border border-pink-500/30 rounded-xl text-sm transition-colors">
+                            View Message
+                          </button>
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Unread Indicator */}
-                {!notification.isRead && (
-                  <div className="absolute top-4 right-4 w-2 h-2 bg-pink-500 rounded-full"></div>
-                )}
+                {/* Unread Indicator - all are considered unread for now */}
+                <div className="absolute top-4 right-4 w-2 h-2 bg-pink-500 rounded-full"></div>
               </div>
             ))
           )}

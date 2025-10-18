@@ -46,7 +46,7 @@ const PartnerPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible 
   if (!isVisible) return null;
 
   const handleMultiSelect = (
-    name: 'preferredFaithJourney' | 'preferredChurchAttendance' | 'preferredRelationshipGoals' | 'preferredDenominations',
+    name: 'preferredFaithJourney' | 'preferredChurchAttendance' | 'preferredRelationshipGoals' | 'preferredDenomination',
     value: string
   ) => {
     setOnboardingData(prev => {
@@ -142,9 +142,9 @@ const PartnerPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible 
             <button
               key={option}
               type="button"
-              onClick={() => handleMultiSelect('preferredDenominations', option)}
+              onClick={() => handleMultiSelect('preferredDenomination', option)}
               className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-                onboardingData.preferredDenominations?.includes(option)
+                onboardingData.preferredDenomination?.includes(option)
                   ? 'bg-pink-600 text-white'
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}

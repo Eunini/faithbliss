@@ -35,14 +35,14 @@ export const validateStep1 = (data: OnboardingData): boolean => {
 
 export const validateStep2 = (data: OnboardingData): boolean => {
   return !!(
-    data.preferredFaithJourney?.length > 0 &&
-    data.preferredChurchAttendance?.length > 0 &&
-    data.preferredRelationshipGoals?.length > 0 &&
-    data.preferredDenominations?.length > 0 &&
+    (data.preferredFaithJourney?.length || 0) > 0 &&
+    (data.preferredChurchAttendance?.length || 0) > 0 &&
+    (data.preferredRelationshipGoals?.length || 0) > 0 &&
+    (data.preferredDenomination?.length || 0) > 0 &&
     data.preferredGender &&
-    data.minAge >= 18 &&
-    data.maxAge > data.minAge &&
-    data.maxDistance > 0
+    (data.minAge || 0) >= 18 &&
+    (data.maxAge || 0) > (data.minAge || 0) &&
+    (data.maxDistance || 0) > 0
   );
 };
 

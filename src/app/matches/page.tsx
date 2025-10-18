@@ -136,15 +136,13 @@ const MatchesPage = () => {
                       <div className="flex items-center gap-4 mb-4">
                         <div className="relative">
                           <Image
-                            src={match.matchedUser?.profilePhotos?.photo1 || '/default-avatar.png'}
+                            src={match.matchedUser?.profilePhoto1 || '/default-avatar.png'}
                             alt={match.matchedUser?.name || 'User'}
                             width={64}
                             height={64}
                             className="w-16 h-16 object-cover rounded-full ring-2 ring-pink-500/30"
                           />
-                          <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-gray-900 ${
-                            match.matchedUser?.isActive ? 'bg-emerald-400' : 'bg-gray-500'
-                          }`}></div>
+                          <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-gray-900 bg-gray-500`}></div>
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
@@ -160,7 +158,7 @@ const MatchesPage = () => {
                           </div>
                           <div className="flex items-center gap-2 text-gray-300 text-sm mt-1">
                             <MapPin className="w-4 h-4" />
-                            <span>{match.matchedUser?.location?.address || 'Location not specified'}</span>
+                            <span>{match.matchedUser?.location || 'Location not specified'}</span>
                           </div>
                           <div className="flex items-center gap-2 text-gray-300 text-sm">
                             <Church className="w-4 h-4" />
@@ -205,7 +203,7 @@ const MatchesPage = () => {
                     <div key={request.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300">
                       <div className="flex items-center gap-4 mb-4">
                         <Image
-                          src={matchedUser?.profilePhotos?.photo1 || '/default-avatar.png'}
+                          src={matchedUser?.profilePhoto1 || '/default-avatar.png'}
                           alt={matchedUser?.name || 'User'}
                           width={64}
                           height={64}
@@ -222,7 +220,7 @@ const MatchesPage = () => {
                           </div>
                           <div className="flex items-center gap-2 text-gray-300 text-sm mt-1">
                             <MapPin className="w-4 h-4" />
-                            <span>{matchedUser?.location?.address || 'Location unknown'}</span>
+                            <span>{matchedUser?.location || 'Location unknown'}</span>
                           </div>
                           <p className="text-sm text-gray-400">
                             Sent {new Date(request.createdAt).toLocaleDateString()}
@@ -251,7 +249,7 @@ const MatchesPage = () => {
                     <div key={request.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 hover:bg-white/15 transition-all duration-300">
                       <div className="flex items-center gap-4 mb-4">
                         <Image
-                          src={matchedUser?.profilePhotos?.photo1 || '/default-avatar.png'}
+                          src={matchedUser?.profilePhoto1 || '/default-avatar.png'}
                           alt={matchedUser?.name || 'User'}
                           width={64}
                           height={64}
@@ -269,7 +267,7 @@ const MatchesPage = () => {
                           </div>
                           <div className="flex items-center gap-2 text-gray-300 text-sm mt-1">
                             <MapPin className="w-4 h-4" />
-                            <span>{matchedUser?.location?.address || 'Location unknown'}</span>
+                            <span>{matchedUser?.location || 'Location unknown'}</span>
                           </div>
                           <p className="text-sm text-gray-400">
                             Received {new Date(request.createdAt).toLocaleDateString()}

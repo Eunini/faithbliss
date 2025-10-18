@@ -94,6 +94,25 @@ const MessagesContent = () => {
     );
   }
 
+  // Show no conversations state
+  if (realConversations.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white flex items-center justify-center">
+        <div className="text-center p-8">
+          <MessageCircle className="w-20 h-20 text-pink-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-2">No Conversations Yet</h2>
+          <p className="text-gray-400 mb-4">Start matching with people to begin new conversations!</p>
+          <Link 
+            href="/dashboard"
+            className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full text-lg font-semibold hover:from-pink-600 hover:to-purple-700 transition-all duration-300 shadow-lg"
+          >
+            Find Matches
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const selectedConversation = realConversations.find(conv => conv.matchId === selectedChat);
   const filteredConversations = realConversations.filter(conv => {
     const matchedUser = conv.match?.matchedUser;

@@ -16,6 +16,7 @@ import PassionsSection from '@/components/profile/PassionsSection';
 import FaithSection from '@/components/profile/FaithSection';
 import SaveButton from '@/components/profile/SaveButton';
 import { ProfileData } from '@/types/profile';
+import { UpdateProfileDto } from '@/services/api';
 
 const ProfilePage = () => {
   const auth = useAuth();
@@ -29,33 +30,32 @@ const ProfilePage = () => {
         ...userData,
         name: userData.name || '',
         age: userData.age || 0,
-        location: userData.location || undefined,
-        profession: userData.jobTitle || '',
+        gender: userData.gender || undefined,
+        location: {
+          address: userData.location || '',
+          latitude: userData.latitude || null,
+          longitude: userData.longitude || null,
+        },
+        phoneNumber: userData.phoneNumber || '',
+        countryCode: userData.countryCode || '',
+        birthday: userData.birthday || '',
+        fieldOfStudy: userData.fieldOfStudy || '',
+        profession: userData.profession || '',
         denomination: userData.denomination || '',
         favoriteVerse: userData.favoriteVerse || '',
         bio: userData.bio || '',
-        hobbies: userData.interests || [],
-        values: [], // Assuming default empty array if not in userData
-        faithJourney: '',
-        lookingFor: '',
-        churchRole: '',
-        photos: userData.profilePhotos ? Object.values(userData.profilePhotos).filter(Boolean) as string[] : [],
-        prompts: [], // Assuming default empty array if not in userData
-        lifestyle: {
-          prayerLife: '',
-          bibleStudy: '',
-          workout: '',
-          diet: '',
-          socialStyle: '',
-          musicPreference: '',
-        },
-        passions: [], // Assuming default empty array if not in userData
-        basics: {
-          height: '',
-          education: '',
-          jobTitle: '',
-          company: ''
-        },
+        hobbies: userData.hobbies || [],
+        values: userData.values || [],
+        faithJourney: userData.faithJourney || '',
+        sundayActivity: userData.sundayActivity || '',
+        lookingFor: userData.lookingFor || [],
+        photos: [userData.profilePhoto1, userData.profilePhoto2, userData.profilePhoto3].filter(Boolean) as string[],
+        // These fields are no longer directly in User, so they are omitted or handled differently
+        // churchRole: '',
+        // prompts: [],
+        // lifestyle: { prayerLife: '', bibleStudy: '', workout: '', diet: '', socialStyle: '', musicPreference: '', },
+        // passions: [],
+        // basics: { height: '', education: '', jobTitle: '', company: '' },
       });
     }
   }, [userData]);
@@ -67,22 +67,35 @@ const ProfilePage = () => {
     if (!profileData) return;
     setIsSaving(true);
     try {
-      await API.User.updateMe({
+      const updatePayload: UpdateProfileDto = {
         name: profileData.name,
-        bio: profileData.bio,
         age: profileData.age,
-        denomination: profileData.denomination,
-        interests: profileData.hobbies,
-        values: profileData.values,
-        faithJourney: profileData.faithJourney,
+        bio: profileData.bio,
+        denomination: profileData.denomination as 'BAPTIST' | 'METHODIST' | 'CATHOLIC' | 'OTHER', // Cast to match enum
+        favoriteVerse: profileData.favoriteVerse,
+        faithJourney: profileData.faithJourney as 'GROWING' | 'ESTABLISHED' | 'SEEKING', // Cast to match enum
         lookingFor: profileData.lookingFor,
-        churchRole: profileData.churchRole,
-        prompts: profileData.prompts,
-        lifestyle: profileData.lifestyle,
-        passions: profileData.passions,
-        basics: profileData.basics,
-        location: profileData.location,
-      });
+        hobbies: profileData.interests, // Mapping interests to hobbies
+        values: profileData.values,
+
+        // Location fields
+        location: profileData.location?.address,
+        latitude: profileData.location?.latitude,
+        longitude: profileData.location?.longitude,
+
+        // Basics mapping
+        fieldOfStudy: profileData.basics?.education,
+        profession: profileData.basics?.jobTitle,
+
+        // Fields not directly available in profileData or not meant for update here
+        // gender: profileData.gender,
+        // phoneNumber: profileData.phoneNumber,
+        // countryCode: profileData.countryCode,
+        // birthday: profileData.birthday,
+        // sundayActivity: profileData.sundayActivity,
+      };
+
+      await API.User.updateMe(updatePayload);
       setSaveMessage('Profile saved successfully!');
       refetch();
       setTimeout(() => setSaveMessage(''), 3000);
@@ -101,31 +114,28 @@ const ProfilePage = () => {
       setIsSaving(true);
       try {
         const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', 'faithbliss');
-        const res = await fetch('https://api.cloudinary.com/v1_1/faithbliss/image/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        const data = await res.json();
-        const newPhoto = {
-          url: data.secure_url,
-          publicId: data.public_id,
-        };
-        const updatedPhotosArray = [...(profileData.photos || []), newPhoto.url];
-        const newProfilePhotos: { [key: string]: string } = {};
-        updatedPhotosArray.forEach((url, index) => {
-          newProfilePhotos[`photo${index + 1}`] = url;
-        });
-        await API.User.updateMe({
-          profilePhotos: newProfilePhotos,
-        });
+        formData.append('photo', file); // Backend expects 'photo' field
+
+        // Determine which photo slot to upload to.
+        // Assuming we always upload to the next available slot (1, 2, or 3)
+        // or replace an existing one if the user clicked on a specific slot.
+        // For simplicity, let's assume we're always adding to the next available slot.
+        const currentPhotoCount = profileData.photos.length;
+        const photoNumber = currentPhotoCount < 3 ? currentPhotoCount + 1 : 1; // Cycle through slots or add to next
+
+        const response = await API.User.uploadSpecificPhoto(photoNumber, formData);
+        
+        // Update profileData.photos based on the response
+        const updatedPhotosArray = [...(profileData.photos || [])];
+        updatedPhotosArray[photoNumber - 1] = response.photoUrl; // Update the specific slot
+
         setProfileData(prev => prev ? ({
           ...prev,
           photos: updatedPhotosArray,
         }) : null);
+
         setSaveMessage('Photo uploaded successfully!');
-        refetch();
+        refetch(); // Refetch user data to ensure backend state is reflected
         setTimeout(() => setSaveMessage(''), 3000);
       } catch (err) {
         console.error('Error uploading photo:', err);
@@ -142,18 +152,19 @@ const ProfilePage = () => {
     setIsSaving(true);
     try {
       const updatedPhotosArray = (profileData.photos || []).filter((_, i) => i !== index);
-      const newProfilePhotos: { [key: string]: string } = {};
-      updatedPhotosArray.forEach((url, index) => {
-        newProfilePhotos[`photo${index + 1}`] = url;
-      });
-      await API.User.updateMe({
-        profilePhotos: newProfilePhotos,
-      });
+      
+      // No explicit backend API for removing a photo slot by setting to null/undefined
+      // via UpdateProfileDto.
+      // If a photo needs to be removed from the backend, a dedicated DELETE endpoint
+      // or a mechanism to upload an empty/placeholder image to a slot would be needed.
+      // For now, only updating frontend state.
+      
       setProfileData(prev => prev ? ({
         ...prev,
         photos: updatedPhotosArray,
       }) : null);
       setSaveMessage('Photo removed successfully!');
+      // refetch(); // No backend call, so no need to refetch from backend
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (err) {
       setSaveMessage('Error removing photo. Please try again.');

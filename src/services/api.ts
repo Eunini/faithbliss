@@ -44,55 +44,43 @@ interface User {
   id: string;
   email: string;
   name: string;
-  profilePhotos?: {
-    photo1?: string;
-    photo2?: string;
-    photo3?: string;
-  };
-  preferences?: UserPreferences;
-  onboardingCompleted?: boolean;
-  isActive?: boolean;
-  bio?: string;
+  gender?: 'MALE' | 'FEMALE';
   age?: number;
-  denomination?: string;
-  interests?: string[];
-  location?: {
-    latitude: number;
-    longitude: number;
-    address: string;
-  };
-  favoriteVerse?: string;
+  denomination?: 'BAPTIST' | 'METHODIST' | 'PRESBYTERIAN' | 'PENTECOSTAL' | 'CATHOLIC' | 'ORTHODOX' | 'ANGLICAN' | 'LUTHERAN' | 'ASSEMBLIES_OF_GOD' | 'SEVENTH_DAY_ADVENTIST' | 'OTHER';
+  bio?: string;
+  location?: string; // As per documentation
+  latitude?: number;
+  longitude?: number;
+  phoneNumber?: string;
+  countryCode?: string;
+  birthday?: string; // ISO 8601 date string
+  fieldOfStudy?: string;
+  profession?: string;
+  faithJourney?: 'GROWING' | 'ESTABLISHED' | 'SEEKING';
+  sundayActivity?: 'WEEKLY' | 'BI_WEEKLY' | 'MONTHLY' | 'RARELY';
+  lookingFor?: string[]; // As per user clarification
+  hobbies?: string[];
   values?: string[];
-  faithJourney?: string;
-  lookingFor?: string;
-  churchRole?: string;
-  prompts?: Array<{
-    question: string;
-    answer: string;
-  }>;
-  lifestyle?: {
-    prayerLife?: string;
-    bibleStudy?: string;
-    workout?: string;
-    diet?: string;
-    socialStyle?: string;
-    musicPreference?: string;
-  };
-  passions?: string[];
-  basics?: {
-    height?: string;
-    education?: string;
-    jobTitle?: string;
-    company?: string;
-  };
-  jobTitle?: string;
+  favoriteVerse?: string;
+  profilePhoto1?: string; // As per documentation
+  profilePhoto2?: string;
+  profilePhoto3?: string;
+  isVerified?: boolean;
+  onboardingCompleted?: boolean;
+  createdAt?: string; // ISO 8601 datetime
+  updatedAt?: string; // ISO 8601 datetime
+  preferences?: UserPreferences;
 }
 
 interface UserPreferences {
-  ageRange: [number, number];
-  maxDistance: number;
-  denomination?: string;
-  interests?: string[];
+  preferredGender?: 'MALE' | 'FEMALE' | null;
+  preferredDenomination?: ('BAPTIST' | 'METHODIST' | 'PRESBYTERIAN' | 'PENTECOSTAL' | 'CATHOLIC' | 'ORTHODOX' | 'ANGLICAN' | 'LUTHERAN' | 'ASSEMBLIES_OF_GOD' | 'SEVENTH_DAY_ADVENTIST' | 'OTHER')[] | null;
+  minAge?: number | null;
+  maxAge?: number | null;
+  maxDistance?: number | null;
+  preferredFaithJourney?: string[] | null;
+  preferredChurchAttendance?: string[] | null;
+  preferredRelationshipGoals?: string[] | null;
 }
 
 interface Match {
@@ -193,23 +181,864 @@ interface TokenDebugInfo {
   expiresAt: string;
 }
 
-interface UserPhoto {
+interface Comment {
+
   id: string;
-  url: string;
-  isPrimary: boolean;
-  uploadedAt: string;
+
+  postId: string;
+
+  userId: string;
+
+  content: string;
+
+  createdAt: string;
+
+  user: User;
+
 }
 
-interface Comment {
-  id: string;
-  postId: string;
-  userId: string;
-  content: string;
-  createdAt: string;
-  user: User;
+
+
+export interface UpdateProfileDto {
+
+
+
+
+
+
+
+  name?: string;
+
+
+
+
+
+
+
+  gender?: 'MALE' | 'FEMALE';
+
+
+
+
+
+
+
+  age?: number;
+
+
+
+
+
+
+
+  denomination?: 'BAPTIST' | 'METHODIST' | 'PRESBYTERIAN' | 'PENTECOSTAL' | 'CATHOLIC' | 'ORTHODOX' | 'ANGLICAN' | 'LUTHERAN' | 'ASSEMBLIES_OF_GOD' | 'SEVENTH_DAY_ADVENTIST' | 'OTHER';
+
+
+
+
+
+
+
+  bio?: string;
+
+
+
+
+
+
+
+  location?: string;
+
+
+
+
+
+
+
+  latitude?: number | null;
+
+
+
+
+
+
+
+  longitude?: number | null;
+
+
+
+
+
+
+
+  phoneNumber?: string;
+
+
+
+
+
+
+
+  countryCode?: string;
+
+
+
+
+
+
+
+  birthday?: string; // ISO 8601 date string
+
+
+
+
+
+
+
+  fieldOfStudy?: string;
+
+
+
+
+
+
+
+  profession?: string;
+
+
+
+
+
+
+
+  faithJourney?: 'GROWING' | 'ESTABLISHED' | 'SEEKING';
+
+
+
+
+
+
+
+  sundayActivity?: 'WEEKLY' | 'BI_WEEKLY' | 'MONTHLY' | 'RARELY';
+
+
+
+
+
+
+
+  lookingFor?: string[];
+
+
+
+
+
+
+
+  hobbies?: string[];
+
+
+
+
+
+
+
+  values?: string[];
+
+
+
+
+
+
+
+  favoriteVerse?: string;
+
+
+
+
+
+
+
+  isVerified?: boolean;
+
+
+
+
+
+
+
+  onboardingCompleted?: boolean;
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+export interface CompleteOnboardingDto {
+
+
+
+
+
+
+
+  education: string;
+
+
+
+
+
+
+
+  occupation: string;
+
+
+
+
+
+
+
+  location: string;
+
+
+
+
+
+
+
+  latitude: number;
+
+
+
+
+
+
+
+  longitude: number;
+
+
+
+
+
+
+
+  denomination: string;
+
+
+
+
+
+
+
+  churchAttendance: string;
+
+
+
+
+
+
+
+  baptismStatus: string;
+
+
+
+
+
+
+
+  spiritualGifts: string[];
+
+
+
+
+
+
+
+  interests: string[];
+
+
+
+
+
+
+
+  relationshipGoals: string[];
+
+
+
+
+
+
+
+  lifestyle: string;
+
+
+
+
+
+
+
+  bio: string;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export interface GetUsersResponse {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  data: User[];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  total: number;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  page: number;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  limit: number;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export interface UploadPhotosResponse {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  message: string;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  profilePhoto1?: string;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  profilePhoto2?: string;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  profilePhoto3?: string;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export interface UploadSinglePhotoResponse {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  message: string;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  photoUrl: string;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Generic API request function
 const apiRequest = async <T = unknown>(
   endpoint: string, 
@@ -365,21 +1194,7 @@ export const AuthAPI = {
   },
 
   // Complete user onboarding
-  completeOnboarding: async (onboardingData: {
-    education: string;
-    occupation: string;
-    location: string;
-    latitude: number;
-    longitude: number;
-    denomination: string;
-    churchAttendance: string;
-    baptismStatus: string;
-    spiritualGifts: string[];
-    interests: string[];
-    relationshipGoals: string;
-    lifestyle: string;
-    bio: string;
-  }): Promise<User> => {
+  completeOnboarding: async (onboardingData: CompleteOnboardingDto): Promise<User> => {
     return apiRequest('/auth/complete-onboarding', {
       method: 'PUT',
       body: JSON.stringify(onboardingData),
@@ -427,46 +1242,7 @@ export const UserAPI = {
   },
 
   // Update current user profile
-  updateMe: async (userData: {
-    name?: string;
-    bio?: string;
-    age?: number;
-    denomination?: string;
-    interests?: string[];
-    profilePhotos?: {
-      photo1?: string;
-      photo2?: string;
-      photo3?: string;
-    };
-    values?: string[];
-    faithJourney?: string;
-    lookingFor?: string;
-    churchRole?: string;
-    prompts?: Array<{
-      question: string;
-      answer: string;
-    }>;
-    lifestyle?: {
-      prayerLife?: string;
-      bibleStudy?: string;
-      workout?: string;
-      diet?: string;
-      socialStyle?: string;
-      musicPreference?: string;
-    };
-    passions?: string[];
-    basics?: {
-      height?: string;
-      education?: string;
-      jobTitle?: string;
-      company?: string;
-    };
-    location?: {
-      latitude: number;
-      longitude: number;
-      address: string;
-    };
-  }): Promise<User> => {
+  updateMe: async (userData: UpdateProfileDto): Promise<User> => {
     return apiRequest('/users/me', {
       method: 'PUT',
       body: JSON.stringify(userData),
@@ -519,16 +1295,21 @@ export const UserAPI = {
 
   // Get all users with optional filters
   getAllUsers: async (filters?: {
+    page?: number;
     limit?: number;
-    offset?: number;
-    active?: boolean;
-  }): Promise<User[]> => {
-    const query = filters ? `?${new URLSearchParams(filters as Record<string, string>)}` : '';
+    search?: string;
+  }): Promise<GetUsersResponse> => {
+    const queryParams: Record<string, string> = {};
+    if (filters?.page) queryParams.page = filters.page.toString();
+    if (filters?.limit) queryParams.limit = filters.limit.toString();
+    if (filters?.search) queryParams.search = filters.search;
+
+    const query = Object.keys(queryParams).length > 0 ? `?${new URLSearchParams(queryParams).toString()}` : '';
     return apiRequest(`/users${query}`);
   },
 
   // Upload multiple photos
-  uploadPhotos: async (photos: FormData): Promise<UserPhoto[]> => {
+  uploadPhotos: async (photos: FormData): Promise<UploadPhotosResponse> => {
     return apiRequest('/users/me/photos', {
       method: 'POST',
       body: photos,
@@ -537,7 +1318,7 @@ export const UserAPI = {
   },
 
   // Upload specific photo by number
-  uploadSpecificPhoto: async (photoNumber: number, photo: FormData): Promise<UserPhoto> => {
+  uploadSpecificPhoto: async (photoNumber: number, photo: FormData): Promise<UploadSinglePhotoResponse> => {
     return apiRequest(`/users/me/photo/${photoNumber}`, {
       method: 'POST',
       body: photo,
@@ -597,8 +1378,9 @@ export const MessageAPI = {
   },
 
   // Get messages for a match
-  getMatchMessages: async (matchId: string): Promise<Message[]> => {
-    return apiRequest(`/messages/${matchId}`);
+  getMatchMessages: async (matchId: string, page: number = 1, limit: number = 50): Promise<Message[]> => {
+    const query = new URLSearchParams({ page: page.toString(), limit: limit.toString() }).toString();
+    return apiRequest(`/messages/${matchId}?${query}`);
   },
 
   // Mark message as read

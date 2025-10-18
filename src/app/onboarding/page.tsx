@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -12,6 +11,7 @@ import {
   OnboardingSuccessModal,
   OnboardingData,
 } from '@/components/onboarding';
+import { CompleteOnboardingDto } from '@/services/api';
 import ImageUploadSlide from '@/components/onboarding/ImageUploadSlide';
 import ProfileBuilderSlide from '@/components/onboarding/ProfileBuilderSlide';
 import MatchingPreferencesSlide from '@/components/onboarding/MatchingPreferencesSlide';
@@ -48,7 +48,7 @@ const OnboardingPage = () => {
     // Goals
     relationshipGoals: [],
     // Preferences
-    preferredGender: '',
+    preferredGender: null,
     minAge: 18,
     maxAge: 35,
     maxDistance: 50,
@@ -61,10 +61,10 @@ const OnboardingPage = () => {
     spiritualGifts: [],
     interests: [],
     lifestyle: '',
-    preferredFaithJourney: [],
-    preferredChurchAttendance: [],
-    preferredRelationshipGoals: [],
-    preferredDenominations: [],
+    preferredFaithJourney: null,
+    preferredChurchAttendance: null,
+    preferredRelationshipGoals: null,
+    preferredDenomination: null,
   });
 
   const nextStep = async () => {
@@ -75,22 +75,51 @@ const OnboardingPage = () => {
       setValidationError('Please upload at least 2 photos to continue.');
       return;
     }
-    if (currentStep === 1 && (!onboardingData.birthday || !onboardingData.location || !onboardingData.faithJourney)) {
-      setValidationError('Please fill out the basics: birthday, location, and faith journey.');
+    if (currentStep === 1 && (
+      !onboardingData.birthday ||
+      !onboardingData.location ||
+      !onboardingData.faithJourney ||
+      !onboardingData.denomination ||
+      !onboardingData.occupation ||
+      !onboardingData.bio ||
+      onboardingData.personality.length === 0 ||
+      onboardingData.hobbies.length === 0 ||
+      onboardingData.values.length === 0 ||
+      !onboardingData.favoriteVerse ||
+      !onboardingData.phoneNumber ||
+      !onboardingData.countryCode ||
+      !onboardingData.education ||
+      !onboardingData.baptismStatus ||
+      onboardingData.spiritualGifts.length === 0 ||
+      onboardingData.interests.length === 0 ||
+      !onboardingData.lifestyle
+    )) {
+      setValidationError('Please fill out all required profile information.');
       return;
     }
-    if (currentStep === 2 && !onboardingData.relationshipGoals) {
+    if (currentStep === 2 && (!onboardingData.relationshipGoals || onboardingData.relationshipGoals.length === 0)) {
       setValidationError('Please select your relationship goal.');
       return;
     }
     if (
       currentStep === 3 &&
-      (onboardingData.preferredFaithJourney.length === 0 ||
-        onboardingData.preferredChurchAttendance.length === 0 ||
-        onboardingData.preferredRelationshipGoals.length === 0 ||
-        onboardingData.preferredDenominations.length === 0)
+      (!onboardingData.preferredFaithJourney || onboardingData.preferredFaithJourney.length === 0 ||
+        !onboardingData.preferredChurchAttendance || onboardingData.preferredChurchAttendance.length === 0 ||
+        !onboardingData.preferredRelationshipGoals || onboardingData.preferredRelationshipGoals.length === 0 ||
+        !onboardingData.preferredDenomination || onboardingData.preferredDenomination.length === 0)
     ) {
       setValidationError('Please select at least one option for each preference.');
+      return;
+    }
+
+    // Validation for Step 4 (MatchingPreferencesSlide)
+    if (currentStep === 4 && (
+      !onboardingData.preferredGender ||
+      onboardingData.minAge === null || onboardingData.minAge === undefined ||
+      onboardingData.maxAge === null || onboardingData.maxAge === undefined ||
+      onboardingData.maxDistance === null || onboardingData.maxDistance === undefined
+    )) {
+      setValidationError('Please fill out all matching preferences.');
       return;
     }
 
@@ -102,28 +131,26 @@ const OnboardingPage = () => {
       try {
         setSubmitting(true);
         const formData = new FormData();
-        const dataForBackend: { [key: string]: any } = {};
+        const dataForBackend: CompleteOnboardingDto = {
+          education: onboardingData.education,
+          occupation: onboardingData.occupation,
+          location: onboardingData.location,
+          latitude: onboardingData.latitude || 0,
+          longitude: onboardingData.longitude || 0,
+          denomination: onboardingData.denomination,
+          churchAttendance: onboardingData.churchAttendance,
+          baptismStatus: onboardingData.baptismStatus,
+          spiritualGifts: onboardingData.spiritualGifts,
+          interests: onboardingData.interests,
+          relationshipGoals: onboardingData.relationshipGoals,
+          lifestyle: onboardingData.lifestyle,
+          bio: onboardingData.bio,
+        };
 
-        // 1. Build the JSON object for the 'data' field
-        Object.entries(onboardingData).forEach(([key, value]) => {
-          // Skip photos (handled separately) and customDenomination (handled within denomination)
-          if (key === 'photos' || key === 'customDenomination') {
-            return;
-          }
-
-          const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-
-          if (key === 'denomination' && value === 'OTHER' && onboardingData.customDenomination) {
-            dataForBackend[snakeKey] = onboardingData.customDenomination;
-          } else if (value !== null && value !== undefined) {
-             // Ensure empty arrays are still included if that's the desired behavior
-            if (Array.isArray(value) && value.length === 0) {
-               dataForBackend[snakeKey] = [];
-            } else if (value !== '') {
-               dataForBackend[snakeKey] = value;
-            }
-          }
-        });
+        // Handle custom denomination if 'OTHER' is selected
+        if (onboardingData.denomination === 'OTHER' && onboardingData.customDenomination) {
+          dataForBackend.denomination = onboardingData.customDenomination;
+        }
         
         formData.append('data', JSON.stringify(dataForBackend));
 
