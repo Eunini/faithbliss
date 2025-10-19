@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Custom hooks for API integration - REFACTORED FOR CLIENT-SIDE
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/contexts/ToastContext';
 import { getApiClient } from '@/services/api-client';
@@ -15,6 +15,19 @@ interface ApiState<T> {
   loading: boolean;
   error: string | null;
 }
+
+interface UseApiOptions {
+  immediate?: boolean;
+  showErrorToast?: boolean;
+  showSuccessToast?: boolean;
+  cacheTime?: number;
+}
+
+// Global request cache to prevent duplicate requests
+const requestCache = new Map<string, { data: any; timestamp: number }>();
+const activeRequests = new Map<string, Promise<any>>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 
 // Types for messaging
 import { Match, Conversation, User, Message } from '@/services/api';
@@ -32,74 +45,139 @@ interface ConversationSummary {
 
 // Generic hook for API calls
 export function useApi<T>(
-  apiCall: (() => Promise<T>) | null, // Allow null for conditional calls
+  apiCall: (() => Promise<T>) | null,
   dependencies: unknown[] = [],
-  options: {
-    immediate?: boolean;
-    showErrorToast?: boolean;
-    showSuccessToast?: boolean;
-  } = { showErrorToast: false } // Set showErrorToast to false by default
+  options: UseApiOptions = { showErrorToast: false }
 ) {
   const [state, setState] = useState<ApiState<T>>({
     data: null,
     loading: false,
     error: null,
   });
-  const [hasErrorOccurred, setHasErrorOccurred] = useState(false); // New state
 
   const { showError, showSuccess } = useToast();
   const router = useRouter();
-  const { immediate = true, showErrorToast = true, showSuccessToast = false } = options;
+  const { 
+    immediate = true, 
+    showErrorToast = false, 
+    showSuccessToast = false,
+    cacheTime = CACHE_DURATION 
+  } = options;
+
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const isMountedRef = useRef(true);
+  const cacheKeyRef = useRef<string>('');
+
+  // Generate stable cache key from dependencies
+  const cacheKey = useMemo(() => JSON.stringify(dependencies), [dependencies]);
 
   const execute = useCallback(async () => {
-    if (!apiCall || hasErrorOccurred) { // Add hasErrorOccurred condition
-      // If there's no apiCall function (e.g., no token yet), do nothing.
-      return;
+    if (!apiCall) return;
+
+    // Check cache first
+    if (requestCache.has(cacheKey)) {
+      const cached = requestCache.get(cacheKey)!;
+      if (Date.now() - cached.timestamp < cacheTime) {
+        if (isMountedRef.current) {
+          setState({ data: cached.data, loading: false, error: null });
+        }
+        return cached.data;
+      }
     }
 
-    setState(prev => ({ ...prev, loading: true, error: null }));
-
-    try {
-      const data = await apiCall();
-      setState({ data, loading: false, error: null });
-      setHasErrorOccurred(false); // Reset on success
-
-      if (showSuccessToast) {
-        showSuccess('Operation completed successfully');
-      }
-
-      return data;
-    } catch (error: any) {
-      // Check for auth error and redirect
-      if (error.statusCode === 401) {
-        showError('Your session has expired. Please log in again.', 'Authentication Error');
-        router.push('/login');
-        return; // Stop further execution
-      }
-
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-      setState(prev => ({ ...prev, loading: false, error: errorMessage }));
-      setHasErrorOccurred(true); // Set on error
-
-      if (showErrorToast) {
-        showError(errorMessage, 'API Error');
-      }
-
-      // throw error; // Removed to prevent infinite re-renders
+    // Return existing request if one is in flight
+    if (activeRequests.has(cacheKey)) {
+      return activeRequests.get(cacheKey);
     }
-  }, [apiCall, showError, showSuccess, showErrorToast, showSuccessToast, router, hasErrorOccurred]); // Add hasErrorOccurred to dependencies
 
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    abortControllerRef.current = new AbortController();
+
+    if (isMountedRef.current) {
+      setState(prev => ({ ...prev, loading: true, error: null }));
+    }
+
+    // Create the promise for this request
+    const requestPromise = (async () => {
+      try {
+        const data = await apiCall();
+
+        if (!isMountedRef.current) return data;
+
+        // Cache the result
+        requestCache.set(cacheKey, { data, timestamp: Date.now() });
+
+        setState({ data, loading: false, error: null });
+
+        if (showSuccessToast) {
+          showSuccess('Operation completed successfully');
+        }
+
+        return data;
+      } catch (error: any) {
+        if (!isMountedRef.current) throw error;
+
+        // Check for auth error
+        if (error?.statusCode === 401 || error?.status === 401) {
+          showError('Your session has expired. Please log in again.', 'Authentication Error');
+          router.push('/login');
+          throw error;
+        }
+
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+        setState(prev => ({ ...prev, loading: false, error: errorMessage }));
+
+        if (showErrorToast) {
+          showError(errorMessage, 'API Error');
+        }
+
+        throw error;
+      } finally {
+        // Remove from active requests
+        activeRequests.delete(cacheKey);
+      }
+    })();
+
+    // Track this request
+    activeRequests.set(cacheKey, requestPromise);
+
+    return requestPromise;
+  }, [apiCall, cacheKey, cacheTime, showError, showSuccess, showErrorToast, showSuccessToast, router]);
+
+  // Effect to run on mount or when dependencies change
   useEffect(() => {
-    if (immediate && apiCall && !state.error && !hasErrorOccurred) { // Add !hasErrorOccurred condition
-      execute();
+    isMountedRef.current = true;
+
+    if (immediate && apiCall) {
+      execute().catch(err => {
+        // Silently catch errors as they're handled in execute()
+        console.debug('API call error:', err);
+      });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [immediate, execute, state.error, hasErrorOccurred, ...dependencies]); // Add hasErrorOccurred to dependencies
+
+    return () => {
+      isMountedRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [immediate, apiCall, cacheKey, execute]); // Only depend on cacheKey, not individual deps
+
+  const refetch = useCallback(async () => {
+    // Clear cache for this specific request
+    requestCache.delete(cacheKey);
+    activeRequests.delete(cacheKey);
+    return execute();
+  }, [execute, cacheKey]);
 
   return {
     ...state,
     execute,
-    refetch: execute,
+    refetch,
   };
 }
 
@@ -118,9 +196,10 @@ export function useUserProfile() {
   return useApi(
     isAuthenticated ? apiCall : null,
     [accessToken, isAuthenticated],
-    { immediate: isAuthenticated }
+    { immediate: isAuthenticated, showErrorToast: false, cacheTime: 15 * 60 * 1000 }
   );
 }
+
 
 // Hook for potential matches
 export function usePotentialMatches() {
@@ -137,7 +216,7 @@ export function usePotentialMatches() {
   return useApi(
     isAuthenticated ? apiCall : null,
     [accessToken, isAuthenticated],
-    { immediate: isAuthenticated }
+    { immediate: isAuthenticated, showErrorToast: true, cacheTime: 3 * 60 * 1000 }
   );
 }
 
@@ -166,19 +245,27 @@ export function useMatching() {
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
   const { showSuccess, showError } = useToast();
 
+  // Store toast refs to avoid adding them to dependencies
+  const toastRef = useRef({ showSuccess, showError });
+
+  // Update refs when they change, but don't trigger callback recreation
+  useEffect(() => {
+    toastRef.current = { showSuccess, showError };
+  }, [showSuccess, showError]);
+
   const likeUser = useCallback(async (userId: string) => {
     if (!accessToken) {
       throw new Error('Authentication required. Please log in.');
     }
     try {
       const result = await apiClient.Match.likeUser(userId);
-      showSuccess(result.isMatch ? '💕 It\'s a match!' : '👍 Like sent!');
+      toastRef.current.showSuccess(result.isMatch ? '💕 It\'s a match!' : '👍 Like sent!');
       return result;
     } catch (error) {
-      showError('Failed to like user', 'Error');
+      toastRef.current.showError('Failed to like user', 'Error');
       throw error;
     }
-  }, [apiClient, showSuccess, showError, accessToken]);
+  }, [apiClient, accessToken]);
 
   const passUser = useCallback(async (userId: string) => {
     if (!accessToken) {
@@ -188,10 +275,10 @@ export function useMatching() {
       await apiClient.Match.passUser(userId);
       return true;
     } catch (error) {
-      showError('Failed to pass user', 'Error');
+      toastRef.current.showError('Failed to pass user', 'Error');
       throw error;
     }
-  }, [apiClient, showError, accessToken]);
+  }, [apiClient, accessToken]);
 
   return { likeUser, passUser };
 }
@@ -199,41 +286,54 @@ export function useMatching() {
 // Hook for completing onboarding
 export function useOnboarding() {
   const { accessToken } = useRequireAuth();
-  const { update: updateSession } = useSession(); // Rename to avoid conflict
+  const { update: updateSession } = useSession();
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
   const { showSuccess, showError } = useToast();
 
-  const completeOnboarding = useCallback(async (
-    onboardingData: FormData
-  ) => {
+  // Store toast and session refs to avoid dependency issues
+  const toastRef = useRef({ showSuccess, showError });
+  const sessionRef = useRef(updateSession);
+
+  // Update refs when they change
+  useEffect(() => {
+    toastRef.current = { showSuccess, showError };
+  }, [showSuccess, showError]);
+
+  useEffect(() => {
+    sessionRef.current = updateSession;
+  }, [updateSession]);
+
+  const completeOnboarding = useCallback(async (onboardingData: FormData) => {
     if (!accessToken) {
       throw new Error('Authentication required. Please log in.');
     }
     try {
       const result = await apiClient.Auth.completeOnboarding(onboardingData);
-      
-      // Update the session to reflect onboarding completion and new profile picture
-      await updateSession({ 
-        onboardingCompleted: true,
-        picture: result.profilePhotos?.photo1 // Assuming the backend returns the new user data with photo URLs
-      });
+
+      // Update the session to reflect onboarding completion
+      if (sessionRef.current) {
+        await sessionRef.current({
+          onboardingCompleted: true,
+          picture: result.profilePhotos?.photo1,
+        });
+      }
 
       // Add a small delay to allow session to propagate
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      showSuccess('Profile setup complete! Welcome to FaithBliss! 🎉', 'Ready to Find Love');
+      toastRef.current.showSuccess('Profile setup complete! Welcome to FaithBliss! 🎉', 'Ready to Find Love');
       return result;
     } catch (error) {
-      showError('Failed to complete profile setup. Please try again.', 'Setup Error');
+      toastRef.current.showError('Failed to complete profile setup. Please try again.', 'Setup Error');
       throw error;
     }
-  }, [apiClient, showSuccess, showError, updateSession, accessToken]);
+  }, [apiClient, accessToken]);
 
   return { completeOnboarding };
 }
 
+
 // Hook for WebSocket connection
-// Hook for conversations
 export function useConversations() {
   const { accessToken, isAuthenticated } = useRequireAuth();
 
@@ -252,8 +352,6 @@ export function useConversations() {
     { immediate: isAuthenticated }
   );
 }
-
-
 
 // Hook for conversation messages
 export function useConversationMessages(matchId: string, page: number = 1, limit: number = 50) {
@@ -286,53 +384,85 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<NotificationPayload[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // Use ref to track handlers for proper cleanup
+  const handlersRef = useRef<{
+    handleNotification?: (payload: NotificationPayload) => void;
+    handleError?: (err: any) => void;
+  }>({});
+
   useEffect(() => {
-    if (isAuthenticated && notificationWebSocketService) {
-      notificationWebSocketService.subscribeToNotifications();
-
-      const handleNotification = (payload: NotificationPayload) => {
-        setNotifications(prev => [...prev, payload]);
-      };
-
-      const handleError = (err: any) => {
-        setError(err?.message || 'Notification WebSocket error');
-      };
-
-      notificationWebSocketService.onNotification(handleNotification);
-      notificationWebSocketService.onError(handleError);
-
-      return () => {
-        notificationWebSocketService.off('notification', handleNotification);
-        notificationWebSocketService.off('error', handleError);
-      };
+    if (!isAuthenticated || !notificationWebSocketService) {
+      return;
     }
+
+    // Subscribe to notifications
+    notificationWebSocketService.subscribeToNotifications();
+
+    // Define handlers
+    const handleNotification = (payload: NotificationPayload) => {
+      setNotifications(prev => [...prev, payload]);
+    };
+
+    const handleError = (err: any) => {
+      setError(err?.message || 'Notification WebSocket error');
+    };
+
+    // Store handlers in ref for cleanup
+    handlersRef.current = { handleNotification, handleError };
+
+    // Subscribe to events
+    notificationWebSocketService.onNotification(handleNotification);
+    notificationWebSocketService.onError(handleError);
+
+    // Proper cleanup
+    return () => {
+      if (handlersRef.current.handleNotification) {
+        notificationWebSocketService.off('notification', handlersRef.current.handleNotification);
+      }
+      if (handlersRef.current.handleError) {
+        notificationWebSocketService.off('error', handlersRef.current.handleError);
+      }
+      // Don't unsubscribe immediately - let WebSocket manage its own lifecycle
+    };
   }, [isAuthenticated, notificationWebSocketService]);
 
   return {
     data: notifications,
-    loading: !isAuthenticated || !notificationWebSocketService, // Loading while not authenticated or service not ready
+    loading: !isAuthenticated || !notificationWebSocketService,
     error,
   };
 }
 
 // Hook for fetching all users
-export function useAllUsers(filters?: { page?: number; limit?: number; search?: string; }) {
+export function useAllUsers(filters?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+}) {
   const { accessToken, isAuthenticated } = useRequireAuth();
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
 
-  const apiCall: () => Promise<GetUsersResponse> = useCallback(() => {
+  const apiCall = useCallback(() => {
     if (!accessToken) {
       throw new Error('Authentication required. Please log in.');
     }
-    return apiClient.User.getAllUsers(filters);
-  }, [apiClient, accessToken, filters]);
 
-  return useApi<GetUsersResponse>( 
+    const normalizedFilters = {
+      page: filters?.page || 1,
+      limit: Math.min(filters?.limit || 20, 20), // Cap at 20 to reduce memory
+      search: filters?.search || undefined,
+    };
+
+    return apiClient.User.getAllUsers(normalizedFilters);
+  }, [apiClient, accessToken, filters?.page, filters?.limit, filters?.search]);
+
+  return useApi<GetUsersResponse>(
     isAuthenticated ? apiCall : null,
-    [accessToken, isAuthenticated, filters],
-    { immediate: isAuthenticated }
+    [filters?.page, filters?.limit, filters?.search],
+    { immediate: isAuthenticated, showErrorToast: true, cacheTime: 10 * 60 * 1000 }
   );
 }
+
 // Hook for unread message count
 export function useUnreadCount() {
   const { accessToken, isAuthenticated } = useRequireAuth();
@@ -350,4 +480,11 @@ export function useUnreadCount() {
     [accessToken, isAuthenticated],
     { immediate: isAuthenticated }
   );
+}
+
+export function useClearApiCache() {
+  return useCallback(() => {
+    requestCache.clear();
+    activeRequests.clear();
+  }, []);
 }
