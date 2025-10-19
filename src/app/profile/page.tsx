@@ -147,22 +147,26 @@ const ProfilePage = () => {
     if (!profileData) return;
     setIsSaving(true);
     try {
-      const updatedPhotosArray = (profileData.photos || []).filter((_, i) => i !== index);
+      const photoNumberToRemove = index + 1; // photoNumber is 1-indexed
+      const response = await API.User.deletePhoto(photoNumberToRemove);
       
-      // No explicit backend API for removing a photo slot by setting to null/undefined
-      // via UpdateProfileDto.
-      // If a photo needs to be removed from the backend, a dedicated DELETE endpoint
-      // or a mechanism to upload an empty/placeholder image to a slot would be needed.
-      // For now, only updating frontend state.
-      
+      // Update profileData.photos based on the response from the backend
+      // The backend response.photos contains the updated state of all photo URLs
+      const updatedPhotosArray = [
+        response.photos.profilePhoto1,
+        response.photos.profilePhoto2,
+        response.photos.profilePhoto3,
+      ].filter(Boolean) as string[];
+
       setProfileData(prev => prev ? ({
         ...prev,
         photos: updatedPhotosArray,
       }) : null);
       setSaveMessage('Photo removed successfully!');
-      // refetch(); // No backend call, so no need to refetch from backend
+      refetch(); // Refetch user data to ensure backend state is reflected
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (err) {
+      console.error('Error removing photo:', err);
       setSaveMessage('Error removing photo. Please try again.');
       setTimeout(() => setSaveMessage(''), 3000);
     } finally {

@@ -67,6 +67,7 @@ interface User {
   profilePhoto3?: string;
   isVerified?: boolean;
   onboardingCompleted?: boolean;
+  isActive?: boolean; // New
   createdAt?: string; // ISO 8601 datetime
   updatedAt?: string; // ISO 8601 datetime
   preferences?: UserPreferences;
@@ -200,844 +201,74 @@ interface Comment {
 
 
 export interface UpdateProfileDto {
-
-
-
-
-
-
-
   name?: string;
-
-
-
-
-
-
-
   gender?: 'MALE' | 'FEMALE';
-
-
-
-
-
-
-
   age?: number;
-
-
-
-
-
-
-
   denomination?: 'BAPTIST' | 'METHODIST' | 'PRESBYTERIAN' | 'PENTECOSTAL' | 'CATHOLIC' | 'ORTHODOX' | 'ANGLICAN' | 'LUTHERAN' | 'ASSEMBLIES_OF_GOD' | 'SEVENTH_DAY_ADVENTIST' | 'OTHER';
-
-
-
-
-
-
-
   bio?: string;
-
-
-
-
-
-
-
   location?: string;
-
-
-
-
-
-
-
   latitude?: number | null;
-
-
-
-
-
-
-
   longitude?: number | null;
-
-
-
-
-
-
-
   phoneNumber?: string;
-
-
-
-
-
-
-
   countryCode?: string;
-
-
-
-
-
-
-
   birthday?: string; // ISO 8601 date string
-
-
-
-
-
-
-
   fieldOfStudy?: string;
-
-
-
-
-
-
-
   profession?: string;
-
-
-
-
-
-
-
   faithJourney?: 'GROWING' | 'ESTABLISHED' | 'SEEKING';
-
-
-
-
-
-
-
   sundayActivity?: 'WEEKLY' | 'BI_WEEKLY' | 'MONTHLY' | 'RARELY';
-
-
-
-
-
-
-
   lookingFor?: string[];
-
-
-
-
-
-
-
   hobbies?: string[];
-
-
-
-
-
-
-
   values?: string[];
-
-
-
-
-
-
-
   favoriteVerse?: string;
-
-
-
-
-
-
-
   isVerified?: boolean;
-
-
-
-
-
-
-
   onboardingCompleted?: boolean;
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
 
 export interface CompleteOnboardingDto {
-
-
-
-
-
-
-
   education: string;
-
-
-
-
-
-
-
   occupation: string;
-
-
-
-
-
-
-
   location: string;
-
-
-
-
-
-
-
   latitude: number;
-
-
-
-
-
-
-
   longitude: number;
-
-
-
-
-
-
-
   denomination: string;
-
-
-
-
-
-
-
   churchAttendance: string;
-
-
-
-
-
-
-
   baptismStatus: string;
-
-
-
-
-
-
-
   spiritualGifts: string[];
-
-
-
-
-
-
-
   interests: string[];
-
-
-
-
-
-
-
   relationshipGoals: string[];
-
-
-
-
-
-
-
   lifestyle: string;
-
-
-
-
-
-
-
   bio: string;
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export interface GetUsersResponse {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  data: User[];
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  users: User[];
   total: number;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   page: number;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   limit: number;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  totalPages: number;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export interface UploadPhotosResponse {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   message: string;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   profilePhoto1?: string;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   profilePhoto2?: string;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   profilePhoto3?: string;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export interface UploadSinglePhotoResponse {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   message: string;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   photoUrl: string;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export interface DeletePhotoResponse {
+  message: string;
+  photoNumber: number;
+  photos: {
+    profilePhoto1?: string | null;
+    profilePhoto2?: string | null;
+    profilePhoto3?: string | null;
+  }
+}
 
 // Generic API request function
 const apiRequest = async <T = unknown>(
@@ -1325,9 +556,16 @@ export const UserAPI = {
       headers: {}, // Let browser set Content-Type for FormData
     });
   },
+
+  // Delete specific photo by number
+  deletePhoto: async (photoNumber: number): Promise<DeletePhotoResponse> => {
+    return apiRequest(`/users/me/photo/${photoNumber}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
-// 💕 Matching API
+// Matching API
 export const MatchAPI = {
   // Get user's matches
   getMatches: async (): Promise<Match[]> => {

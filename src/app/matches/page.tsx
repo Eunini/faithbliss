@@ -142,7 +142,9 @@ const MatchesPage = () => {
                             height={64}
                             className="w-16 h-16 object-cover rounded-full ring-2 ring-pink-500/30"
                           />
-                          <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-gray-900 bg-gray-500`}></div>
+                          <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-gray-900 ${
+                            match.matchedUser?.isActive ? 'bg-emerald-400' : 'bg-gray-500'
+                          }`}></div>
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">

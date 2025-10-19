@@ -29,14 +29,15 @@ export const DashboardPage = ({ session }: { session: Session }) => {
 
   // Fetch real potential matches from backend
   const { data: profiles, loading: matchesLoading, error: matchesError, refetch } = usePotentialMatches();
-  const { data: allUsersResponse, loading: allUsersLoading, error: allUsersError } = useAllUsers();
+  const { data: allUsersResponse, loading: allUsersLoading, error: allUsersError } = useAllUsers({ limit: 1000 });
+  const allUsers = allUsersResponse?.users;
   const { data: user, loading: userLoading } = useUserProfile();
   const { likeUser, passUser } = useMatching();
 
   const userName = user?.name || session?.user?.name || "User";
   const userImage = user?.profilePhotos?.photo1 || session?.user?.image || undefined;
 
-  const activeProfiles = (profiles && profiles.length > 0) ? profiles : allUsersResponse?.data;
+  const activeProfiles = (profiles && profiles.length > 0) ? profiles : allUsersResponse?.users;
 
   useEffect(() => {
     setCurrentProfileIndex(0);
