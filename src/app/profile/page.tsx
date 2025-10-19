@@ -243,6 +243,7 @@ const ProfilePage = () => {
 
 export default function ProtectedProfile() {
   const auth = useAuth();
+
   if (auth.isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white flex items-center justify-center">
@@ -252,9 +253,26 @@ export default function ProtectedProfile() {
     );
   }
 
-  if (!auth.user) {
-    return null;
+  if (!auth.isAuthenticated) {
+    // The useAuth hook should handle the redirect, but as a fallback:
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white flex items-center justify-center">
+        <p>Redirecting to login...</p>
+      </div>
+    );
   }
+
+  if (!auth.user) {
+    // This can happen briefly while the session is being populated.
+    // Or if there's an issue with the session data.
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+        <p className="ml-4 text-lg">Finalizing session...</p>
+      </div>
+    );
+  }
+
   return (
     <ProtectedRoute>
       <ProfilePage />
