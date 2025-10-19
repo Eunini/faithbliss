@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Profile } from './types';
 import { FloatingActionButtons } from './FloatingActionButtons';
+import { CloudinaryService } from '@/lib/cloudinary';
 
 interface HingeStyleProfileCardProps {
   profile: Profile;
@@ -69,7 +70,7 @@ export const HingeStyleProfileCard = ({
         {/* Photo Section */}
         <div className="relative h-[70vh] bg-gray-700 flex-shrink-0">
           <Image
-            src={photos[currentPhotoIndex]}
+            src={CloudinaryService.getOptimizedUrl(photos[currentPhotoIndex], { width: 800, quality: 'auto:good' })}
             alt={profile.name}
             fill
             className="object-cover"
