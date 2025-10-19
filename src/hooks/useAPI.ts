@@ -82,7 +82,7 @@ export function useApi<T>(
         showError(errorMessage, 'API Error');
       }
 
-      throw error;
+      // throw error; // Removed to prevent infinite re-renders
     }
   }, [apiCall, showError, showSuccess, showErrorToast, showSuccessToast, router]);
 
