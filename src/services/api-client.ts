@@ -54,6 +54,7 @@ const apiClientRequest = async <T = unknown>(
       ...options,
       headers,
       credentials: 'include',
+      mode: 'cors', // Add mode: 'cors'
     });
 
     if (!response.ok) {
