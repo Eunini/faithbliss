@@ -243,15 +243,15 @@ export function useMatches() {
 export function useMatching() {
   const { accessToken } = useRequireAuth();
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
-  const { showSuccess, showError } = useToast();
+  const { showSuccess, showError, showInfo } = useToast();
 
   // Store toast refs to avoid adding them to dependencies
-  const toastRef = useRef({ showSuccess, showError });
+  const toastRef = useRef({ showSuccess, showError, showInfo });
 
   // Update refs when they change, but don't trigger callback recreation
   useEffect(() => {
-    toastRef.current = { showSuccess, showError };
-  }, [showSuccess, showError]);
+    toastRef.current = { showSuccess, showError, showInfo };
+  }, [showSuccess, showError, showInfo]);
 
   const likeUser = useCallback(async (userId: string) => {
     if (!accessToken) {
@@ -261,9 +261,13 @@ export function useMatching() {
       const result = await apiClient.Match.likeUser(userId);
       toastRef.current.showSuccess(result.isMatch ? '💕 It\'s a match!' : '👍 Like sent!');
       return result;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message && error.message.includes('User already liked')) {
+        toastRef.current.showInfo('You\'ve already liked this profile!', 'Already Liked');
+        return; // Do not re-throw, just inform the user
+      }
       toastRef.current.showError('Failed to like user', 'Error');
-      throw error;
+      throw error; // Re-throw other errors
     }
   }, [apiClient, accessToken]);
 

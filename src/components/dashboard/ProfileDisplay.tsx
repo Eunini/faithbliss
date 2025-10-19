@@ -26,11 +26,9 @@ export const ProfileDisplay = ({
 
   return (
     <>
-      <HingeStyleProfileCard profile={currentProfile} />
-      
-      {/* Floating Action Buttons */}
-      <FloatingActionButtons
-        onGoBack={() => onGoBack()}
+      <HingeStyleProfileCard 
+        profile={currentProfile} 
+        onGoBack={onGoBack}
         onLike={onLike}
         onPass={onPass}
         onMessage={onMessage}

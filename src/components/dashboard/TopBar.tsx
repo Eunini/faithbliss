@@ -71,7 +71,7 @@ export const TopBar = ({
                 {title || 'FaithBliss'}
               </h1>
               <p className="text-sm text-gray-400 hidden md:block">
-                {title ? `Edit your profile, ${userName}` : `Discover meaningful connections, ${userName} ✨`}
+                {title ? `Edit your profile, ${userName}` : `${userName} ✨`}
               </p>
             </div>
           </Link>

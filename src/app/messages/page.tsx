@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useConversations, useConversationMessages } from '@/hooks/useAPI';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useSession } from 'next-auth/react';
+import { API } from '@/services/api'; // New import
 
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
@@ -54,10 +55,20 @@ const MessagesContent = () => {
   }, [selectedChat]);
 
   const handleSendMessage = async () => {
-    if (newMessage.trim() && selectedChat) {
+    if (newMessage.trim() && currentConversation) {
       try {
+        let actualMatchId = currentConversation.matchId;
+
+        // If it's a virtual conversation (new chat), create a match first
+        if (profileIdParam && currentConversation.matchId === profileIdParam) {
+          console.log('Creating new match for:', profileIdParam);
+          const createMatchResponse = await API.Match.createMatch(profileIdParam);
+          actualMatchId = createMatchResponse.matchId;
+          setSelectedChat(actualMatchId); // Update selectedChat with the real matchId
+        }
+
         if (webSocketService) {
-          webSocketService.sendMessage(selectedChat, newMessage.trim());
+          webSocketService.sendMessage(actualMatchId, newMessage.trim());
           setNewMessage('');
           scrollToBottom();
         } else {
@@ -114,6 +125,25 @@ const MessagesContent = () => {
   }
 
   const selectedConversation = realConversations.find(conv => conv.matchId === selectedChat);
+
+  // Derive the conversation to display in the chat area
+  const currentConversation = selectedConversation || (profileIdParam ? {
+    matchId: profileIdParam, // Use profileId as a temporary matchId for new chats
+    match: {
+      id: '', // Placeholder
+      userId: '', // Placeholder
+      matchedUserId: profileIdParam,
+      createdAt: '', // Placeholder
+      matchedUser: {
+        id: profileIdParam,
+        name: profileNameParam || 'New Chat',
+        profilePhoto1: '/default-avatar.png', // Placeholder
+      },
+    },
+    lastMessage: undefined,
+    unreadCount: 0,
+  } : undefined);
+
   const filteredConversations = realConversations.filter(conv => {
     const matchedUser = conv.match?.matchedUser;
     return matchedUser?.name?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -256,8 +286,8 @@ const MessagesContent = () => {
                   
                   <div className="relative">
                     <Image
-                      src={selectedConversation?.match?.matchedUser?.profilePhotos?.photo1 || '/default-avatar.png'}
-                      alt={selectedConversation?.match?.matchedUser?.name || 'User'}
+                      src={currentConversation?.match?.matchedUser?.profilePhoto1 || '/default-avatar.png'}
+                      alt={currentConversation?.match?.matchedUser?.name || 'User'}
                       width={40}
                       height={40}
                       className="w-10 h-10 object-cover rounded-full ring-2 ring-pink-500/30"
@@ -266,7 +296,7 @@ const MessagesContent = () => {
                   </div>
                   
                   <div>
-                    <h3 className="font-semibold text-white">{selectedConversation?.match?.matchedUser?.name}</h3>
+                    <h3>{currentConversation?.match?.matchedUser?.name}</h3>
                     <p className="text-xs text-gray-400">
                       Active now
                     </p>
@@ -280,7 +310,7 @@ const MessagesContent = () => {
                   <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
                     <Video className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
                   </button>
-                  <Link href={`/profile/${selectedConversation?.match?.matchedUser?.id}`}>
+                  <Link href={`/profile/${currentConversation?.match?.matchedUser?.id}`}>
                     <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
                       <Info className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
                     </button>

@@ -1,12 +1,23 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Profile } from './types';
+import { FloatingActionButtons } from './FloatingActionButtons';
 
 interface HingeStyleProfileCardProps {
   profile: Profile;
+  onGoBack: () => void;
+  onPass: () => void;
+  onLike: () => void;
+  onMessage: () => void;
 }
 
-export const HingeStyleProfileCard = ({ profile }: HingeStyleProfileCardProps) => {
+export const HingeStyleProfileCard = ({ 
+  profile,
+  onGoBack,
+  onPass,
+  onLike,
+  onMessage
+}: HingeStyleProfileCardProps) => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   
   // Handle different photo sources from backend
@@ -106,6 +117,14 @@ export const HingeStyleProfileCard = ({ profile }: HingeStyleProfileCardProps) =
               {typeof profile.location === 'string' ? profile.location : profile.location?.address || 'Location not specified'}
             </p>
           </div>
+
+          {/* Floating Action Buttons */}
+          <FloatingActionButtons
+            onGoBack={onGoBack}
+            onLike={onLike}
+            onPass={onPass}
+            onMessage={onMessage}
+          />
         </div>
 
         {/* Profile Details */}

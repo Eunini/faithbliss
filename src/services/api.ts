@@ -577,6 +577,14 @@ export const MatchAPI = {
     return apiRequest('/matches/potential');
   },
 
+  // Create a new match
+  createMatch: async (matchedUserId: string): Promise<{ matchId: string }> => {
+    return apiRequest('/matches/create', {
+      method: 'POST',
+      body: JSON.stringify({ matchedUserId }),
+    });
+  },
+
   // Like a user
   likeUser: async (userId: string): Promise<MatchResult> => {
     return apiRequest(`/matches/like/${userId}`, {
