@@ -38,20 +38,21 @@ export function useApi<T>(
     immediate?: boolean;
     showErrorToast?: boolean;
     showSuccessToast?: boolean;
-  } = {}
+  } = { showErrorToast: false } // Set showErrorToast to false by default
 ) {
   const [state, setState] = useState<ApiState<T>>({
     data: null,
     loading: false,
     error: null,
   });
+  const [hasErrorOccurred, setHasErrorOccurred] = useState(false); // New state
 
   const { showError, showSuccess } = useToast();
   const router = useRouter();
   const { immediate = true, showErrorToast = true, showSuccessToast = false } = options;
 
   const execute = useCallback(async () => {
-    if (!apiCall) {
+    if (!apiCall || hasErrorOccurred) { // Add hasErrorOccurred condition
       // If there's no apiCall function (e.g., no token yet), do nothing.
       return;
     }
@@ -61,6 +62,7 @@ export function useApi<T>(
     try {
       const data = await apiCall();
       setState({ data, loading: false, error: null });
+      setHasErrorOccurred(false); // Reset on success
 
       if (showSuccessToast) {
         showSuccess('Operation completed successfully');
@@ -77,6 +79,7 @@ export function useApi<T>(
 
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       setState(prev => ({ ...prev, loading: false, error: errorMessage }));
+      setHasErrorOccurred(true); // Set on error
 
       if (showErrorToast) {
         showError(errorMessage, 'API Error');
@@ -84,14 +87,14 @@ export function useApi<T>(
 
       // throw error; // Removed to prevent infinite re-renders
     }
-  }, [apiCall, showError, showSuccess, showErrorToast, showSuccessToast, router]);
+  }, [apiCall, showError, showSuccess, showErrorToast, showSuccessToast, router, hasErrorOccurred]); // Add hasErrorOccurred to dependencies
 
   useEffect(() => {
-    if (immediate && apiCall && !state.error) { // Add !state.error condition
+    if (immediate && apiCall && !state.error && !hasErrorOccurred) { // Add !hasErrorOccurred condition
       execute();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [immediate, execute, state.error, ...dependencies]); // Add state.error to dependencies
+  }, [immediate, execute, state.error, hasErrorOccurred, ...dependencies]); // Add hasErrorOccurred to dependencies
 
   return {
     ...state,
