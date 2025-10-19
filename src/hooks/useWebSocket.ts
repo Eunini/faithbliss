@@ -26,7 +26,7 @@ export function useWebSocket() {
       setWebSocketService(null);
       initialized.current = false;
     }
-  }, [accessToken, isAuthenticated, webSocketService]);
+  }, [accessToken, isAuthenticated]);
 
   return webSocketService;
 }
