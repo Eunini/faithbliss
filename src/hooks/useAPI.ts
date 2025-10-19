@@ -87,11 +87,11 @@ export function useApi<T>(
   }, [apiCall, showError, showSuccess, showErrorToast, showSuccessToast, router]);
 
   useEffect(() => {
-    if (immediate && apiCall) {
+    if (immediate && apiCall && !state.error) { // Add !state.error condition
       execute();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [immediate, execute, ...dependencies]);
+  }, [immediate, execute, state.error, ...dependencies]); // Add state.error to dependencies
 
   return {
     ...state,
