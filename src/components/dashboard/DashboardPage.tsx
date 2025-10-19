@@ -29,7 +29,7 @@ export const DashboardPage = ({ session }: { session: Session }) => {
 
   // Fetch real potential matches from backend
   const { data: profiles, loading: matchesLoading, error: matchesError, refetch } = usePotentialMatches();
-  const { data: allUsersResponse, loading: allUsersLoading, error: allUsersError } = useAllUsers({ limit: 1000 });
+  const { data: allUsersResponse, loading: allUsersLoading, error: allUsersError } = useAllUsers({ limit: 50 });
   const allUsers = allUsersResponse?.users;
   const { data: user, loading: userLoading } = useUserProfile();
   const { likeUser, passUser } = useMatching();
