@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/contexts/ToastContext';
@@ -29,8 +29,19 @@ export const DashboardPage = ({ session }: { session: Session }) => {
   const [isLoadingFilters, setIsLoadingFilters] = useState(false);
 
   // Fetch real potential matches from backend
-  const { data: profiles, loading: matchesLoading, error: matchesError, refetch } = usePotentialMatches();
-  const { data: allUsersResponse, loading: allUsersLoading, error: allUsersError } = useAllUsers({ limit: 50 });
+  const { 
+    data: profiles, 
+    loading: matchesLoading, 
+    error: matchesError, 
+    refetch 
+  } = usePotentialMatches();
+
+  const { 
+    data: allUsersResponse, 
+    loading: allUsersLoading, 
+    error: allUsersError 
+  } = useAllUsers({ limit: 20 });
+
   const allUsers = allUsersResponse?.users;
   const { data: user, loading: userLoading } = useUserProfile();
   const { likeUser, passUser } = useMatching();
@@ -38,11 +49,24 @@ export const DashboardPage = ({ session }: { session: Session }) => {
   const userName = user?.name || session?.user?.name || "User";
   const userImage = user?.profilePhotos?.photo1 || session?.user?.image || undefined;
 
-  const activeProfiles = (profiles && profiles.length > 0) ? profiles : allUsersResponse?.users;
+  const activeProfiles = useMemo(() => {
+    if (filteredProfiles && filteredProfiles.length > 0) {
+      return filteredProfiles;
+    }
+    return profiles && profiles.length > 0 ? profiles : allUsers;
+  }, [profiles, allUsers, filteredProfiles]);
+
 
   useEffect(() => {
     setCurrentProfileIndex(0);
   }, [filteredProfiles, activeProfiles]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      setFilteredProfiles(null);
+    };
+  }, []);
 
   // Show loading state while fetching matches or refreshing the token.
   if (matchesLoading || userLoading || allUsersLoading) {
