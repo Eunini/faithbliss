@@ -1,54 +1,30 @@
 import { useState } from 'react';
 import Image from 'next/image';
-import { Profile } from './types';
+import { User } from '@/services/api';
+
 import { FloatingActionButtons } from './FloatingActionButtons';
-import { CloudinaryService } from '@/lib/cloudinary';
 
 interface HingeStyleProfileCardProps {
-  profile: Profile;
+  profile: User;
   onGoBack: () => void;
   onPass: () => void;
   onLike: () => void;
   onMessage: () => void;
 }
 
-export const HingeStyleProfileCard = ({ 
-  profile,
-  onGoBack,
-  onPass,
-  onLike,
-  onMessage
-}: HingeStyleProfileCardProps) => {
+export const HingeStyleProfileCard = ({ profile, onGoBack, onPass, onLike, onMessage }: HingeStyleProfileCardProps) => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   
   // Handle different photo sources from backend
   const getPhotos = () => {
     const photos: string[] = [];
-    
-    // Add profile photos from backend (new flat structure)
     if (profile.profilePhoto1) photos.push(profile.profilePhoto1);
     if (profile.profilePhoto2) photos.push(profile.profilePhoto2);
     if (profile.profilePhoto3) photos.push(profile.profilePhoto3);
 
-    // Fallback to nested structure for backward compatibility
     if (photos.length === 0) {
-      if (profile.profilePhotos?.photo1) photos.push(profile.profilePhotos.photo1);
-      if (profile.profilePhotos?.photo2) photos.push(profile.profilePhotos.photo2);
-      if (profile.profilePhotos?.photo3) photos.push(profile.profilePhotos.photo3);
+      photos.push('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400'); // Default placeholder
     }
-    
-    // Fallback to other photo fields
-    if (photos.length === 0) {
-      if (profile.profilePhotoUrl) photos.push(profile.profilePhotoUrl);
-      if (profile.profilePicture) photos.push(profile.profilePicture);
-      if (profile.photos && profile.photos.length > 0) photos.push(...profile.photos);
-    }
-    
-    // Default placeholder if no photos
-    if (photos.length === 0) {
-      photos.push('https://images.unsplash.com/photo-1494790108755-2616b647?w=400'); // Default placeholder
-    }
-    
     return photos;
   };
   
@@ -70,7 +46,7 @@ export const HingeStyleProfileCard = ({
         {/* Photo Section */}
         <div className="relative h-[70vh] bg-gray-700 flex-shrink-0">
           <Image
-            src={CloudinaryService.getOptimizedUrl(photos[currentPhotoIndex], { width: 800, quality: 'auto:good' })}
+            src={photos[currentPhotoIndex]}
             alt={profile.name}
             fill
             className="object-cover"
@@ -115,7 +91,7 @@ export const HingeStyleProfileCard = ({
               {profile.name}{profile.age ? `, ${profile.age}` : ''}
             </h2>
             <p className="text-white/80">
-              {typeof profile.location === 'string' ? profile.location : profile.location?.address || 'Location not specified'}
+              {profile.location || 'Location not specified'}
             </p>
           </div>
 
@@ -142,28 +118,25 @@ export const HingeStyleProfileCard = ({
         <div>
           <h3 className="text-pink-400 font-semibold mb-2">Faith</h3>
           <p className="text-gray-300">{profile.denomination}</p>
-          {profile.church && (
-            <p className="text-gray-400 text-sm mt-1">Attends: {profile.church}</p>
+          {profile.faithJourney && (
+            <p className="text-gray-400 text-sm mt-1">Faith Level: {profile.faithJourney}</p>
           )}
-          {profile.faithLevel && (
-            <p className="text-gray-400 text-sm mt-1">Faith Level: {profile.faithLevel}</p>
-          )}
-          {profile.verse && (
+          {profile.favoriteVerse && (
             <div className="mt-2 p-3 bg-gray-700/50 rounded-lg">
-              <p className="text-gray-300 italic text-sm">&ldquo;{profile.verse}&rdquo;</p>
+              <p className="text-gray-300 italic text-sm">&ldquo;{profile.favoriteVerse}&rdquo;</p>
             </div>
           )}
         </div>
 
         {/* Education & Work */}
-        {(profile.education || profile.jobTitle) && (
+        {(profile.fieldOfStudy || profile.profession) && (
           <div>
             <h3 className="text-pink-400 font-semibold mb-2">Background</h3>
-            {profile.jobTitle && (
-              <p className="text-gray-300">{profile.jobTitle}</p>
+            {profile.profession && (
+              <p className="text-gray-300">{profile.profession}</p>
             )}
-            {profile.education && (
-              <p className="text-gray-400 text-sm mt-1">{profile.education}</p>
+            {profile.fieldOfStudy && (
+              <p className="text-gray-400 text-sm mt-1">{profile.fieldOfStudy}</p>
             )}
           </div>
         )}
@@ -172,33 +145,15 @@ export const HingeStyleProfileCard = ({
         {profile.lookingFor && (
           <div>
             <h3 className="text-pink-400 font-semibold mb-2">Looking For</h3>
-            <p className="text-gray-300">{profile.lookingFor}</p>
-          </div>
-        )}
-
-        {/* Icebreaker */}
-        {profile.icebreaker && (
-          <div>
-            <h3 className="text-pink-400 font-semibold mb-2">Let&apos;s Talk About</h3>
-            <p className="text-gray-300 italic">&ldquo;{profile.icebreaker}&rdquo;</p>
+            <p className="text-gray-300">{profile.lookingFor.join(', ')}</p>
           </div>
         )}
 
         {/* Interests & Hobbies */}
-        {((profile.interests && profile.interests.length > 0) || (profile.hobbies && profile.hobbies.length > 0)) && (
+        {(profile.hobbies && profile.hobbies.length > 0) && (
           <div>
             <h3 className="text-pink-400 font-semibold mb-2">Interests</h3>
             <div className="flex flex-wrap gap-2">
-              {/* Display interests from backend */}
-              {profile.interests?.map((interest, index) => (
-                <span
-                  key={`interest-${index}`}
-                  className="bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full text-sm"
-                >
-                  {interest}
-                </span>
-              ))}
-              {/* Display hobbies as fallback */}
               {profile.hobbies?.map((hobby, index) => (
                 <span
                   key={`hobby-${index}`}
@@ -211,12 +166,6 @@ export const HingeStyleProfileCard = ({
           </div>
         )}
 
-        {/* Distance */}
-        {profile.distance && (
-          <div className="text-center pt-4">
-            <p className="text-gray-400 text-sm">{profile.distance} away</p>
-          </div>
-        )}
         </div>
       </div>
     </div>

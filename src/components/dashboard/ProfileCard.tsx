@@ -6,28 +6,13 @@ import Link from 'next/link';
 import { 
   X, Heart, MoreHorizontal, MapPin, Target, Eye 
 } from 'lucide-react';
-
-interface Profile {
-  id: number;
-  name: string;
-  age: number;
-  location: string;
-  profilePicture: string;
-  lookingFor: string;
-  icebreaker: string;
-  denomination: string;
-  faithLevel: string;
-  distance: string;
-  isOnline: boolean;
-  verse: string;
-  hobbies: string[];
-}
+import { ProfileData } from '@/types/profile';
 
 interface ProfileCardProps {
-  profile: Profile;
-  onLike: (profileId: number) => void;
-  onPass: (profileId: number) => void;
-  onToggleExpand: (profileId: number) => void;
+  profile: ProfileData;
+  onLike: (profileId: string) => void;
+  onPass: (profileId: string) => void;
+  onToggleExpand: (profileId: string) => void;
   expanded?: boolean;
   isStackCard?: boolean;
   onClick?: () => void;
@@ -84,7 +69,7 @@ export const ProfileCard = ({
         {/* Profile Image Container */}
         <div className="relative aspect-[5/6] md:aspect-[4/5] bg-gradient-to-b from-transparent via-transparent to-black/60">
           <Image
-            src={profile.profilePicture}
+            src={profile.photos[0]}
             alt={profile.name}
             fill
             className="w-full h-full object-cover"
@@ -96,12 +81,7 @@ export const ProfileCard = ({
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
           
           {/* Online Status */}
-          {profile.isOnline && (
-            <div className="absolute top-4 left-4 flex items-center space-x-2 bg-emerald-500/90 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg">
-              <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-              <span className="font-semibold">Active</span>
-            </div>
-          )}
+          
 
           {/* Expand Button */}
           <button
@@ -143,7 +123,7 @@ export const ProfileCard = ({
                     <span className="text-gray-400">•</span>
                     <div className="flex items-center text-gray-300">
                       <MapPin className="w-3 h-3 mr-1" />
-                      <span className="text-xs font-medium">{profile.distance}</span>
+                      <span className="text-xs font-medium">{profile.location?.address}</span>
                     </div>
                   </div>
                 </div>
@@ -159,13 +139,13 @@ export const ProfileCard = ({
               {/* Looking For Badge */}
               <div className="inline-flex items-center space-x-1 bg-gradient-to-r from-pink-500/20 to-purple-500/20 backdrop-blur-md text-pink-300 px-3 py-1 rounded-full border border-pink-500/30">
                 <Target className="w-3 h-3" />
-                <span className="text-xs font-semibold">{profile.lookingFor}</span>
+                <span className="text-xs font-semibold">{profile.lookingFor?.[0]}</span>
               </div>
               
               {/* Icebreaker Quote */}
               <div className="bg-white/10 backdrop-blur-md rounded-lg p-2 mt-1.5">
                 <p className="text-white text-xs italic font-medium leading-snug line-clamp-2">
-                  &quot;{profile.icebreaker}&quot;
+                  &quot;{profile.bio}&quot;
                 </p>
               </div>
             </div>

@@ -2,10 +2,10 @@
 import { HingeStyleProfileCard } from './HingeStyleProfileCard';
 import { NoProfilesState } from './NoProfilesState';
 import { FloatingActionButtons } from './FloatingActionButtons';
-import { Profile } from './types';
+import { User } from '@/services/api';
 
 interface ProfileDisplayProps {
-  currentProfile: Profile | null;
+  currentProfile: User | null;
   onStartOver: () => void;
   onGoBack: () => void;
   onLike: () => void;

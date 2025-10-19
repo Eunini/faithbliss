@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
@@ -12,7 +13,7 @@ import { ProfileDisplay } from '@/components/dashboard/ProfileDisplay';
 import { OverlayPanels } from '@/components/dashboard/OverlayPanels';
 import { insertScrollbarStyles } from '@/components/dashboard/styles';
 import { usePotentialMatches, useMatching, useUserProfile, useAllUsers } from '@/hooks/useAPI';
-import { Profile } from '@/components/dashboard/types';
+
 import { Session } from 'next-auth';
 import { API, User } from '@/services/api';
 
@@ -110,7 +111,7 @@ export const DashboardPage = ({ session }: { session: Session }) => {
     );
   }
 
-  const currentProfile = activeProfiles?.[currentProfileIndex] as Profile;
+  const currentProfile = activeProfiles?.[currentProfileIndex] as User;
 
   const goToNextProfile = () => {
     if (!activeProfiles) return;
