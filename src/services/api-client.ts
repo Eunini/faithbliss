@@ -13,6 +13,10 @@ async function refreshSession() {
     console.log('Attempting to refresh session...');
     const newSession = await getSession();
     console.log('New session after refresh attempt:', newSession);
+    if (newSession?.error) { // Check for session error
+      console.error('Session refresh failed: Session error detected.', newSession.error);
+      throw new Error(newSession.error);
+    }
     if (!newSession?.accessToken) {
       console.error('Session refresh failed: No accessToken found in new session.', newSession);
       throw new Error('Failed to refresh token: No access token.');
