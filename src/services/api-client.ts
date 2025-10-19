@@ -3,6 +3,7 @@
 // This file contains a version of the API service designed to be used exclusively on the client-side.
 // It is initialized with an access token obtained from the client's session.
 import { getSession } from 'next-auth/react';
+import { GetUsersResponse } from '@/services/api'; // New import
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
 

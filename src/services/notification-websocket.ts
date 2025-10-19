@@ -82,7 +82,6 @@ class NotificationWebSocketService {
       this.socket.removeAllListeners();
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (callback) this.socket.off(event, callback);
     else this.socket.off(event);
   }

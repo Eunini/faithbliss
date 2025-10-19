@@ -55,16 +55,7 @@ const FaithSection = ({ profileData, setProfileData }: FaithSectionProps) => (
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-300 mb-3">Church Role</label>
-          <input
-            type="text"
-            value={profileData.churchRole}
-            onChange={(e) => setProfileData(prev => prev ? ({...prev, churchRole: e.target.value}) : null)}
-            className="w-full p-4 bg-gray-700/50 border border-gray-600/50 rounded-2xl text-white placeholder-gray-400 focus:border-pink-500 focus:outline-none transition-colors"
-            placeholder="Creative Team Lead"
-          />
-        </div>
+
 
         <div>
           <label className="block text-sm font-semibold text-gray-300 mb-3">Favorite Bible Verse</label>

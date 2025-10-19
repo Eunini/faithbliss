@@ -13,10 +13,10 @@ const PassionsSection = ({ profileData, setProfileData }: PassionsSectionProps) 
   ];
 
   const togglePassion = (passion: string) => {
-    const newPassions = (profileData.passions || []).includes(passion)
-      ? (profileData.passions || []).filter((p: string) => p !== passion)
-      : [...(profileData.passions || []), passion];
-    setProfileData(prev => prev ? ({...prev, passions: newPassions}) : null);
+    const newHobbies = (profileData.hobbies || []).includes(passion)
+      ? (profileData.hobbies || []).filter((p: string) => p !== passion)
+      : [...(profileData.hobbies || []), passion];
+    setProfileData(prev => prev ? ({...prev, hobbies: newHobbies}) : null);
   };
 
   return (
@@ -33,7 +33,7 @@ const PassionsSection = ({ profileData, setProfileData }: PassionsSectionProps) 
               key={passion}
               onClick={() => togglePassion(passion)}
               className={`p-3 rounded-xl font-medium transition-all text-center border-2 ${
-                profileData.passions && profileData.passions.includes(passion)
+                profileData.hobbies && profileData.hobbies.includes(passion)
                   ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white border-pink-400 shadow-lg'
                   : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 border-transparent hover:border-gray-500/50'
               }`}

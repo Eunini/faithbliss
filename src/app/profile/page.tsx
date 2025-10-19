@@ -10,8 +10,6 @@ import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileTabs from '@/components/profile/ProfileTabs';
 import PhotosSection from '@/components/profile/PhotosSection';
 import BasicInfoSection from '@/components/profile/BasicInfoSection';
-import PromptsSection from '@/components/profile/PromptsSection';
-import LifestyleSection from '@/components/profile/LifestyleSection';
 import PassionsSection from '@/components/profile/PassionsSection';
 import FaithSection from '@/components/profile/FaithSection';
 import SaveButton from '@/components/profile/SaveButton';
@@ -27,10 +25,13 @@ const ProfilePage = () => {
   useEffect(() => {
     if (userData) {
       setProfileData({
-        ...userData,
+        id: userData.id,
+        email: userData.email,
         name: userData.name || '',
-        age: userData.age || 0,
         gender: userData.gender || undefined,
+        age: userData.age || 0,
+        denomination: userData.denomination || undefined,
+        bio: userData.bio || '',
         location: {
           address: userData.location || '',
           latitude: userData.latitude || null,
@@ -41,21 +42,16 @@ const ProfilePage = () => {
         birthday: userData.birthday || '',
         fieldOfStudy: userData.fieldOfStudy || '',
         profession: userData.profession || '',
-        denomination: userData.denomination || '',
-        favoriteVerse: userData.favoriteVerse || '',
-        bio: userData.bio || '',
+        faithJourney: userData.faithJourney || undefined,
+        sundayActivity: userData.sundayActivity || undefined,
+        lookingFor: userData.lookingFor || [],
         hobbies: userData.hobbies || [],
         values: userData.values || [],
-        faithJourney: userData.faithJourney || '',
-        sundayActivity: userData.sundayActivity || '',
-        lookingFor: userData.lookingFor || [],
+        favoriteVerse: userData.favoriteVerse || '',
         photos: [userData.profilePhoto1, userData.profilePhoto2, userData.profilePhoto3].filter(Boolean) as string[],
-        // These fields are no longer directly in User, so they are omitted or handled differently
-        // churchRole: '',
-        // prompts: [],
-        // lifestyle: { prayerLife: '', bibleStudy: '', workout: '', diet: '', socialStyle: '', musicPreference: '', },
-        // passions: [],
-        // basics: { height: '', education: '', jobTitle: '', company: '' },
+        isVerified: userData.isVerified || false,
+        onboardingCompleted: userData.onboardingCompleted || false,
+        preferences: userData.preferences || undefined,
       });
     }
   }, [userData]);
@@ -75,7 +71,7 @@ const ProfilePage = () => {
         favoriteVerse: profileData.favoriteVerse,
         faithJourney: profileData.faithJourney as 'GROWING' | 'ESTABLISHED' | 'SEEKING', // Cast to match enum
         lookingFor: profileData.lookingFor,
-        hobbies: profileData.interests, // Mapping interests to hobbies
+        hobbies: profileData.hobbies, // Mapping interests to hobbies
         values: profileData.values,
 
         // Location fields
@@ -84,10 +80,10 @@ const ProfilePage = () => {
         longitude: profileData.location?.longitude,
 
         // Basics mapping
-        fieldOfStudy: profileData.basics?.education,
-        profession: profileData.basics?.jobTitle,
+        fieldOfStudy: profileData.fieldOfStudy,
+        profession: profileData.profession,
 
-        // Fields not directly available in profileData or not meant for update here
+        // Fields not meant for update here
         // gender: profileData.gender,
         // phoneNumber: profileData.phoneNumber,
         // countryCode: profileData.countryCode,
@@ -217,13 +213,9 @@ const ProfilePage = () => {
           <BasicInfoSection profileData={profileData} setProfileData={setProfileData} />
         )}
 
-        {profileData && activeSection === 'prompts' && (
-          <PromptsSection profileData={profileData} setProfileData={setProfileData} />
-        )}
 
-        {profileData && activeSection === 'lifestyle' && (
-          <LifestyleSection profileData={profileData} setProfileData={setProfileData} />
-        )}
+
+
 
         {profileData && activeSection === 'passions' && (
           <PassionsSection profileData={profileData} setProfileData={setProfileData} />
