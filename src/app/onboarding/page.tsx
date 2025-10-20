@@ -189,7 +189,7 @@ const OnboardingPage = () => {
           formData.append('preferred_relationship_goals', JSON.stringify(onboardingData.preferredRelationshipGoals));
         }
         if (onboardingData.preferredDenomination) {
-          formData.append('preferred_denominations', JSON.stringify(onboardingData.preferredDenomination));
+          formData.append('preferred_denominations', onboardingData.preferredDenomination);
         }
         
         // Photos

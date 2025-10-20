@@ -50,24 +50,23 @@ const PartnerPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible 
     value: string
   ) => {
     setOnboardingData(prev => {
-      // For preferredDenomination, handle as JSON string
       if (name === 'preferredDenomination') {
-        const currentList = (prev[name] || []) as string[];
-        const newList = currentList.includes(value)
-          ? currentList.filter((item) => item !== value)
-          : [...currentList, value];
-        return { ...prev, [name]: newList };
+        // Store as a single string (toggle off if same value)
+        return {
+          ...prev,
+          preferredDenomination:
+            prev.preferredDenomination === value ? '' : value,
+        };
       } else {
-        // For other multi-selects, handle as array of strings
+        // Handle multi-selects as arrays
         const currentList = (prev[name] || []) as string[];
         const newList = currentList.includes(value)
-          ? currentList.filter((item: string) => item !== value)
+          ? currentList.filter(item => item !== value)
           : [...currentList, value];
         return { ...prev, [name]: newList };
       }
     });
   };
-
   return (
     <motion.div
       initial={{ opacity: 0, x: 100 }}
@@ -154,7 +153,7 @@ const PartnerPreferencesSlide = ({ onboardingData, setOnboardingData, isVisible 
               type="button"
               onClick={() => handleMultiSelect('preferredDenomination', option)}
               className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-                onboardingData.preferredDenomination?.includes(option)
+                onboardingData.preferredDenomination === option
                   ? 'bg-pink-600 text-white'
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
