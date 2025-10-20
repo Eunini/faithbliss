@@ -199,9 +199,9 @@ export default function Home() {
             </div>
             <div className="flex gap-2">
 
-              <Link href="/signup">
+              <Link href="/login">
                 <button className="text-sm md:text-base bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-all whitespace-nowrap">
-                  Sign up
+                  Sign in
                 </button>
               </Link>
             </div>
