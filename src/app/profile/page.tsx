@@ -75,7 +75,7 @@ const ProfilePage = () => {
         values: profileData.values,
 
         // Location fields
-        location: profileData.location?.address,
+        location: profileData.location?.address || undefined,
         latitude: profileData.location?.latitude,
         longitude: profileData.location?.longitude,
 
