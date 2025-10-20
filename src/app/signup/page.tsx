@@ -10,37 +10,51 @@ import { Eye, EyeOff, Mail, Lock, User, Heart, Sparkles } from 'lucide-react';
 import { PopupInstruction } from '@/components/auth/PopupInstruction';
 import { SuccessModal } from '@/components/SuccessModal';
 import { HeartBeatIcon } from '@/components/HeartBeatIcon';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Signup() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    age: ''
-  });
+    age: '',
+    gender: 'MALE',
+    denomination: 'OTHER',
+    location: '',
+    bio: ''
+});
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPopupInstruction, setShowPopupInstruction] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const { directRegister, isRegistering, isAuthenticated, isLoading  } = useAuth(false);
 
   const router = useRouter();
   const { status } = useSession();
+
+  // Redirect authenticated users away from signup page
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace('/onboarding'); // or '/dashboard' based on your preference
+      return;
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   // Only show success modal if redirected from an actual signup action
   useEffect(() => {
     const fromSignup = typeof window !== 'undefined' ? sessionStorage.getItem('fromSignup') : null;
 
-    if (status === 'authenticated' && fromSignup) {
+    if (isAuthenticated && fromSignup) {
       setShowSuccessModal(true);
       // remove the flag so it doesn't trigger again on page reload
       sessionStorage.removeItem('fromSignup');
     }
 
-    if (status === 'unauthenticated') {
+    if (!isLoading && !isAuthenticated) {
       setLoading(false);
     }
-  }, [status]);
+  }, [isAuthenticated, isLoading]);;
 
   const handleGoogleSignIn = async () => {
     try {
@@ -76,44 +90,26 @@ export default function Signup() {
     if (!formData.password.trim()) return setError('Please enter a password');
     if (formData.password.length < 6) return setError('Password must be at least 6 characters long');
     if (parseInt(formData.age) < 18) return setError('You must be at least 18 years old to join FaithBliss');
-
-    setLoading(true);
+    if (!formData.location.trim()) return setError('Please enter your location');
+    
     setError('');
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-      const response = await fetch(`${backendUrl}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          age: parseInt(formData.age),
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create account. Please check your details.');
-      }
-
-      // Automatically sign in the user after successful registration
-      const result = await signIn('credentials', {
-        redirect: false,
+      await directRegister({
+        name: formData.name,
         email: formData.email,
         password: formData.password,
+        age: parseInt(formData.age),
+        gender: formData.gender as 'MALE' | 'FEMALE',
+        denomination: formData.denomination,
+        location: formData.location, 
+        bio: formData.bio || '',
       });
 
-      if (result?.error) {
-        setError(result.error || 'An unknown error occurred during sign-in after registration.');
-      } else {
-        router.push('/onboarding');
-      }
+      router.push('/onboarding');
+
     } catch (error: any) {
       setError(error.message || 'An unexpected error occurred during signup.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -123,6 +119,12 @@ export default function Signup() {
       [e.target.name]: e.target.value
     });
   };
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center">
+      <HeartBeatIcon />
+    </div>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center px-4 py-8 no-horizontal-scroll dashboard-main">
@@ -247,14 +249,87 @@ export default function Signup() {
               required
             />
           </div>
+          <div>
+            <label htmlFor="gender" className="block text-sm font-medium text-gray-300 mb-2">
+              Gender
+            </label>
+            <select
+              id="gender"
+              name="gender"
+              value={formData.gender}
+              onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+              className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500/50 transition-all"
+              required
+            >
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="denomination" className="block text-sm font-medium text-gray-300 mb-2">
+              Denomination
+            </label>
+            <select
+              id="denomination"
+              name="denomination"
+              value={formData.denomination}
+              onChange={(e) => setFormData({ ...formData, denomination: e.target.value })}
+              className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500/50 transition-all"
+              required
+            >
+              <option value="BAPTIST">Baptist</option>
+              <option value="METHODIST">Methodist</option>
+              <option value="PRESBYTERIAN">Presbyterian</option>
+              <option value="PENTECOSTAL">Pentecostal</option>
+              <option value="CATHOLIC">Catholic</option>
+              <option value="ORTHODOX">Orthodox</option>
+              <option value="ANGLICAN">Anglican</option>
+              <option value="LUTHERAN">Lutheran</option>
+              <option value="ASSEMBLIES_OF_GOD">Assemblies of God</option>
+              <option value="SEVENTH_DAY_ADVENTIST">Seventh Day Adventist</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="location" className="block text-sm font-medium text-gray-300 mb-2">
+              Location
+            </label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              value={formData.location}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500/50 placeholder-gray-400 transition-all"
+              placeholder="e.g., Lagos, Nigeria"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="bio" className="block text-sm font-medium text-gray-300 mb-2">
+              Bio <span className="text-gray-500">(Optional)</span>
+            </label>
+            <textarea
+              id="bio"
+              name="bio"
+              value={formData.bio}
+              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 text-white rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500/50 placeholder-gray-400 transition-all resize-none"
+              placeholder="Tell us a bit about yourself..."
+              rows={3}
+            />
+          </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={isRegistering}
             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <span className="flex items-center justify-center gap-2">
-              {loading ? (
+              {isRegistering ? (
                 <>
                   <HeartBeatIcon size="md" className="text-white" />
                   Creating Account...

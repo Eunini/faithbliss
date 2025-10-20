@@ -1,13 +1,15 @@
-import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
-import { DashboardPage } from '@/components/dashboard/DashboardPage'; // Assuming you move the component
+'use client';
 
-export default async function ProtectedDashboard() {
-  const session = await auth();
+import { DashboardPage } from '@/components/dashboard/DashboardPage';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useAuth } from '@/hooks/useAuth';
 
-  if (!session) {
-    redirect('/login');
-  }
+export default function Dashboard() {
+  const { session } = useAuth(false);
 
-  return <DashboardPage session={session} />;
+  return (
+    <ProtectedRoute requireOnboarding={false}>
+      <DashboardPage session={session!} />
+    </ProtectedRoute>
+  );
 }

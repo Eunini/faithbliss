@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader';
@@ -14,41 +14,63 @@ export default function ProtectedRoute({
   children,
   requireOnboarding = false
 }: ProtectedRouteProps) {
-  const { data: session, status } = useSession();
+  const { isAuthenticated, isLoading, user } = useAuth(true);
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    
+    if (isLoading) return;
+
+    if (!isAuthenticated) {
       router.push('/login');
       return;
     }
 
-    if (status === 'authenticated' && session?.user) {
-      // If user is authenticated but hasn't completed onboarding
-      // and we're not on the onboarding page, redirect to onboarding
-      if (requireOnboarding && !session.user.onboardingCompleted) {
+    if (isAuthenticated && user) {
+      // Force onboarding completion check - treat undefined/null as false
+      const hasCompletedOnboarding = user.onboardingCompleted === true;
+      
+      // If user hasn't completed onboarding and is trying to access a NON-onboarding page
+      if (!hasCompletedOnboarding && !requireOnboarding) {
         router.push('/onboarding');
         return;
       }
 
-      // If user has completed onboarding but is trying to access onboarding page
-      if (!requireOnboarding && session.user.onboardingCompleted) {
+      // If user has completed onboarding but is trying to access the onboarding page
+      if (hasCompletedOnboarding && requireOnboarding) {
         router.push('/dashboard');
         return;
       }
-    }
-  }, [session, status, router, requireOnboarding]);
 
-  // Show loading while session is being validated
-  if (status === 'loading') {
+      // If we reach here, user is authenticated and on the correct route for their status
+    }
+  }, [isAuthenticated, isLoading, user, router, requireOnboarding]);
+
+  // Show loading while checking auth
+  if (isLoading) {
     return <HeartBeatLoader message="Authenticating..." />;
   }
 
-  // If not authenticated, don't render anything (redirect will happen)
-  if (status === 'unauthenticated') {
+  // Show loading while redirecting unauthenticated users
+  if (!isAuthenticated) {
     return <HeartBeatLoader message="Redirecting to login..." />;
   }
 
-  // If authenticated, render the children
+  // Additional check: Don't render content if user exists but onboarding logic should redirect
+  if (user) {
+    const hasCompletedOnboarding = user.onboardingCompleted === true;
+    
+    // Block rendering for incomplete users on non-onboarding pages
+    if (!hasCompletedOnboarding && !requireOnboarding) {
+      return <HeartBeatLoader message="Redirecting to onboarding..." />;
+    }
+    
+    // Block rendering for complete users on onboarding page
+    if (hasCompletedOnboarding && requireOnboarding) {
+      return <HeartBeatLoader message="Redirecting to dashboard..." />;
+    }
+  }
+
+  // If authenticated and passed all checks, render the children
   return <>{children}</>;
 }

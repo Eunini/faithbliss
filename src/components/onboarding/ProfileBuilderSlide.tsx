@@ -7,7 +7,7 @@ import { OnboardingData, FaithJourney, ChurchAttendance } from './types';
 import SelectableCard from './SelectableCard';
 import { CountryCodeSelect, defaultCountry } from '../CountryCodeSelect';
 import { Country } from '../CountryCodeSelect';
-import SelectWithOtherInput from './SelectWithOtherInput'; // Import the new component
+import SelectWithOtherInput from './SelectWithOtherInput';
 
 interface ProfileBuilderSlideProps {
   onboardingData: OnboardingData;
@@ -53,6 +53,12 @@ const hobbiesOptions = ["Reading", "Hiking", "Photography", "Cooking", "Gaming",
 const valuesOptions = ["Love", "Faith", "Hope", "Honesty", "Kindness", "Compassion", "Family", "Friendship"];
 const spiritualGiftsOptions = ["Serving", "Teaching", "Encouragement", "Giving", "Leadership", "Mercy", "Wisdom", "Faith"];
 const interestsOptions = ["Volunteering", "Travel", "Brunch", "Coffee", "Movies", "Concerts", "Art", "Tech"];
+
+const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
+  <h3 className="text-xl font-semibold text-white">
+    {children} <span className="text-red-400">*</span>
+  </h3>
+);
 
 const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: ProfileBuilderSlideProps) => {
   if (!isVisible) return null;
@@ -110,7 +116,7 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
 
       {/* Faith Journey */}
       <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-white">How would you describe your faith journey?</h3>
+        <RequiredLabel>How would you describe your faith journey?</RequiredLabel>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {faithJourneyOptions.map(option => (
             <SelectableCard
@@ -126,7 +132,7 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
 
       {/* Church Attendance */}
       <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-white">How often do you attend church?</h3>
+        <RequiredLabel>How often do you attend church?</RequiredLabel>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {churchAttendanceOptions.map(option => (
             <SelectableCard
@@ -145,46 +151,107 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
         <h3 className="text-xl font-semibold text-white text-center">A little more about you...</h3>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {/* Denomination Dropdown */}
-          <select name="denomination" value={onboardingData.denomination} onChange={handleChange} className="input-style">
-            <option value="" disabled>Select your denomination</option>
-            {denominationOptions.map(option => (
-              <option key={option} value={option}>{option.replace(/_/g, ' ')}</option>
-            ))}
-          </select>
-          
-          <SelectWithOtherInput
-            label="Occupation"
-            name="occupation"
-            options={occupationOptions}
-            selectedValue={onboardingData.occupation}
-            onChange={handleSelectWithOtherChange}
-            placeholder="Select your Occupation"
-          />
-          <input type="date" name="birthday" value={onboardingData.birthday} onChange={handleChange} placeholder="Birthday" className="input-style" />
-          <input type="text" name="location" value={onboardingData.location} onChange={handleChange} placeholder="Your Location (e.g., City, State)" className="input-style" />
-          <SelectWithOtherInput
-            label="Field of Study"
-            name="education"
-            options={fieldOfStudyOptions}
-            selectedValue={onboardingData.education}
-            onChange={handleSelectWithOtherChange}
-            placeholder="Select your Field of Study"
-          />
-          <input type="text" name="favoriteVerse" value={onboardingData.favoriteVerse} onChange={handleChange} placeholder="Favorite Bible Verse" className="input-style" />
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Denomination <span className="text-red-400">*</span>
+            </label>
+            <select name="denomination" value={onboardingData.denomination} onChange={handleChange} className="input-style">
+              <option value="" disabled>Select your denomination</option>
+              {denominationOptions.map(option => (
+                <option key={option} value={option}>{option.replace(/_/g, ' ')}</option>
+              ))}
+            </select>
+          </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Baptism Status <span className="text-red-400">*</span>
+            </label>
+            <select 
+              name="baptismStatus" 
+              value={onboardingData.baptismStatus} 
+              onChange={handleChange} 
+              className="input-style"
+            >
+              <option value="" disabled>Baptism Status</option>
+              <option value="BAPTIZED">Baptized</option>
+              <option value="NOT_BAPTIZED">Not Baptized</option>
+              <option value="PLANNING_TO">Planning To</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Occupation <span className="text-red-400">*</span>
+            </label>
+            <SelectWithOtherInput
+              label=""
+              name="occupation"
+              options={occupationOptions}
+              selectedValue={onboardingData.occupation}
+              onChange={handleSelectWithOtherChange}
+              placeholder="Select your Occupation"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Birthday <span className="text-red-400">*</span>
+            </label>
+            <input type="date" name="birthday" value={onboardingData.birthday} onChange={handleChange} className="input-style" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Location <span className="text-red-400">*</span>
+            </label>
+            <input type="text" name="location" value={onboardingData.location} onChange={handleChange} placeholder="Your Location (e.g., City, State)" className="input-style" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Field of Study <span className="text-red-400">*</span>
+            </label>
+            <SelectWithOtherInput
+              label=""
+              name="education"
+              options={fieldOfStudyOptions}
+              selectedValue={onboardingData.education}
+              onChange={handleSelectWithOtherChange}
+              placeholder="Select your Field of Study"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Favorite Bible Verse <span className="text-red-400">*</span>
+            </label>
+            <input type="text" name="favoriteVerse" value={onboardingData.favoriteVerse} onChange={handleChange} placeholder="Favorite Bible Verse" className="input-style" />
+          </div>
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Phone Number <span className="text-red-400">*</span>
+          </label>
           <CountryCodeSelect
             selectedCountry={selectedCountry}
             onCountryChange={handleCountryChange}
             phoneNumber={onboardingData.phoneNumber}
             onPhoneChange={handlePhoneChange}
           />
+        </div>
 
-        <textarea name="bio" value={onboardingData.bio} onChange={handleChange} placeholder="Write a short bio..." rows={4} className="input-style w-full"></textarea>
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Bio <span className="text-red-400">*</span>
+          </label>
+          <textarea name="bio" value={onboardingData.bio} onChange={handleChange} placeholder="Write a short bio..." rows={4} className="input-style w-full"></textarea>
+        </div>
         
         {/* Personality */}
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-white">Describe your personality</h3>
+          <RequiredLabel>Describe your personality</RequiredLabel>
           <div className="flex flex-wrap gap-2">
             {personalityOptions.map(option => (
               <button
@@ -205,7 +272,7 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
 
         {/* Hobbies */}
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-white">What are your hobbies?</h3>
+          <RequiredLabel>What are your hobbies?</RequiredLabel>
           <div className="flex flex-wrap gap-2">
             {hobbiesOptions.map(option => (
               <button
@@ -224,10 +291,9 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
           </div>
         </div>
 
-
         {/* Values */}
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-white">What are your values?</h3>
+          <RequiredLabel>What are your values?</RequiredLabel>
           <div className="flex flex-wrap gap-2">
             {valuesOptions.map(option => (
               <button
@@ -248,7 +314,7 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
 
         {/* Spiritual Gifts */}
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-white">What are your spiritual gifts?</h3>
+          <RequiredLabel>What are your spiritual gifts?</RequiredLabel>
           <div className="flex flex-wrap gap-2">
             {spiritualGiftsOptions.map(option => (
               <button
@@ -292,8 +358,7 @@ const ProfileBuilderSlide = ({ onboardingData, setOnboardingData, isVisible }: P
   );
 };
 
-// Add a new style block to globals.css or a styled component for this
-// For now, I'll define the class in the component file for simplicity, but this should be moved.
+// Add styles
 const styles = `
   .input-style {
     background-color: #374151;
@@ -303,6 +368,7 @@ const styles = `
     padding: 0.75rem 1rem;
     font-size: 1rem;
     transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
   }
   .input-style:focus {
     outline: none;
@@ -312,7 +378,6 @@ const styles = `
   .input-style::placeholder {
     color: #9CA3AF;
   }
-  /* Style for date input placeholder */
   input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
   }
@@ -321,13 +386,11 @@ const styles = `
   }
 `;
 
-// Inject styles into the head
 if (typeof window !== 'undefined') {
   const styleSheet = document.createElement("style");
   styleSheet.type = "text/css";
   styleSheet.innerText = styles;
   document.head.appendChild(styleSheet);
 }
-
 
 export default ProfileBuilderSlide;

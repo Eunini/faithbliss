@@ -289,7 +289,7 @@ export function useMatching() {
 
 // Hook for completing onboarding
 export function useOnboarding() {
-  const { accessToken } = useRequireAuth();
+  const { accessToken, refetchUser } = useRequireAuth();
   const { update: updateSession } = useSession();
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
   const { showSuccess, showError } = useToast();
@@ -314,7 +314,12 @@ export function useOnboarding() {
     try {
       const result = await apiClient.Auth.completeOnboarding(onboardingData);
 
-      // Update the session to reflect onboarding completion
+      // Refresh user data after successful onboarding
+      if (refetchUser) {
+        await refetchUser();
+      }
+
+      // Update NextAuth session if user is using Google OAuth
       if (sessionRef.current) {
         await sessionRef.current({
           onboardingCompleted: true,
@@ -322,16 +327,27 @@ export function useOnboarding() {
         });
       }
 
-      // Add a small delay to allow session to propagate
+      // Add a small delay to allow user state to propagate
       await new Promise(resolve => setTimeout(resolve, 500));
 
       toastRef.current.showSuccess('Profile setup complete! Welcome to FaithBliss! 🎉', 'Ready to Find Love');
       return result;
-    } catch (error) {
-      toastRef.current.showError('Failed to complete profile setup. Please try again.', 'Setup Error');
+    } catch (error: any) {
+      console.error('Onboarding error:', error);
+      
+      // Handle authentication errors
+      if (error?.message?.includes('Session refresh failed') || 
+          error?.message?.includes('Unauthorized') ||
+          error?.message?.includes('token')) {
+        toastRef.current.showError('Your session has expired. Please login again.', 'Authentication Error');
+        // Clear auth state and redirect will be handled by api-client
+      } else {
+        toastRef.current.showError('Failed to complete profile setup. Please try again.', 'Setup Error');
+      }
+      
       throw error;
     }
-  }, [apiClient, accessToken]);
+  }, [apiClient, accessToken, refetchUser]);
 
   return { completeOnboarding };
 }

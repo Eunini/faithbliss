@@ -8,11 +8,12 @@ import { useToast } from '@/contexts/ToastContext';
 import { FcGoogle } from 'react-icons/fc';
 import { Heart, LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader'; // Assuming you have this
+import { useAuth } from '@/hooks/useAuth';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
+  const { directLogin, isLoggingIn, isLoading, isAuthenticated } = useAuth(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -27,10 +28,11 @@ function LoginForm() {
 
   // If already authenticated, redirect away from login page
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (!isLoading && isAuthenticated) {
       router.replace(callbackUrl);
     }
-  }, [status, router, callbackUrl]);
+  }, [isAuthenticated, isLoading, router, callbackUrl]);
+
 
   // Display errors passed from NextAuth in the URL
   useEffect(() => {
@@ -69,27 +71,19 @@ function LoginForm() {
       return;
     }
 
-    setLoading(true);
     setError('');
 
-    const result = await signIn('credentials', {
-      redirect: false, // Handle redirect manually to show errors on this page
-      email,
-      password,
-    });
-
-    if (result?.error) {
-      setError(result.error);
-      showError(result.error, 'Sign In Failed');
-    } else if (result?.url) {
+    try {
+      await directLogin({ email, password });
       router.replace(callbackUrl);
+    } catch (error: any) {
+      setError(error.message || 'An error occurred during sign-in');
     }
-
-    setLoading(false);
   };
 
+
   // UI loading state while NextAuth determines session
-  if (status === 'loading') {
+  if (isLoading) {
     return <HeartBeatLoader />;
   }
 
@@ -177,11 +171,11 @@ function LoginForm() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={isLoggingIn}
             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <span className="flex items-center justify-center gap-2">
-              {loading ? 'Signing In...' : <><LogIn className="w-5 h-5" /> Sign In</>}
+              {isLoggingIn ? 'Signing In...' : <><LogIn className="w-5 h-5" /> Sign In</>}
             </span>
           </button>
         </form>

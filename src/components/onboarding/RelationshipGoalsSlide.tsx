@@ -41,16 +41,21 @@ const RelationshipGoalsSlide = ({ onboardingData, setOnboardingData, isVisible }
         <p className="text-gray-400">It&apos;s great to be on the same page.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {goalsOptions.map(option => (
-          <SelectableCard
-            key={option.value}
-            label={option.label}
-            emoji={option.emoji}
-            isSelected={(onboardingData.relationshipGoals || []).includes(option.value)}
-            onClick={() => handleSelect(option.value)}
-          />
-        ))}
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-white">
+          What are you looking for? <span className="text-red-400">*</span>
+        </h3>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {goalsOptions.map(option => (
+            <SelectableCard
+              key={option.value}
+              label={option.label}
+              emoji={option.emoji}
+              isSelected={(onboardingData.relationshipGoals || []).includes(option.value)}
+              onClick={() => handleSelect(option.value)}
+            />
+          ))}
+        </div>
       </div>
     </motion.div>
   );

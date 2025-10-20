@@ -8,7 +8,7 @@ import {
   X, User, Heart, MessageCircle, Users, Star, Settings, 
   HelpCircle, LogOut, Home, UserX, AlertTriangle
 } from 'lucide-react';
-import { signOut } from 'next-auth/react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface SidePanelProps {
   userName: string;
@@ -20,9 +20,11 @@ interface SidePanelProps {
 export const SidePanel = ({ userName, userImage, user, onClose }: SidePanelProps) => {
   console.log('SidePanel user:', user);
   console.log('SidePanel userImage:', userImage);
+  
+  const { logout, isLoggingOut } = useAuth();
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/login' });
+    await logout();
   };
   
   const displayImage = user?.profilePhotos?.photo1 || userImage || '/default-avatar.png';
@@ -189,14 +191,23 @@ export const SidePanel = ({ userName, userImage, user, onClose }: SidePanelProps
       <div className="flex-shrink-0 p-6 border-t border-gray-700/50">
         <button 
           onClick={handleLogout}
-          className="w-full flex items-center space-x-4 p-4 hover:bg-red-500/10 rounded-2xl transition-colors cursor-pointer group"
+          disabled={isLoggingOut}
+          className={`w-full flex items-center space-x-4 p-4 rounded-2xl transition-colors group ${
+            isLoggingOut 
+              ? 'bg-red-500/5 cursor-not-allowed opacity-50' 
+              : 'hover:bg-red-500/10 cursor-pointer'
+          }`}
         >
           <div className="p-2 bg-red-500/20 rounded-xl group-hover:bg-red-500/30 transition-colors">
-            <LogOut className="w-5 h-5 text-red-400" />
+            <LogOut className={`w-5 h-5 text-red-400 ${isLoggingOut ? 'animate-spin' : ''}`} />
           </div>
           <div className="text-left">
-            <h4 className="text-red-400 font-semibold">Sign Out</h4>
-            <p className="text-gray-500 text-sm">See you later!</p>
+            <h4 className="text-red-400 font-semibold">
+              {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
+            </h4>
+            <p className="text-gray-500 text-sm">
+              {isLoggingOut ? 'Please wait...' : 'See you later!'}
+            </p>
           </div>
         </button>
       </div>

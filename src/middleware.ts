@@ -9,26 +9,23 @@ export default auth((req) => {
   const isLoggedIn = !!session;
 
   // Define public routes that do not require authentication
-  const publicRoutes = ["/", "/login", "/signup", "/onboarding"];
+  const publicRoutes = ["/", "/login", "/signup"];
+
+  // Define routes that use client-side protection (ProtectedRoute component)
+  // These are allowed through middleware but protected by client-side components
+  const clientProtectedRoutes = ["/onboarding", "/dashboard", "/matches", "/messages", "/profile", "/community", "/discover", "/notifications"];
 
   // Define routes that are part of the authentication flow
   const authRoutes = ["/login", "/signup"];
 
-  // Check if the current route is public
-  const isPublicRoute = publicRoutes.includes(pathname);
+  // Check if the current route is public or client-protected
+  const isPublicRoute = publicRoutes.includes(pathname) || clientProtectedRoutes.includes(pathname);
 
-  // If the user is logged in
+  // If the user is logged in (NextAuth only) - but let ProtectedRoute handle most logic
   if (isLoggedIn) {
-    const onboardingCompleted = session.user?.onboardingCompleted ?? false;
-
-    // If the user has not completed onboarding, redirect them to the onboarding page,
-    // unless they are already on it.
-    if (!onboardingCompleted && pathname !== "/onboarding") {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
-    }
-
     // If the user has completed onboarding and tries to access an auth route (e.g., /login),
     // redirect them to the dashboard.
+    const onboardingCompleted = session.user?.onboardingCompleted ?? false;
     if (onboardingCompleted && authRoutes.includes(pathname)) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }

@@ -7,50 +7,66 @@ import { GetUsersResponse } from '@/services/api'; // New import
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
 
-// A function to refresh the session by making a request to the NextAuth backend
-async function refreshSession() {
+const refreshSession = async (): Promise<string> => {
   try {
-    console.log('Attempting to refresh session...');
-    const newSession = await getSession();
-    console.log('New session after refresh attempt:', newSession);
-    if (newSession?.error) { // Check for session error
-      console.error('Session refresh failed: Session error detected.', newSession.error);
-      throw new Error(newSession.error);
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include', // This sends the httpOnly refresh token cookie
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Session refresh failed');
     }
-    if (!newSession?.accessToken) {
-      console.error('Session refresh failed: No accessToken found in new session.', newSession);
-      throw new Error('Failed to refresh token: No access token.');
-    }
-    console.log('Session successfully refreshed.');
-    return newSession.accessToken;
+
+    const data = await response.json();
+    localStorage.setItem('accessToken', data.accessToken);
+    return data.accessToken;
   } catch (error) {
-    console.error('Session refresh failed during getSession():', error);
+    // Clear ALL auth state on refresh failure
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
+    
+    // Force redirect to login
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
     throw new Error('Session refresh failed');
   }
-}
+};
 
 // Generic API request function for the client
-const apiClientRequest = async <T = unknown>(
+const apiClientRequest = async <T>(
   endpoint: string,
   options: RequestInit = {},
-  accessToken: string | null,
-  isRetry = false
+  token?: string | null
 ): Promise<T> => {
   const url = `${API_BASE_URL}${endpoint}`;
+  const headers: Record<string, string> = {};
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  };
-
-  // Add auth token if provided
-  if (accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
+  // Copy existing headers
+  if (options.headers) {
+    if (options.headers instanceof Headers) {
+      options.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+    } else if (Array.isArray(options.headers)) {
+      options.headers.forEach(([key, value]) => {
+        headers[key] = value;
+      });
+    } else {
+      Object.assign(headers, options.headers);
+    }
   }
 
-  // If body is FormData, let the browser set the Content-Type
-  if (options.body instanceof FormData) {
-    delete headers['Content-Type'];
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   try {
@@ -58,40 +74,50 @@ const apiClientRequest = async <T = unknown>(
       ...options,
       headers,
       credentials: 'include',
-      mode: 'cors', // Add mode: 'cors'
     });
 
-    if (!response.ok) {
-      // Handle token expiration
-      if (response.status === 401 && !isRetry) {
-        console.log('Access token expired. Attempting to refresh...');
-        const newAccessToken = await refreshSession();
-        // If refreshSession throws, it will be caught by the outer catch block
-        if (newAccessToken) {
-          // Retry the request with the new token
-          return apiClientRequest(endpoint, options, newAccessToken, true);
-        } else {
-          // This case should ideally not be reached if refreshSession throws on failure
-          // If it does, it means refreshSession returned null without throwing, which is unexpected now.
-          throw new Error('Failed to obtain new access token after refresh attempt.');
+    if (response.status === 401 && token) {
+      console.log('Token expired, attempting refresh...');
+      try {
+        const newToken = await refreshSession();
+        headers['Authorization'] = `Bearer ${newToken}`;
+        
+        const retryResponse = await fetch(url, {
+          ...options,
+          headers,
+          credentials: 'include',
+        });
+
+        if (!retryResponse.ok) {
+          const errorData = await retryResponse.json();
+          throw new Error(errorData.message || `HTTP error! status: ${retryResponse.status}`);
         }
+
+        return await retryResponse.json();
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+        
+        // Clear ALL auth state completely
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        
+        // Force redirect to login
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+        throw refreshError;
       }
-
-      const errorData = await response.json().catch(() => null);
-      const errorMessage = errorData?.message || `HTTP ${response.status}: ${response.statusText}`;
-      const apiError = new Error(errorMessage) as Error & { statusCode: number };
-      apiError.statusCode = response.status;
-      throw apiError;
     }
 
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      return (await response.json()) as T;
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('API Error:', errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
-    return response as T;
+    return await response.json();
   } catch (error) {
-    console.error(`API Client Error [${endpoint}]:`, error);
+    console.error(`API request failed: ${endpoint}`, error);
     throw error;
   }
 };

@@ -72,7 +72,7 @@ const OnboardingPage = () => {
 
     // --- Validation ---
     if (currentStep === 0 && onboardingData.photos.length < 2) {
-      setValidationError('Please upload at least 2 photos to continue.');
+      setValidationError('Please upload at  least 2 photos to continue.');
       return;
     }
     if (currentStep === 1 && (
@@ -85,18 +85,16 @@ const OnboardingPage = () => {
       onboardingData.personality.length === 0 ||
       onboardingData.hobbies.length === 0 ||
       onboardingData.values.length === 0 ||
-      !onboardingData.favoriteVerse ||
+      !onboardingData.favoriteVerse.trim() ||
       !onboardingData.phoneNumber ||
       !onboardingData.countryCode ||
       !onboardingData.education ||
-      !onboardingData.baptismStatus ||
-      onboardingData.spiritualGifts.length === 0 ||
-      onboardingData.interests.length === 0 ||
-      !onboardingData.lifestyle
+      !onboardingData.baptismStatus
     )) {
       setValidationError('Please fill out all required profile information.');
       return;
     }
+
     if (currentStep === 2 && (!onboardingData.relationshipGoals || onboardingData.relationshipGoals.length === 0)) {
       setValidationError('Please select your relationship goal.');
       return;
@@ -131,30 +129,70 @@ const OnboardingPage = () => {
       try {
         setSubmitting(true);
         const formData = new FormData();
-        const dataForBackend: CompleteOnboardingDto = {
-          education: onboardingData.education,
-          occupation: onboardingData.occupation,
-          location: onboardingData.location,
-          latitude: onboardingData.latitude || 0,
-          longitude: onboardingData.longitude || 0,
-          denomination: onboardingData.denomination,
-          churchAttendance: onboardingData.churchAttendance,
-          baptismStatus: onboardingData.baptismStatus,
-          spiritualGifts: onboardingData.spiritualGifts,
-          interests: onboardingData.interests,
-          relationshipGoals: onboardingData.relationshipGoals,
-          lifestyle: onboardingData.lifestyle,
-          bio: onboardingData.bio,
+        
+        // Basic Information (using backend expected field names)
+        formData.append('phone_number', onboardingData.phoneNumber);
+        formData.append('country_code', onboardingData.countryCode);
+        formData.append('birthday', onboardingData.birthday);
+        
+        // Educational Background
+        formData.append('education', onboardingData.education);
+        formData.append('occupation', onboardingData.occupation);
+        
+        // Location
+        formData.append('location', onboardingData.location);
+        if (onboardingData.latitude) formData.append('latitude', onboardingData.latitude.toString());
+        if (onboardingData.longitude) formData.append('longitude', onboardingData.longitude.toString());
+        
+        // Faith Journey
+        const denominationToSend = onboardingData.denomination === 'OTHER' && onboardingData.customDenomination 
+          ? onboardingData.customDenomination 
+          : onboardingData.denomination;
+        formData.append('denomination', denominationToSend);
+        formData.append('church_attendance', onboardingData.churchAttendance);
+        formData.append('baptism_status', onboardingData.baptismStatus);
+        formData.append('faith_journey', onboardingData.faithJourney);
+        formData.append('spiritual_gifts', JSON.stringify(onboardingData.spiritualGifts));
+        
+        // Personal Preferences
+        formData.append('interests', JSON.stringify(onboardingData.interests));
+        formData.append('relationship_goals', JSON.stringify(onboardingData.relationshipGoals));
+        formData.append('bio', onboardingData.bio);
+        formData.append('favorite_verse', onboardingData.favoriteVerse);
+        
+        // Add hobbies, values, and personality (backend merges these with other fields)
+        formData.append('hobbies', JSON.stringify(onboardingData.hobbies));
+        formData.append('values', JSON.stringify(onboardingData.values));
+        formData.append('personality', JSON.stringify(onboardingData.personality));
+        
+        // Matching Preferences
+        const genderMapping = {
+          'MALE': 'MALE',
+          'FEMALE': 'FEMALE', 
+          'MAN': 'MALE',
+          'WOMAN': 'FEMALE'
         };
-
-        // Handle custom denomination if 'OTHER' is selected
-        if (onboardingData.denomination === 'OTHER' && onboardingData.customDenomination) {
-          dataForBackend.denomination = onboardingData.customDenomination;
+        const preferredGender = genderMapping[onboardingData.preferredGender as keyof typeof genderMapping] || onboardingData.preferredGender;
+        formData.append('preferred_gender', preferredGender!);
+        formData.append('min_age', onboardingData.minAge!.toString());
+        formData.append('max_age', onboardingData.maxAge!.toString());
+        formData.append('max_distance', onboardingData.maxDistance!.toString());
+        
+        // Partner Preferences (arrays)
+        if (onboardingData.preferredFaithJourney) {
+          formData.append('preferred_faith_journey', JSON.stringify(onboardingData.preferredFaithJourney));
+        }
+        if (onboardingData.preferredChurchAttendance) {
+          formData.append('preferred_church_attendance', JSON.stringify(onboardingData.preferredChurchAttendance));
+        }
+        if (onboardingData.preferredRelationshipGoals) {
+          formData.append('preferred_relationship_goals', JSON.stringify(onboardingData.preferredRelationshipGoals));
+        }
+        if (onboardingData.preferredDenomination) {
+          formData.append('preferred_denominations', JSON.stringify(onboardingData.preferredDenomination));
         }
         
-        formData.append('data', JSON.stringify(dataForBackend));
-
-        // 2. Append photos
+        // Photos
         onboardingData.photos.forEach((photo) => {
           formData.append('photos', photo);
         });

@@ -14,12 +14,14 @@ import { usePotentialMatches, useMatching, useUserProfile, useAllUsers } from '@
 
 import { Session } from 'next-auth';
 import { API, User } from '@/services/api';
+import { useAuth } from '@/hooks/useAuth';
 
 // Insert scrollbar styles
 insertScrollbarStyles();
 
 export const DashboardPage = ({ session }: { session: Session }) => {
   const router = useRouter();
+  const { user: authUser } = useAuth(false);
   const { showSuccess, showInfo } = useToast();
   const [showFilters, setShowFilters] = useState(false);
   const [showSidePanel, setShowSidePanel] = useState(false);
@@ -45,7 +47,7 @@ export const DashboardPage = ({ session }: { session: Session }) => {
   const { data: user, loading: userLoading } = useUserProfile();
   const { likeUser, passUser } = useMatching();
 
-  const userName = user?.name || session?.user?.name || "User";
+  const userName = user?.name || authUser?.name || session?.user?.name || "User";
   const userImage = user?.profilePhotos?.photo1 || session?.user?.image || undefined;
 
   const activeProfiles = useMemo(() => {
