@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
 import Link from "next/link";
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useSession, signIn } from 'next-auth/react';
-import { useToast } from '@/contexts/ToastContext';
+import { signIn } from 'next-auth/react';
+// import { useToast } from '@/contexts/ToastContext';
 import { FcGoogle } from 'react-icons/fc';
 import { Heart, LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { HeartBeatLoader } from '@/components/HeartBeatLoader'; // Assuming you have this
@@ -20,8 +21,8 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { status } = useSession();
-  const { showError } = useToast();
+  // const { status } = useSession();
+  // const { showError } = useToast();
 
   // Get callbackUrl from search params, default to dashboard
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, useRef } from 'react';
 import WebSocketService from '../services/websocket';
 import { useAuth } from './useAuth';

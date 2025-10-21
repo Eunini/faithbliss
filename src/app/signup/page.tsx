@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
 import { Eye, EyeOff, Mail, Lock, User, Heart, Sparkles } from 'lucide-react';
 import { PopupInstruction } from '@/components/auth/PopupInstruction';
@@ -31,7 +31,7 @@ export default function Signup() {
   const { directRegister, isRegistering, isAuthenticated, isLoading  } = useAuth(false);
 
   const router = useRouter();
-  const { status } = useSession();
+  // const { status } = useSession();
 
   // Redirect authenticated users away from signup page
   useEffect(() => {

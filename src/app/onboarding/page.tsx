@@ -11,7 +11,7 @@ import {
   OnboardingSuccessModal,
   OnboardingData,
 } from '@/components/onboarding';
-import { CompleteOnboardingDto } from '@/services/api';
+// import { CompleteOnboardingDto } from '@/services/api';
 import ImageUploadSlide from '@/components/onboarding/ImageUploadSlide';
 import ProfileBuilderSlide from '@/components/onboarding/ProfileBuilderSlide';
 import MatchingPreferencesSlide from '@/components/onboarding/MatchingPreferencesSlide';
