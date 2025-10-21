@@ -193,11 +193,20 @@ export function useUserProfile() {
     return apiClient.User.getMe();
   }, [apiClient, accessToken]);
 
-  return useApi(
+  const api = useApi(
     isAuthenticated ? apiCall : null,
     [accessToken, isAuthenticated],
     { immediate: isAuthenticated, showErrorToast: false, cacheTime: 15 * 60 * 1000 }
   );
+
+  // Re-trigger once authentication becomes ready
+  useEffect(() => {
+    if (isAuthenticated && accessToken) {
+      api.refetch();
+    }
+  }, [isAuthenticated, accessToken]);
+
+  return api;
 }
 
 

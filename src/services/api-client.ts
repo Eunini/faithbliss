@@ -3,7 +3,7 @@
 // src/services/api-client.ts
 // This file contains a version of the API service designed to be used exclusively on the client-side.
 // It is initialized with an access token obtained from the client's session.
-import { GetUsersResponse } from '@/services/api'; // New import
+import { GetUsersResponse, UpdateProfileDto, User } from '@/services/api'; // New import
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
 
@@ -173,3 +173,39 @@ export const getApiClient = (accessToken: string | null) => ({
       apiClientRequest<any[]>('/matches/conversations', { method: 'GET' }, accessToken),
   },
 });
+
+export async function updateProfileClient(userData: UpdateProfileDto, accessToken: string): Promise<User> {
+  const url = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev'}/users/me`;
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(userData),
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.message || `HTTP ${response.status}: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function uploadSpecificPhotoClient(photoNumber: number, photo: FormData, accessToken: string) {
+  const url = `${API_BASE_URL}/users/me/photo/${photoNumber}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      // Do NOT set Content-Type for FormData; browser will set it
+    },
+    body: photo,
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.message || `HTTP ${response.status}: ${response.statusText}`);
+  }
+  return response.json();
+}

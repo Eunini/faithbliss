@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useUserProfile } from '@/hooks/useAPI';
 import { API } from '@/services/api';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, useRequireAuth } from '@/hooks/useAuth';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileTabs from '@/components/profile/ProfileTabs';
 import PhotosSection from '@/components/profile/PhotosSection';
@@ -15,9 +15,10 @@ import FaithSection from '@/components/profile/FaithSection';
 import SaveButton from '@/components/profile/SaveButton';
 import { ProfileData } from '@/types/profile';
 import { UpdateProfileDto } from '@/services/api';
+import { updateProfileClient, uploadSpecificPhotoClient } from '@/services/api-client';
 
 const ProfilePage = () => {
-  const auth = useAuth();
+  const { accessToken } = useRequireAuth();
   const { data: userData, loading, error, refetch } = useUserProfile();
   const [activeSection, setActiveSection] = useState('photos');
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
@@ -91,7 +92,7 @@ const ProfilePage = () => {
         // sundayActivity: profileData.sundayActivity,
       };
 
-      await API.User.updateMe(updatePayload);
+      await updateProfileClient(updatePayload, accessToken!);
       setSaveMessage('Profile saved successfully!');
       refetch();
       setTimeout(() => setSaveMessage(''), 3000);
@@ -119,7 +120,7 @@ const ProfilePage = () => {
         const currentPhotoCount = profileData.photos.length;
         const photoNumber = currentPhotoCount < 3 ? currentPhotoCount + 1 : 1; // Cycle through slots or add to next
 
-        const response = await API.User.uploadSpecificPhoto(photoNumber, formData);
+        const response = await uploadSpecificPhotoClient(photoNumber, formData, accessToken!);
         
         // Update profileData.photos based on the response
         const updatedPhotosArray = [...(profileData.photos || [])];
