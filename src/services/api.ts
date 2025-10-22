@@ -578,8 +578,8 @@ export const MatchAPI = {
   },
 
   // Create a new match
-  createMatch: async (matchedUserId: string): Promise<{ matchId: string }> => {
-    return apiRequest('/matches/create', {
+  createMatch: async (matchedUserId: string): Promise<{ match: Match; created: boolean; }> => {
+    return apiRequest('/match/create', {
       method: 'POST',
       body: JSON.stringify({ matchedUserId }),
     });

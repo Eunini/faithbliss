@@ -7,7 +7,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { getApiClient } from '@/services/api-client';
 
 import { useRequireAuth } from './useAuth';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { GetUsersResponse } from '@/services/api'; // New import
 
 interface ApiState<T> {
@@ -21,6 +21,11 @@ interface UseApiOptions {
   showErrorToast?: boolean;
   showSuccessToast?: boolean;
   cacheTime?: number;
+}
+
+export interface ConversationMessagesResponse {
+  match: Match;
+  messages: Message[];
 }
 
 // Global request cache to prevent duplicate requests
@@ -37,6 +42,7 @@ interface ConversationSummary {
   otherUser: {
     id: string;
     name: string;
+    profilePhoto1: string;
   };
   lastMessage: Message | null;
   unreadCount: number;
@@ -364,40 +370,66 @@ export function useOnboarding() {
 
 // Hook for WebSocket connection
 export function useConversations() {
+  const pathname = usePathname();
+  console.log("useConversations")
   const { accessToken, isAuthenticated } = useRequireAuth();
-
+  
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
-
-  const apiCall = useCallback(() => {
+  
+  const apiCall = useCallback(async (): Promise<ConversationSummary[]> => {
     if (!accessToken) {
       throw new Error('Authentication required. Please log in.');
     }
-    return apiClient.Message.getMatchConversations();
+    const resp = await apiClient.Message.getMatchConversations();
+    console.log("useConversations: ",resp)
+    return resp;
   }, [apiClient, accessToken]);
 
-  return useApi(
+  const { data, loading, error, refetch } = useApi(
     isAuthenticated ? apiCall : null,
     [accessToken, isAuthenticated],
-    { immediate: isAuthenticated }
+    { immediate: true }
   );
+
+  // 👇 Re-fetch when user navigates back to `/messages`
+  useEffect(() => {
+    if (pathname === '/messages') {
+      refetch();
+    }
+  }, [pathname, refetch]);
+
+  return { data, loading, error, refetch };
 }
 
 // Hook for conversation messages
-export function useConversationMessages(matchId: string, page: number = 1, limit: number = 50) {
+export function useConversationMessages(
+  matchId: string,
+  otherUserId?: string,
+  page: number = 1,
+  limit: number = 50
+): {
+  execute: () => Promise<ConversationMessagesResponse>;
+  refetch: () => Promise<ConversationMessagesResponse>;
+  data: ConversationMessagesResponse | null;
+  loading: boolean;
+  error: string | null;
+} {
+  console.log("useConversationMessages: ", otherUserId)
   const { accessToken, isAuthenticated } = useRequireAuth();
-
   const apiClient = useMemo(() => getApiClient(accessToken ?? null), [accessToken]);
+  
+  const apiCall = useCallback(async (): Promise<ConversationMessagesResponse> => {
+    if (!accessToken) throw new Error('Authentication required');
+    
+    // Return the full response from backend
+    const response = await apiClient.Message.getCreateMatchMessages(matchId, otherUserId, page, limit);
+    console.log("useConversationMessages: ", response)
+    return response; // should be { match: ..., messages: [...] }
+  }, [apiClient, accessToken, matchId, otherUserId, page, limit]);
 
-  const apiCall = useCallback(() => {
-    if (!accessToken) {
-      throw new Error('Authentication required. Please log in.');
-    }
-    return apiClient.Message.getMatchMessages(matchId, page, limit);
-  }, [apiClient, accessToken, matchId, page, limit]);
-
-  return useApi(
+  return useApi<ConversationMessagesResponse>(
     isAuthenticated && matchId ? apiCall : null,
-    [accessToken, isAuthenticated, matchId, page, limit],
+    [accessToken, isAuthenticated, matchId, otherUserId, page, limit],
     { immediate: !!(isAuthenticated && matchId) }
   );
 }

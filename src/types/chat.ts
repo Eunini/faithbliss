@@ -24,6 +24,18 @@ export interface Notification {
     name: string;
   };
 }
+export interface ConversationSummary {
+  id: string; // match ID
+  otherUser: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+  };
+  lastMessage: string | null;
+  unreadCount: number;
+  updatedAt: string;
+}
+
 
 export interface TypingEventSent {
   matchId: string;

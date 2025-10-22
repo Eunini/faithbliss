@@ -18,6 +18,7 @@ import { HeartBeatLoader } from '@/components/HeartBeatLoader';
 
 const MessagesContent = () => {
   const searchParams = useSearchParams();
+  const didAutoSelect = useRef(false);
   const profileIdParam = searchParams.get('profileId');
   const profileNameParam = searchParams.get('profileName');
   
@@ -27,15 +28,18 @@ const MessagesContent = () => {
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [hasUserSelectedChat, setHasUserSelectedChat] = useState(false);
+  const lastRefetchedMatchId = useRef<string | null>(null);
   const { data: session } = useSession();
   const currentUserId = session?.user?.id;
-
+  
+  // Fetch messages for selected conversation
+  const { data: messages, loading: conversationLoading } = useConversationMessages(selectedChat || '', profileIdParam || '');
   // Fetch real conversations data from backend
+
   const { data: conversations, loading, error, refetch } = useConversations();
   const webSocketService = useWebSocket();
   
-  // Fetch messages for selected conversation
-  const { data: messages } = useConversationMessages(selectedChat || '');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -57,13 +61,12 @@ const MessagesContent = () => {
   const handleSendMessage = async () => {
     if (newMessage.trim() && currentConversation) {
       try {
-        let actualMatchId = currentConversation.matchId;
+        let actualMatchId = currentConversation.id;
 
         // If it's a virtual conversation (new chat), create a match first
-        if (profileIdParam && currentConversation.matchId === profileIdParam) {
-          console.log('Creating new match for:', profileIdParam);
+        if (profileIdParam && currentConversation.id === profileIdParam) {
           const createMatchResponse = await API.Match.createMatch(profileIdParam);
-          actualMatchId = createMatchResponse.matchId;
+          actualMatchId = createMatchResponse.match.id;
           setSelectedChat(actualMatchId); // Update selectedChat with the real matchId
         }
 
@@ -80,8 +83,49 @@ const MessagesContent = () => {
     }
   };
 
-  // Use real conversations data or empty array
+  const handleSelectChat = (id: string) => {
+    setSelectedChat(id);
+    setHasUserSelectedChat(true);
+  };
+
+  
   const realConversations = conversations || [];
+
+  useEffect(() => {
+    // Reset auto-select flag whenever conversations change
+    didAutoSelect.current = false;
+  }, [realConversations, profileIdParam]);
+  
+  //Auto select first conversation on page render or selected profile
+  useEffect(() => {
+    if (realConversations.length === 0) return;
+
+    if (profileIdParam && !didAutoSelect.current) {
+      const found = realConversations.find(
+        conv => conv.otherUser?.id === profileIdParam
+      );
+      if (found && selectedChat !== found.id) {
+        setSelectedChat(found.id);
+        didAutoSelect.current = true;
+      }
+    } else if (!selectedChat && !didAutoSelect.current) {
+      setSelectedChat(realConversations[0]?.id);
+      didAutoSelect.current = true;
+    }
+  }, [realConversations, profileIdParam, selectedChat]);
+
+
+  useEffect(() => {
+    // Only refetch if there's a new match not in conversations and we haven't just refetched for it
+    if (
+      messages?.match?.id &&
+      !conversations?.find(conv => conv.id === messages.match.id) &&
+      lastRefetchedMatchId.current !== messages.match.id
+    ) {
+      refetch();
+      lastRefetchedMatchId.current = messages.match.id;
+    }
+  }, [conversations, messages?.match?.id, refetch]);
 
   // Show loading state
   if (loading) {
@@ -124,28 +168,13 @@ const MessagesContent = () => {
     );
   }
 
-  const selectedConversation = realConversations.find(conv => conv.matchId === selectedChat);
+  const selectedConversation = realConversations.find(conv => conv.id === selectedChat);
 
   // Derive the conversation to display in the chat area
-  const currentConversation = selectedConversation || (profileIdParam ? {
-    matchId: profileIdParam, // Use profileId as a temporary matchId for new chats
-    match: {
-      id: '', // Placeholder
-      userId: '', // Placeholder
-      matchedUserId: profileIdParam,
-      createdAt: '', // Placeholder
-      matchedUser: {
-        id: profileIdParam,
-        name: profileNameParam || 'New Chat',
-        profilePhoto1: '/default-avatar.png', // Placeholder
-      },
-    },
-    lastMessage: undefined,
-    unreadCount: 0,
-  } : undefined);
+  const currentConversation = selectedConversation;
 
   const filteredConversations = realConversations.filter(conv => {
-    const matchedUser = conv.match?.matchedUser;
+    const matchedUser = conv.otherUser;
     return matchedUser?.name?.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
@@ -220,13 +249,13 @@ const MessagesContent = () => {
           {/* Conversations */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden p-2 space-y-1 min-w-0">
             {filteredConversations.map((conversation) => {
-              const matchedUser = conversation.match?.matchedUser;
+              const matchedUser = conversation.otherUser;
               return (
                 <button
-                  key={conversation.matchId}
-                  onClick={() => setSelectedChat(conversation.matchId)}
+                  key={conversation.id}
+                  onClick={() => handleSelectChat(conversation.id)}
                   className={`w-full p-4 rounded-2xl transition-all duration-300 hover:bg-white/10 min-w-0 text-left ${
-                    selectedChat === conversation.matchId 
+                    selectedChat === conversation.id 
                       ? 'bg-gradient-to-r from-pink-500/20 to-purple-600/20 border border-pink-500/30' 
                       : 'hover:bg-white/5'
                   }`}
@@ -234,7 +263,7 @@ const MessagesContent = () => {
                   <div className="flex items-center space-x-3 min-w-0">
                     <div className="relative flex-shrink-0">
                       <Image
-                        src={matchedUser?.profilePhotos?.photo1 || '/default-avatar.png'}
+                        src={matchedUser?.profilePhoto1 || '/default-avatar.png'}
                         alt={matchedUser?.name || 'User'}
                       width={48}
                       height={48}
@@ -250,9 +279,9 @@ const MessagesContent = () => {
                   
                   <div className="flex-1 text-left min-w-0 overflow-hidden">
                     <div className="flex items-center justify-between">
-                      <Link href={`/profile/${matchedUser?.id}`}>
+                      {/* <Link href={`/profile/${matchedUser?.id}`}> */}
                         <h3 className="font-semibold text-white truncate hover:text-pink-300 transition-colors cursor-pointer">{matchedUser?.name}</h3>
-                      </Link>
+                      {/* </Link> */}
                       <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
                         {conversation.lastMessage ? new Date(conversation.lastMessage.createdAt).toLocaleDateString() : 'New'}
                       </span>
@@ -286,8 +315,8 @@ const MessagesContent = () => {
                   
                   <div className="relative">
                     <Image
-                      src={currentConversation?.match?.matchedUser?.profilePhoto1 || '/default-avatar.png'}
-                      alt={currentConversation?.match?.matchedUser?.name || 'User'}
+                      src={currentConversation?.otherUser.profilePhoto1 || '/default-avatar.png'}
+                      alt={currentConversation?.otherUser.name || 'User'}
                       width={40}
                       height={40}
                       className="w-10 h-10 object-cover rounded-full ring-2 ring-pink-500/30"
@@ -296,7 +325,7 @@ const MessagesContent = () => {
                   </div>
                   
                   <div>
-                    <h3>{currentConversation?.match?.matchedUser?.name}</h3>
+                    <h3>{currentConversation?.otherUser.name}</h3>
                     <p className="text-xs text-gray-400">
                       Active now
                     </p>
@@ -310,18 +339,23 @@ const MessagesContent = () => {
                   <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
                     <Video className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
                   </button>
-                  <Link href={`/profile/${currentConversation?.match?.matchedUser?.id}`}>
+                  {/* <Link href={`/profile/${currentConversation?.otherUser.id}`}> */}
                     <button className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 hover:border-white/30 rounded-2xl transition-all duration-300 hover:scale-105 group">
                       <Info className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
                     </button>
-                  </Link>
+                  {/* </Link> */}
                 </div>
               </div>
             </div>
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 min-w-0">
-              {messages && messages.map((message) => (
+              {conversationLoading && !hasUserSelectedChat ? (
+                <div className="flex justify-center items-center h-full">
+                  <HeartBeatLoader message="Loading messages..." />
+                </div>
+              ) : (
+                messages?.messages && messages.messages.map((message) => (
                 <div
                   key={message.id}
                   className={`flex ${message.senderId === currentUserId ? 'justify-end' : 'justify-start'}`}
@@ -352,7 +386,8 @@ const MessagesContent = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              ))
+              )}
               
               {false && (
                 <div className="flex justify-start">

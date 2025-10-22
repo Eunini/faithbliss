@@ -3,6 +3,7 @@
 // src/services/api-client.ts
 // This file contains a version of the API service designed to be used exclusively on the client-side.
 // It is initialized with an access token obtained from the client's session.
+import { ConversationMessagesResponse } from '@/hooks/useAPI';
 import { GetUsersResponse, UpdateProfileDto, User } from '@/services/api'; // New import
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://faithbliss-backend.fly.dev';
@@ -163,14 +164,18 @@ export const getApiClient = (accessToken: string | null) => ({
   Message: {
     sendMessage: (matchId: string, content: string) =>
       apiClientRequest<any>('/messages', { method: 'POST', body: JSON.stringify({ matchId, content }) }, accessToken),
-    getMatchMessages: (matchId: string, page: number = 1, limit: number = 50) =>
-      apiClientRequest<any[]>(`/messages/${matchId}?page=${page}&limit=${limit}`, { method: 'GET' }, accessToken),
+    getCreateMatchMessages: (matchId: string, otherUserId?: string, page: number = 1, limit: number = 50) =>
+      apiClientRequest<ConversationMessagesResponse>(
+        `/messages/match/${matchId}?page=${page}&limit=${limit}${otherUserId ? `&otherUserId=${otherUserId}` : ''}`,
+        { method: 'GET' },
+        accessToken
+      ),
     markMessageAsRead: (messageId: string) =>
       apiClientRequest<void>(`/messages/${messageId}/read`, { method: 'PATCH' }, accessToken),
     getUnreadCount: () =>
       apiClientRequest<{ count: number }>('/messages/unread-count', { method: 'GET' }, accessToken),
     getMatchConversations: () =>
-      apiClientRequest<any[]>('/matches/conversations', { method: 'GET' }, accessToken),
+      apiClientRequest<any[]>('/messages/conversations', { method: 'GET' }, accessToken),
   },
 });
 
